@@ -1,0 +1,119 @@
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+import { site } from "../data/site";
+import { useLanguage } from "../hooks/useLanguage";
+import { useSettings } from "../hooks/useSettings";
+import { Clock } from "../components/Clock";
+
+interface LandingProps {
+  onEnter: () => void;
+}
+
+export function Landing({ onEnter }: LandingProps) {
+  const { t } = useLanguage();
+  const { settings } = useSettings();
+  const reduceMotion = useReducedMotion();
+  const name = settings.recipient.trim() || site.names.recipient;
+
+  const rise = (delay: number) => ({
+    initial: { opacity: 0, y: reduceMotion ? 0 : 14 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.9, delay, ease: [0.22, 1, 0.36, 1] as const },
+  });
+
+  return (
+    <div className="relative flex min-h-[100svh] flex-col overflow-hidden bg-mist">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-3 border border-line/60 sm:inset-5"
+      />
+
+      <header className="relative z-10 flex items-start justify-between gap-6 px-7 pt-7 sm:px-11 sm:pt-9">
+        <div>
+          <p className="label">{t.landing.eyebrow}</p>
+          <p className="label mt-3 flex items-center gap-2.5">
+            <span aria-hidden="true" className="signal-dot h-1.5 w-1.5 rounded-full bg-ember" />
+            {t.landing.labels.space}
+          </p>
+        </div>
+        <Clock
+          className="text-right"
+          label={t.landing.clockLabel}
+          showDate
+        />
+      </header>
+
+      <p
+        aria-hidden="true"
+        className="vertical-jp absolute right-9 top-1/2 z-10 hidden -translate-y-1/2 text-[10px] text-navy/25 lg:block"
+      >
+        {t.landing.jp}
+      </p>
+
+      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-14 text-center">
+        <motion.p {...rise(0.05)} className="label tracking-[0.3em] text-ember/80">
+          {t.footer.madeFor(name)}
+        </motion.p>
+
+        <motion.h1
+          {...rise(0.15)}
+          className="mt-7 font-display text-[clamp(2.7rem,9.5vw,6.5rem)] font-extralight leading-[0.94] tracking-[-0.02em] text-ink"
+        >
+          A Place
+          <br />
+          <span className="text-navy/90">Beyond Time</span>
+        </motion.h1>
+
+        <motion.p {...rise(0.3)} className="mt-8 max-w-sm text-sm leading-loose text-navy/70">
+          {t.landing.subtitle}
+        </motion.p>
+
+        <motion.p {...rise(0.38)} className="mt-3 max-w-md text-[13px] leading-relaxed text-muted">
+          {t.landing.greeting}
+        </motion.p>
+
+        <motion.div {...rise(0.5)} className="mt-10">
+          <button
+            type="button"
+            onClick={onEnter}
+            className="group relative inline-flex items-center gap-4 border border-navy/70 px-9 py-4 text-navy transition-colors duration-300 hover:bg-navy hover:text-mist sm:px-12"
+          >
+            <span aria-hidden="true" className="absolute -left-px -top-px h-1.5 w-1.5 bg-ember" />
+            <span aria-hidden="true" className="absolute -bottom-px -right-px h-1.5 w-1.5 bg-ember" />
+            <span className="font-mono text-[11px] uppercase tracking-[0.42em]">
+              {t.landing.enter}
+            </span>
+            <ArrowRight
+              size={15}
+              strokeWidth={1.5}
+              aria-hidden="true"
+              className="transition-transform duration-300 group-hover:translate-x-1"
+            />
+          </button>
+        </motion.div>
+
+        <motion.p {...rise(0.6)} className="label mt-6 text-[9px] tracking-[0.16em] text-muted/80">
+          {t.landing.hint}
+        </motion.p>
+      </main>
+
+      <footer className="relative z-10 border-t border-line/60 px-7 py-5 sm:px-11">
+        <ul className="grid grid-cols-2 gap-x-6 gap-y-3 sm:flex sm:items-center sm:justify-between">
+          {[
+            t.landing.labels.space,
+            t.landing.labels.connection,
+            t.landing.labels.archive,
+            t.landing.labels.transmission,
+          ].map((label, index) => (
+            <li key={label} className="label flex items-center gap-2 text-[9px]">
+              <span aria-hidden="true" className="text-ember/60">
+                0{index + 1}
+              </span>
+              {label}
+            </li>
+          ))}
+        </ul>
+      </footer>
+    </div>
+  );
+}
