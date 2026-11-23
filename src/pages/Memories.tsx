@@ -21,7 +21,7 @@ export function Memories() {
     <button
       type="button"
       onClick={() => setCreating(true)}
-      className="inline-flex items-center gap-2 border border-navy/70 px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-navy transition-colors hover:bg-navy hover:text-mist"
+      className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-navy/70 px-4 font-mono text-[10px] uppercase tracking-[0.18em] text-navy transition-colors hover:bg-navy hover:text-mist sm:w-auto"
     >
       <Plus size={12} strokeWidth={1.5} aria-hidden="true" />
       {t.memories.add}
@@ -38,7 +38,7 @@ export function Memories() {
         aside={<span className="label">{t.memories.count(memories.length)}</span>}
       />
 
-      <div className="mt-6 flex justify-end">{addButton}</div>
+      <div className="mt-6 sm:flex sm:justify-end">{addButton}</div>
 
       {loading ? (
         <div className="mt-10 space-y-10" aria-hidden="true">
@@ -67,7 +67,7 @@ export function Memories() {
             aria-hidden="true"
             className="absolute bottom-0 left-[7px] top-0 w-px bg-line/70 md:left-1/2"
           />
-          <ol className="space-y-14 md:space-y-20">
+          <ol className="space-y-12 md:space-y-20">
             {memories.map((memory, index) => (
               <motion.li
                 key={memory.id}

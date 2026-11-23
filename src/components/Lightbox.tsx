@@ -53,7 +53,7 @@ export function Lightbox({ memories, index, onClose, onChange }: LightboxProps) 
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <div className="flex items-center justify-between border-b border-line/70 px-5 py-4 sm:px-8">
+          <div className="flex items-center justify-between border-b border-line/70 px-5 py-3 sm:px-8 sm:py-4">
             <p className="label">
               {String((index ?? 0) + 1).padStart(2, "0")} /{" "}
               {String(memories.length).padStart(2, "0")}
@@ -62,13 +62,13 @@ export function Lightbox({ memories, index, onClose, onChange }: LightboxProps) 
               type="button"
               onClick={onClose}
               aria-label={t.memories.close}
-              className="inline-flex h-9 w-9 items-center justify-center border border-line text-navy transition-colors hover:border-navy/40"
+              className="inline-flex h-11 w-11 items-center justify-center border border-line text-navy transition-colors hover:border-navy/40"
             >
               <X size={16} strokeWidth={1.5} />
             </button>
           </div>
 
-          <div className="flex flex-1 flex-col items-center justify-center gap-8 overflow-y-auto px-5 py-8 lg:flex-row lg:items-center lg:gap-14 lg:px-14">
+          <div className="flex flex-1 flex-col items-center gap-6 overflow-y-auto px-5 py-6 sm:justify-center sm:gap-8 sm:py-8 lg:flex-row lg:items-center lg:gap-14 lg:px-14">
             <motion.figure
               key={memory.id}
               initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.985 }}
@@ -82,7 +82,7 @@ export function Lightbox({ memories, index, onClose, onChange }: LightboxProps) 
                   alt={memory.title}
                   width={1184}
                   height={880}
-                  className="max-h-[58vh] w-full border border-line/80 object-cover"
+                  className="max-h-[45vh] w-full border border-line/80 object-contain sm:max-h-[58vh] sm:object-cover"
                 />
               )}
             </motion.figure>
@@ -103,7 +103,7 @@ export function Lightbox({ memories, index, onClose, onChange }: LightboxProps) 
                   type="button"
                   onClick={() => onChange(((index ?? 0) - 1 + memories.length) % memories.length)}
                   aria-label={t.memories.previous}
-                  className="inline-flex h-10 w-10 items-center justify-center border border-line text-navy transition-colors hover:border-navy/40"
+                  className="inline-flex h-11 w-11 items-center justify-center border border-line text-navy transition-colors hover:border-navy/40"
                 >
                   <ArrowLeft size={15} strokeWidth={1.5} />
                 </button>
@@ -111,7 +111,7 @@ export function Lightbox({ memories, index, onClose, onChange }: LightboxProps) 
                   type="button"
                   onClick={() => onChange(((index ?? 0) + 1) % memories.length)}
                   aria-label={t.memories.next}
-                  className="inline-flex h-10 w-10 items-center justify-center border border-line text-navy transition-colors hover:border-navy/40"
+                  className="inline-flex h-11 w-11 items-center justify-center border border-line text-navy transition-colors hover:border-navy/40"
                 >
                   <ArrowRight size={15} strokeWidth={1.5} />
                 </button>

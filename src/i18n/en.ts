@@ -137,6 +137,7 @@ export const en = {
     addPhoto: "Choose a photo",
     changePhoto: "Change photo",
     photoHint: "Any image from this device, up to 10 MB.",
+    uploadError: "That file is not an image, or it is larger than 10 MB.",
     titleLabel: "Title",
     titlePlaceholder: "Give this day a name",
     dateLabel: "Date",

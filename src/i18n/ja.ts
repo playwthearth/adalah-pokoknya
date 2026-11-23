@@ -134,6 +134,7 @@ export const ja: Dict = {
     addPhoto: "写真を選ぶ",
     changePhoto: "写真を変更",
     photoHint: "この端末の画像を選べます（10 MB まで）。",
+    uploadError: "画像ファイルではないか、10 MB を超えています。",
     titleLabel: "タイトル",
     titlePlaceholder: "この日に名前をつける",
     dateLabel: "日付",

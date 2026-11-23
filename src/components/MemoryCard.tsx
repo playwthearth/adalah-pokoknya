@@ -70,8 +70,8 @@ export function MemoryCard({ memory, index, onOpen, onEdit }: MemoryCardProps) {
             {memory.note}
           </p>
         )}
-        <div className={`mt-4 ${flipped ? "md:justify-end" : ""} flex flex-wrap gap-4`}>
-          <button type="button" onClick={onOpen} className="btn-quiet group">
+        <div className={`mt-3 ${flipped ? "md:justify-end" : ""} flex flex-wrap items-center gap-x-6 gap-y-1`}>
+          <button type="button" onClick={onOpen} className="btn-quiet group min-h-11">
             {t.memories.view}
             <ArrowUpRight
               size={12}
@@ -80,7 +80,7 @@ export function MemoryCard({ memory, index, onOpen, onEdit }: MemoryCardProps) {
               className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
             />
           </button>
-          <button type="button" onClick={onEdit} className="btn-quiet group">
+          <button type="button" onClick={onEdit} className="btn-quiet group min-h-11">
             <Pencil size={11} strokeWidth={1.5} aria-hidden="true" />
             {t.memories.edit}
           </button>

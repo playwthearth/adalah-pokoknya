@@ -1,6 +1,6 @@
 import { Loader2, Trash2, Upload, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import type { MemoryDraft } from "../hooks/useMemories";
+import { MAX_PHOTO_BYTES, type MemoryDraft } from "../hooks/useMemories";
 import { useLanguage } from "../hooks/useLanguage";
 import type { Memory } from "../types";
 
@@ -13,7 +13,10 @@ interface MemoryEditorProps {
 }
 
 const fieldClass =
-  "w-full border-0 border-b border-line bg-transparent py-2 text-sm text-ink outline-none transition-colors placeholder:text-muted-strong focus:border-navy";
+  "w-full border-0 border-b border-line bg-transparent py-2.5 text-base text-ink outline-none transition-colors placeholder:text-muted-strong focus:border-navy sm:text-sm";
+
+const actionClass =
+  "inline-flex min-h-11 items-center justify-center gap-2 border px-4 text-[10px] uppercase tracking-[0.18em] transition-colors";
 
 export function MemoryEditor({ memory, onClose, onSave, onDelete }: MemoryEditorProps) {
   const { t } = useLanguage();
@@ -40,6 +43,15 @@ export function MemoryEditor({ memory, onClose, onSave, onDelete }: MemoryEditor
     return undefined;
   }, [photo, preview]);
 
+  // The sheet covers the page, so the archive behind it must not scroll.
+  useEffect(() => {
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, []);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && !busy) onClose();
@@ -47,6 +59,19 @@ export function MemoryEditor({ memory, onClose, onSave, onDelete }: MemoryEditor
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [busy, onClose]);
+
+  const chooseFile = (file: File | null) => {
+    setError(null);
+    if (!file) {
+      setPhoto(null);
+      return;
+    }
+    if (!file.type.startsWith("image/") || file.size > MAX_PHOTO_BYTES) {
+      setError(t.memories.uploadError);
+      return;
+    }
+    setPhoto(file);
+  };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -85,126 +110,139 @@ export function MemoryEditor({ memory, onClose, onSave, onDelete }: MemoryEditor
 
   return (
     <div
-      className="fixed inset-0 z-[88] overflow-y-auto bg-navy/30 px-4 py-6 backdrop-blur-sm sm:px-8 sm:py-10"
+      className="fixed inset-0 z-[88] overflow-y-auto overscroll-contain bg-navy/40 sm:flex sm:items-start sm:justify-center sm:p-8 sm:backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-label={memory ? t.memories.editing : t.memories.creating}
     >
       <form
         onSubmit={submit}
-        className="mx-auto w-full max-w-xl border border-line bg-mist p-5 shadow-[0_30px_80px_-40px_rgba(34,58,79,0.5)] sm:p-8"
+        className="flex min-h-[100dvh] w-full flex-col bg-mist sm:min-h-0 sm:max-w-xl sm:border sm:border-line sm:shadow-[0_30px_80px_-40px_rgba(34,58,79,0.5)]"
       >
-        <div className="flex items-start justify-between gap-4">
-          <p className="label">{memory ? t.memories.editing : t.memories.creating}</p>
+        <header className="flex items-start justify-between gap-4 border-b border-line/70 px-5 py-4 sm:border-0 sm:p-8 sm:pb-0">
+          <p className="label pt-2">{memory ? t.memories.editing : t.memories.creating}</p>
           <button
             type="button"
             onClick={onClose}
             aria-label={t.common.close}
-            className="inline-flex h-8 w-8 items-center justify-center border border-line text-navy transition-colors hover:border-navy/40"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center border border-line text-navy transition-colors hover:border-navy/40"
           >
-            <X size={14} strokeWidth={1.5} aria-hidden="true" />
+            <X size={16} strokeWidth={1.5} aria-hidden="true" />
           </button>
-        </div>
+        </header>
 
-        <div className="mt-6 border border-line/80 bg-pale">
-          {preview ? (
-            <img
-              src={preview}
-              alt=""
-              className="aspect-[4/3] w-full object-cover"
-            />
-          ) : (
-            <div className="flex aspect-[4/3] items-center justify-center">
-              <span className="label text-[9px]">{t.memories.noPhoto}</span>
+        <div className="flex-1 px-5 py-5 sm:px-8 sm:py-6">
+          <div className="border border-line/80 bg-pale">
+            {preview ? (
+              <img
+                src={preview}
+                alt=""
+                width={1184}
+                height={880}
+                decoding="async"
+                className="aspect-[4/3] w-full object-cover"
+              />
+            ) : (
+              <div className="flex aspect-[4/3] items-center justify-center">
+                <span className="label text-[9px]">{t.memories.noPhoto}</span>
+              </div>
+            )}
+          </div>
+
+          <input
+            ref={fileInput}
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            onChange={(event) => {
+              chooseFile(event.target.files?.[0] ?? null);
+              // Allow picking the same file again after a failed attempt.
+              event.target.value = "";
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => fileInput.current?.click()}
+            className={`${actionClass} mt-3 w-full border-line text-navy/75 hover:border-navy/40 hover:text-ink sm:w-auto`}
+          >
+            <Upload size={13} strokeWidth={1.5} aria-hidden="true" />
+            {preview ? t.memories.changePhoto : t.memories.addPhoto}
+          </button>
+          <p className="label mt-2 text-[9px] normal-case tracking-[0.08em]">
+            {t.memories.photoHint}
+          </p>
+
+          <div className="mt-6 space-y-5">
+            <div>
+              <label htmlFor="memory-title" className="label block">
+                {t.memories.titleLabel}
+              </label>
+              <input
+                id="memory-title"
+                type="text"
+                required
+                maxLength={120}
+                autoComplete="off"
+                value={title}
+                placeholder={t.memories.titlePlaceholder}
+                onChange={(event) => setTitle(event.target.value)}
+                className={`${fieldClass} mt-2`}
+              />
             </div>
-          )}
-        </div>
 
-        <input
-          ref={fileInput}
-          type="file"
-          accept="image/*"
-          className="sr-only"
-          onChange={(event) => {
-            const file = event.target.files?.[0] ?? null;
-            setPhoto(file);
-            setError(null);
-          }}
-        />
-        <button
-          type="button"
-          onClick={() => fileInput.current?.click()}
-          className="mt-3 inline-flex items-center gap-2 border border-line px-4 py-2.5 text-[10px] uppercase tracking-[0.18em] text-navy/75 transition-colors hover:border-navy/40 hover:text-ink"
-        >
-          <Upload size={12} strokeWidth={1.5} aria-hidden="true" />
-          {preview ? t.memories.changePhoto : t.memories.addPhoto}
-        </button>
-        <p className="label mt-2 text-[9px]">{t.memories.photoHint}</p>
+            <div>
+              <label htmlFor="memory-date" className="label block">
+                {t.memories.dateLabel}
+              </label>
+              <input
+                id="memory-date"
+                type="date"
+                required
+                value={date}
+                onChange={(event) => setDate(event.target.value)}
+                className={`${fieldClass} mt-2 min-w-0 font-mono text-base sm:max-w-[220px] sm:text-[12px]`}
+              />
+            </div>
 
-        <div className="mt-6 space-y-5">
-          <div>
-            <label htmlFor="memory-title" className="label block">
-              {t.memories.titleLabel}
-            </label>
-            <input
-              id="memory-title"
-              type="text"
-              required
-              maxLength={120}
-              autoComplete="off"
-              value={title}
-              placeholder={t.memories.titlePlaceholder}
-              onChange={(event) => setTitle(event.target.value)}
-              className={`${fieldClass} mt-2`}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="memory-date" className="label block">
-              {t.memories.dateLabel}
-            </label>
-            <input
-              id="memory-date"
-              type="date"
-              required
-              value={date}
-              onChange={(event) => setDate(event.target.value)}
-              className={`${fieldClass} mt-2 block max-w-[220px] font-mono text-[12px]`}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="memory-note" className="label block">
-              {t.memories.noteLabel}
-            </label>
-            <textarea
-              id="memory-note"
-              rows={4}
-              maxLength={2000}
-              value={note}
-              placeholder={t.memories.notePlaceholder}
-              onChange={(event) => setNote(event.target.value)}
-              className={`${fieldClass} mt-2 resize-y leading-relaxed`}
-            />
+            <div>
+              <label htmlFor="memory-note" className="label block">
+                {t.memories.noteLabel}
+              </label>
+              <textarea
+                id="memory-note"
+                rows={4}
+                maxLength={2000}
+                value={note}
+                placeholder={t.memories.notePlaceholder}
+                onChange={(event) => setNote(event.target.value)}
+                className={`${fieldClass} mt-2 resize-y leading-relaxed`}
+              />
+            </div>
           </div>
         </div>
 
         {error && (
-          <p role="alert" className="mt-4 text-[11px] text-ember">
+          <p role="alert" className="px-5 pb-2 text-[11px] leading-relaxed text-ember sm:px-8">
             {error}
           </p>
         )}
 
-        <div className="mt-7 flex flex-wrap items-center gap-3">
+        <footer className="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-line/70 bg-mist/95 px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:px-8 sm:py-6 sm:pb-8">
           <button
             type="submit"
             disabled={busy || !title.trim() || !date}
-            className="inline-flex items-center gap-2 border border-navy/70 px-5 py-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-navy transition-colors hover:bg-navy hover:text-mist disabled:cursor-not-allowed disabled:opacity-50"
+            className={`${actionClass} flex-1 border-navy/70 font-mono text-navy hover:bg-navy hover:text-mist disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none`}
           >
-            {busy && <Loader2 size={12} strokeWidth={1.5} className="animate-spin" aria-hidden="true" />}
+            {busy && (
+              <Loader2 size={12} strokeWidth={1.5} className="animate-spin" aria-hidden="true" />
+            )}
             {busy ? t.memories.saving : t.memories.save}
           </button>
-          <button type="button" onClick={onClose} className="btn-quiet">
+          <button
+            type="button"
+            onClick={onClose}
+            className={`${actionClass} border-line text-navy/70 hover:border-navy/40 hover:text-ink`}
+          >
             {t.memories.cancel}
           </button>
 
@@ -213,13 +251,15 @@ export function MemoryEditor({ memory, onClose, onSave, onDelete }: MemoryEditor
               type="button"
               onClick={() => void remove()}
               disabled={busy}
-              className={`btn-quiet ml-auto hover:text-ember ${confirming ? "text-ember" : ""}`}
+              className={`${actionClass} ml-auto border-transparent px-2 hover:text-ember ${
+                confirming ? "text-ember" : "text-muted-strong"
+              }`}
             >
-              <Trash2 size={12} strokeWidth={1.5} aria-hidden="true" />
+              <Trash2 size={13} strokeWidth={1.5} aria-hidden="true" />
               {confirming ? t.memories.confirmDelete : t.memories.delete}
             </button>
           )}
-        </div>
+        </footer>
       </form>
     </div>
   );

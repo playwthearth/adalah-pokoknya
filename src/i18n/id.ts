@@ -135,6 +135,7 @@ export const id: Dict = {
     addPhoto: "Pilih foto",
     changePhoto: "Ganti foto",
     photoHint: "Gambar apa pun dari perangkat ini, maksimal 10 MB.",
+    uploadError: "File itu bukan gambar, atau ukurannya lebih dari 10 MB.",
     titleLabel: "Judul",
     titlePlaceholder: "Beri nama untuk hari ini",
     dateLabel: "Tanggal",
