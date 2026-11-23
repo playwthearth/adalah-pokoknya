@@ -18,13 +18,21 @@ export function Footer() {
             {site.jpTitle}
           </p>
         </div>
-        <p className="label hidden sm:block">{t.footer.note}</p>
-        <div className="label flex flex-wrap items-center gap-x-3 gap-y-2">
-          <span>{t.footer.madeFor(settings.recipient)}</span>
-          <span aria-hidden="true" className="text-ember/70">
-            ·
-          </span>
-          <span>{year}</span>
+        <div className="hidden flex-col items-center gap-2 sm:flex">
+          <span aria-hidden="true" className="h-1 w-1 rounded-full bg-ember/70" />
+          <p className="label">{t.footer.note}</p>
+        </div>
+        <div>
+          <p className="label flex flex-wrap items-center gap-x-3 gap-y-2 sm:justify-end">
+            <span>{t.footer.madeFor(settings.recipient)}</span>
+            <span aria-hidden="true" className="text-ember/70">
+              ·
+            </span>
+            <span>{year}</span>
+          </p>
+          <p aria-hidden="true" className="serial mt-3 text-[8px] text-muted-strong/70 sm:text-right">
+            00 — 零
+          </p>
         </div>
       </div>
     </footer>

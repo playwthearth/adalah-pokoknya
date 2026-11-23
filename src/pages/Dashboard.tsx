@@ -1,6 +1,7 @@
 import { ArrowUpRight, Images, Mail, Music2, SlidersHorizontal } from "lucide-react";
 import type { ComponentType } from "react";
 import { Clock } from "../components/Clock";
+import { CornerTicks, HairLines } from "../components/ReiMarks";
 import { Reveal } from "../components/Reveal";
 import { TypingText } from "../components/TypingText";
 import { site } from "../data/site";
@@ -103,7 +104,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
-      <section className="grid gap-10 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:gap-14">
+      <section className="relative grid gap-10 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:gap-14">
+        <HairLines className="pointer-events-none absolute -right-6 -top-16 hidden h-[300px] w-[180px] text-cyan/45 xl:block" />
         <div>
           <p className="label flex items-center gap-2.5">
             <span
@@ -128,7 +130,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         </div>
 
         <Reveal delay={0.15} className="lg:pt-1">
-          <aside className="surface h-full p-6">
+          <aside className="surface hud-grid h-full p-6">
+            <CornerTicks className="inset-0" />
             <div className="flex items-center justify-between">
               <p className="label">{t.dashboard.nowLabel}</p>
               <span aria-hidden="true" className="flex items-center gap-1">
@@ -156,7 +159,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
       <section className="mt-12 grid gap-5 sm:mt-16 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
         <Reveal>
-          <div className="surface flex h-full flex-col justify-between p-7 sm:p-9">
+          <div className="surface relative flex h-full flex-col justify-between p-7 sm:p-9">
+            <CornerTicks className="inset-0" />
             <div className="flex items-center justify-between">
               <p className="label">{t.dashboard.daily.label}</p>
               <span className="font-mono text-[10px] tabular-nums tracking-[0.16em] text-muted-strong">
@@ -306,7 +310,9 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                       strokeWidth={1.4}
                       className="text-navy/70 transition-colors group-hover:text-ink"
                     />
-                    <span className="label text-[9px]">0{index + 1}</span>
+                    <span aria-hidden="true" className="serial text-ember">
+                      0{index + 1}
+                    </span>
                   </span>
                   <span className="mt-9 block">
                     <span className="flex items-center justify-between gap-2">

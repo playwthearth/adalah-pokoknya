@@ -1,16 +1,18 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import { Clock } from "../components/Clock";
+import { CornerTicks, HairLines, MoonMark } from "../components/ReiMarks";
 import { site } from "../data/site";
 import { useLanguage } from "../hooks/useLanguage";
 import { useSettings } from "../hooks/useSettings";
-import { Clock } from "../components/Clock";
+import { formatDate } from "../utils/format";
 
 interface LandingProps {
   onEnter: () => void;
 }
 
 export function Landing({ onEnter }: LandingProps) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const { settings } = useSettings();
   const reduceMotion = useReducedMotion();
   const name = settings.recipient.trim() || site.names.recipient;
@@ -23,10 +25,21 @@ export function Landing({ onEnter }: LandingProps) {
 
   return (
     <div className="relative flex min-h-[100svh] flex-col overflow-hidden bg-mist">
+      {/* The room: a frame, a moon, and her hair in the corner of the light. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-3 border border-line/60 sm:inset-5"
+        className="pointer-events-none absolute inset-3 border border-navy/12 sm:inset-5"
       />
+      <CornerTicks className="inset-3 z-20 sm:inset-5" />
+      <MoonMark className="pointer-events-none absolute -right-[34vw] -top-[26vw] w-[86vw] max-w-[640px] text-cyan/70 sm:-right-[8%] sm:-top-[16%] sm:w-[44vw]" />
+      <HairLines className="hair-drift pointer-events-none absolute -left-[4%] top-[22%] hidden h-[64vh] w-[24vw] text-cyan/70 md:block" />
+
+      <span
+        aria-hidden="true"
+        className="vertical-jp pointer-events-none absolute bottom-24 left-8 z-10 hidden text-[clamp(2.5rem,5vw,4rem)] leading-none text-cyan/60 lg:block"
+      >
+        零
+      </span>
 
       <header className="relative z-10 flex items-start justify-between gap-6 px-7 pt-7 sm:px-11 sm:pt-9">
         <div>
@@ -35,17 +48,21 @@ export function Landing({ onEnter }: LandingProps) {
             <span aria-hidden="true" className="signal-dot h-1.5 w-1.5 rounded-full bg-ember" />
             {t.landing.labels.space}
           </p>
+          <p aria-hidden="true" className="serial mt-4 text-[9px]">
+            00 / 零
+          </p>
         </div>
-        <Clock
-          className="text-right"
-          label={t.landing.clockLabel}
-          showDate
-        />
+        <div className="text-right">
+          <Clock label={t.landing.clockLabel} showDate />
+          <p aria-hidden="true" className="serial mt-2.5 text-[9px] text-ember">
+            Unit 00
+          </p>
+        </div>
       </header>
 
       <p
         aria-hidden="true"
-        className="vertical-jp absolute right-9 top-1/2 z-10 hidden -translate-y-1/2 text-[10px] text-navy/25 lg:block"
+        className="vertical-jp absolute right-9 top-1/2 z-10 hidden -translate-y-1/2 text-[10px] text-navy/30 lg:block"
       >
         {t.landing.jp}
       </p>
@@ -64,7 +81,13 @@ export function Landing({ onEnter }: LandingProps) {
           <span className="text-navy/90">Beyond Time</span>
         </motion.h1>
 
-        <motion.p {...rise(0.3)} className="mt-8 max-w-sm text-sm leading-loose text-navy/70">
+        <motion.div {...rise(0.24)} aria-hidden="true" className="mt-7 flex w-full items-center justify-center gap-3">
+          <span className="hair-rule w-16 -scale-x-100" />
+          <span className="h-1 w-1 rounded-full bg-ember" />
+          <span className="hair-rule w-16" />
+        </motion.div>
+
+        <motion.p {...rise(0.3)} className="mt-7 max-w-sm text-sm leading-loose text-navy/75">
           {t.landing.subtitle}
         </motion.p>
 
@@ -76,7 +99,7 @@ export function Landing({ onEnter }: LandingProps) {
           <button
             type="button"
             onClick={onEnter}
-            className="group relative inline-flex items-center gap-4 border border-navy/70 px-9 py-4 text-navy transition-colors duration-300 hover:bg-navy hover:text-mist sm:px-12"
+            className="group relative inline-flex items-center gap-4 border border-navy/70 px-9 py-4 text-navy transition-colors duration-300 hover:border-ember hover:bg-navy hover:text-mist sm:px-12"
           >
             <span aria-hidden="true" className="absolute -left-px -top-px h-1.5 w-1.5 bg-ember" />
             <span aria-hidden="true" className="absolute -bottom-px -right-px h-1.5 w-1.5 bg-ember" />
@@ -113,6 +136,9 @@ export function Landing({ onEnter }: LandingProps) {
             </li>
           ))}
         </ul>
+        <p className="serial mt-4 text-[8px] text-muted-strong/80">
+          {formatDate(settings.startDate, locale)} — 00
+        </p>
       </footer>
     </div>
   );

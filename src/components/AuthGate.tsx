@@ -12,13 +12,16 @@ import { site } from "../data/site";
 import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
 import { LanguageSelector } from "./LanguageSelector";
+import { HairLines, MoonMark } from "./ReiMarks";
 
 function AuthShell({ children }: { children: ReactNode }) {
   const { t } = useLanguage();
   const reduceMotion = useReducedMotion();
 
   return (
-    <div className="relative flex min-h-[100svh] flex-col bg-mist">
+    <div className="relative flex min-h-[100svh] flex-col overflow-hidden bg-mist">
+      <MoonMark className="pointer-events-none absolute -right-[32vw] -top-[22vw] w-[84vw] max-w-[540px] text-cyan/70 sm:-right-[6%] sm:-top-[10%] sm:w-[38vw]" />
+      <HairLines className="pointer-events-none absolute -left-[8%] bottom-[4%] hidden h-[48vh] w-[18vw] text-cyan/60 sm:block" />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-3 border border-line/60 sm:inset-5"

@@ -54,6 +54,13 @@ export function MemoryCard({ memory, index, onOpen, onEdit }: MemoryCardProps) {
           <span className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center border border-mist/60 bg-mist/20 text-mist opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
             <ArrowUpRight size={14} strokeWidth={1.5} />
           </span>
+          {/* Viewfinder ticks over the photograph. */}
+          <span aria-hidden="true" className="pointer-events-none absolute inset-2">
+            <span className="absolute left-0 top-0 h-3 w-3 border-l border-t border-mist/70" />
+            <span className="absolute right-0 top-0 h-3 w-3 border-r border-t border-mist/70" />
+            <span className="absolute bottom-0 left-0 h-3 w-3 border-b border-l border-mist/70" />
+            <span className="absolute bottom-0 right-0 h-3 w-3 border-b border-r border-mist/70" />
+          </span>
           <span className="label absolute left-3 top-3 bg-mist/85 px-2 py-1 text-[8px] text-navy">
             {String(index + 1).padStart(2, "0")}
           </span>

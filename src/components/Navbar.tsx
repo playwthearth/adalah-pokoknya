@@ -5,6 +5,7 @@ import { site } from "../data/site";
 import type { Route } from "../hooks/useHashRoute";
 import { useLanguage } from "../hooks/useLanguage";
 import { LanguageSelector } from "./LanguageSelector";
+import { ZeroMark } from "./ReiMarks";
 
 interface NavbarProps {
   route: Route;
@@ -56,13 +57,7 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
             aria-label={t.nav.dashboard}
             className="group flex items-center gap-3 text-left"
           >
-            <span className="relative flex h-8 w-8 items-center justify-center border border-navy/25 transition-colors group-hover:border-navy/60">
-              <span aria-hidden="true" className="h-1 w-1 rounded-full bg-ember" />
-              <span
-                aria-hidden="true"
-                className="absolute inset-[6px] border border-cyan/80 transition-colors group-hover:border-cyan"
-              />
-            </span>
+            <ZeroMark />
             <span className="leading-none">
               <span className="block font-display text-[12px] uppercase tracking-[0.24em] text-ink">
                 Beyond Time
@@ -86,7 +81,7 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
                 data-active={route === item.route}
                 className="link-underline group flex items-baseline gap-2"
               >
-                <span className="font-mono text-[9px] text-muted-strong">
+                <span className="font-mono text-[9px] text-muted-strong transition-colors group-data-[active=true]:text-ember">
                   0{index + 1}
                 </span>
                 <span className="text-[11px] uppercase tracking-[0.18em] text-navy/75 transition-colors group-hover:text-ink group-data-[active=true]:text-ink">
@@ -165,7 +160,13 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
                   className="group flex items-center justify-between border-b border-line/60 py-4 text-left"
                 >
                   <span className="flex items-baseline gap-4">
-                    <span className="font-mono text-[10px] text-muted-strong">0{index + 1}</span>
+                    <span
+                      className={`font-mono text-[10px] ${
+                        route === item.route ? "text-ember" : "text-muted-strong"
+                      }`}
+                    >
+                      0{index + 1}
+                    </span>
                     <span
                       className={`font-display text-2xl font-light ${
                         route === item.route ? "text-ink" : "text-navy/80"

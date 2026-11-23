@@ -56,9 +56,9 @@ export function PlayerArtwork({ index, active, title }: PlayerArtworkProps) {
           <line x1="24" y1="100" x2="176" y2="100" />
         </g>
 
-        <circle cx="100" cy="100" r="18" fill="#F9E6E5" fillOpacity="0.55" />
+        <circle cx="100" cy="100" r="18" fill="#DBE8F1" fillOpacity="0.75" />
         <circle cx="100" cy="100" r="18" fill="none" stroke="#223A4F" strokeOpacity="0.3" />
-        <circle cx="100" cy="100" r="2.4" fill="#1E3A31" />
+        <circle cx="100" cy="100" r="2.4" fill="#A3262F" />
 
         <g fontFamily="'Space Mono', monospace" fontSize="4.2" fill="#4F5D68" letterSpacing="1">
           <text x="100" y="152" textAnchor="middle">AUDIO CHANNEL</text>
