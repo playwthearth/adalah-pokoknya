@@ -83,13 +83,13 @@ function Experience() {
 export default function App() {
   return (
     <LanguageProvider>
-      <SettingsProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <SettingsProvider>
           <MusicPlayerProvider>
             <Experience />
           </MusicPlayerProvider>
-        </AuthProvider>
-      </SettingsProvider>
+        </SettingsProvider>
+      </AuthProvider>
     </LanguageProvider>
   );
 }

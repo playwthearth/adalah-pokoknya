@@ -23,8 +23,21 @@ create table if not exists public.notes (
 
 create index if not exists notes_created_at_idx on public.notes (created_at desc);
 
+-- The names and the anniversary both people share. One row, id = 'shared'.
+create table if not exists public.settings (
+  id text primary key default 'shared' check (id = 'shared'),
+  recipient text not null default 'Sora' check (char_length(recipient) <= 40),
+  author text not null default 'Me' check (char_length(author) <= 40),
+  start_date date not null default date '2026-08-28',
+  updated_at timestamptz not null default now(),
+  updated_by uuid references auth.users (id) on delete set null
+);
+
+insert into public.settings (id) values ('shared') on conflict (id) do nothing;
+
 alter table public.members enable row level security;
 alter table public.notes enable row level security;
+alter table public.settings enable row level security;
 
 create or replace function public.is_member()
 returns boolean
@@ -153,6 +166,7 @@ grant execute on function public.list_members() to authenticated;
 grant usage on schema public to authenticated;
 grant select on public.members to authenticated;
 grant select, insert, delete on public.notes to authenticated;
+grant select, insert, update on public.settings to authenticated;
 
 drop policy if exists members_owner_read on public.members;
 create policy members_owner_read on public.members
@@ -163,6 +177,22 @@ drop policy if exists notes_read on public.notes;
 create policy notes_read on public.notes
   for select to authenticated
   using (public.is_member());
+
+drop policy if exists settings_read on public.settings;
+create policy settings_read on public.settings
+  for select to authenticated
+  using (public.is_member());
+
+drop policy if exists settings_insert on public.settings;
+create policy settings_insert on public.settings
+  for insert to authenticated
+  with check (public.is_member());
+
+drop policy if exists settings_update on public.settings;
+create policy settings_update on public.settings
+  for update to authenticated
+  using (public.is_member())
+  with check (public.is_member());
 
 drop policy if exists notes_insert on public.notes;
 create policy notes_insert on public.notes

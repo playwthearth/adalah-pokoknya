@@ -15,5 +15,8 @@ export const site = {
 
 export const storageKeys = {
   language: "abt.language",
-  settings: "abt.settings.v1",
+  /** Device-only player volume; names and the start date live in Supabase. */
+  volume: "abt.settings.volume.v1",
+  /** Earlier per-device copy of the settings; removed on load. */
+  legacySettings: "abt.settings.v1",
 } as const;
