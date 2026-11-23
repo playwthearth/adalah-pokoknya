@@ -270,7 +270,7 @@ export const en = {
 
   footer: {
     note: "Private transmission. Keep the link close.",
-    madeFor: (name: string) => `Made for ${name}`,
+    madeFor: "Made for just the two of us",
     rights: "A quiet place, kept by hand.",
   },
 

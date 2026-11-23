@@ -268,7 +268,7 @@ export const id: Dict = {
 
   footer: {
     note: "Transmisi pribadi. Simpan tautannya baik-baik.",
-    madeFor: (name: string) => `Dibuat untuk ${name}`,
+    madeFor: "Dibuat untuk kita berdua",
     rights: "Tempat tenang, dirawat dengan tangan.",
   },
 

@@ -1,10 +1,8 @@
 import { site } from "../data/site";
 import { useLanguage } from "../hooks/useLanguage";
-import { useSettings } from "../hooks/useSettings";
 
 export function Footer() {
   const { t } = useLanguage();
-  const { settings } = useSettings();
   const year = new Date().getFullYear();
 
   return (
@@ -24,7 +22,7 @@ export function Footer() {
         </div>
         <div>
           <p className="label flex flex-wrap items-center gap-x-3 gap-y-2 sm:justify-end">
-            <span>{t.footer.madeFor(settings.recipient)}</span>
+            <span>{t.footer.madeFor}</span>
             <span aria-hidden="true" className="text-ember/70">
               ·
             </span>

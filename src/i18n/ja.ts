@@ -267,7 +267,7 @@ export const ja: Dict = {
 
   footer: {
     note: "個人通信。リンクは大切に。",
-    madeFor: (name: string) => `${name} のために`,
+    madeFor: "二人だけのために",
     rights: "手で守られている、静かな場所。",
   },
 

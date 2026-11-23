@@ -2,7 +2,6 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Clock } from "../components/Clock";
 import { CornerTicks, HairLines, MoonMark } from "../components/ReiMarks";
-import { site } from "../data/site";
 import { useLanguage } from "../hooks/useLanguage";
 import { useSettings } from "../hooks/useSettings";
 import { formatDate } from "../utils/format";
@@ -15,7 +14,6 @@ export function Landing({ onEnter }: LandingProps) {
   const { t, locale } = useLanguage();
   const { settings } = useSettings();
   const reduceMotion = useReducedMotion();
-  const name = settings.recipient.trim() || site.names.recipient;
 
   const rise = (delay: number) => ({
     initial: { opacity: 0, y: reduceMotion ? 0 : 14 },
@@ -69,7 +67,7 @@ export function Landing({ onEnter }: LandingProps) {
 
       <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-14 text-center">
         <motion.p {...rise(0.05)} className="label tracking-[0.3em] text-ember">
-          {t.footer.madeFor(name)}
+          {t.footer.madeFor}
         </motion.p>
 
         <motion.h1
