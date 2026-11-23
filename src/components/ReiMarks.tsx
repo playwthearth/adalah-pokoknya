@@ -88,7 +88,7 @@ export function ZeroMark({ className = "" }: MarkProps) {
         className="absolute inset-[5px] border border-cyan/70 transition-colors group-hover:border-cyan"
       />
       <span aria-hidden="true" className="h-3 w-px bg-ember" />
-      <span aria-hidden="true" className="absolute h-1 w-1 rounded-full bg-ember" />
+      <span aria-hidden="true" className="ember-pulse absolute h-1 w-1 rounded-full bg-ember" />
     </span>
   );
 }

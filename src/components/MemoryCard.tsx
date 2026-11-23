@@ -15,7 +15,7 @@ export function MemoryCard({ memory, index, onOpen, onEdit }: MemoryCardProps) {
   const flipped = index % 2 === 1;
 
   return (
-    <article className="relative md:grid md:grid-cols-2 md:items-center md:gap-12">
+    <article className="group/card relative md:grid md:grid-cols-2 md:items-center md:gap-12">
       {/* Timeline node */}
       <span
         aria-hidden="true"
@@ -68,7 +68,13 @@ export function MemoryCard({ memory, index, onOpen, onEdit }: MemoryCardProps) {
       </div>
 
       <div className={`mt-5 md:mt-0 ${flipped ? "md:order-1 md:text-right" : "md:order-2"}`}>
-        <p className="label">{formatDate(memory.date, locale)}</p>
+        <p className="label flex items-center gap-2">
+          <span
+            aria-hidden="true"
+            className="h-px w-4 bg-ember/70 transition-all duration-500 group-hover/card:w-8"
+          />
+          {formatDate(memory.date, locale)}
+        </p>
         <h2 className="mt-3 font-display text-2xl font-light text-ink sm:text-3xl">
           {memory.title}
         </h2>

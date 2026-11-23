@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import { Ambient } from "../components/Ambient";
 import { Clock } from "../components/Clock";
 import { CornerTicks, HairLines, MoonMark } from "../components/ReiMarks";
 import { useLanguage } from "../hooks/useLanguage";
@@ -22,14 +23,15 @@ export function Landing({ onEnter }: LandingProps) {
   });
 
   return (
-    <div className="relative flex min-h-[100svh] flex-col overflow-hidden bg-mist">
+    <div className="relative flex min-h-[100svh] flex-col overflow-hidden">
+      <Ambient />
       {/* The room: a frame, a moon, and her hair in the corner of the light. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-3 border border-navy/12 sm:inset-5"
       />
       <CornerTicks className="inset-3 z-20 sm:inset-5" />
-      <MoonMark className="pointer-events-none absolute hidden text-cyan/70 sm:block sm:-right-[6%] sm:-top-[18%] sm:w-[40vw] sm:max-w-[560px]" />
+      <MoonMark className="hair-drift pointer-events-none absolute hidden text-cyan/70 sm:block sm:-right-[6%] sm:-top-[18%] sm:w-[40vw] sm:max-w-[560px]" />
       <HairLines className="hair-drift pointer-events-none absolute -left-[4%] top-[22%] hidden h-[64vh] w-[24vw] text-cyan/70 md:block" />
 
       <span
@@ -97,7 +99,7 @@ export function Landing({ onEnter }: LandingProps) {
           <button
             type="button"
             onClick={onEnter}
-            className="group relative inline-flex items-center gap-4 border border-navy/70 px-9 py-4 text-navy transition-colors duration-300 hover:border-ember hover:bg-navy hover:text-mist sm:px-12"
+            className="sheen group relative inline-flex items-center gap-4 border border-navy/70 px-9 py-4 text-navy transition-colors duration-300 hover:border-ember hover:bg-navy hover:text-mist sm:px-12"
           >
             <span aria-hidden="true" className="absolute -left-px -top-px h-1.5 w-1.5 bg-ember" />
             <span aria-hidden="true" className="absolute -bottom-px -right-px h-1.5 w-1.5 bg-ember" />

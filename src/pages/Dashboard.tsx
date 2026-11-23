@@ -1,6 +1,7 @@
 import { ArrowUpRight, Images, Mail, Music2, SlidersHorizontal } from "lucide-react";
 import type { ComponentType } from "react";
 import { Clock } from "../components/Clock";
+import { CountUp } from "../components/CountUp";
 import { CornerTicks, HairLines } from "../components/ReiMarks";
 import { Reveal } from "../components/Reveal";
 import { TypingText } from "../components/TypingText";
@@ -159,7 +160,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
       <section className="mt-12 grid gap-5 sm:mt-16 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
         <Reveal>
-          <div className="surface relative flex h-full flex-col justify-between p-7 sm:p-9">
+          <div className="surface hover-lift relative flex h-full flex-col justify-between p-7 sm:p-9">
             <CornerTicks className="inset-0" />
             <div className="flex items-center justify-between">
               <p className="label">{t.dashboard.daily.label}</p>
@@ -189,9 +190,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             <p className="label">{t.dashboard.together.label}</p>
 
             <div className="mt-5 flex items-end gap-3">
-              <span className="font-display text-6xl font-extralight leading-none tabular-nums text-ink">
-                {days}
-              </span>
+              <CountUp
+                value={days}
+                className="font-display text-6xl font-extralight leading-none tabular-nums text-ink"
+              />
               <span className="pb-1.5 text-[11px] uppercase tracking-[0.2em] text-muted-strong">
                 {t.dashboard.together.days}
               </span>
@@ -263,7 +265,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             {notes.slice(0, 3).map((note) => (
               <article
                 key={note.id}
-                className="flex flex-col justify-between border border-line/80 bg-white/45 p-5"
+                className="hover-lift flex flex-col justify-between border border-line/80 bg-white/45 p-5 hover:bg-white/70"
               >
                 <div>
                   <p className="label flex items-center gap-2 text-[9px]">
@@ -302,7 +304,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 <button
                   type="button"
                   onClick={() => onNavigate(link.route)}
-                  className="group flex h-full w-full flex-col justify-between border border-line/80 bg-white/45 p-5 text-left transition-all duration-300 hover:border-navy/30 hover:bg-white/75"
+                  className="hover-lift sheen group flex h-full w-full flex-col justify-between border border-line/80 bg-white/45 p-5 text-left hover:border-navy/30 hover:bg-white/75"
                 >
                   <span className="flex items-start justify-between">
                     <Icon

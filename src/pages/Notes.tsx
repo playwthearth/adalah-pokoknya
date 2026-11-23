@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Loader2, Send, Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { EmptyState } from "../components/EmptyState";
@@ -174,10 +175,18 @@ export function Notes() {
           </div>
         ) : (
           <ol className="mt-2 border-b border-line/70">
-            {notes.map((note) => (
-              <li
+            {notes.map((note, index) => (
+              <motion.li
                 key={note.id}
-                className="grid gap-3 border-t border-line/70 py-6 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-8"
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.4 }}
+                transition={{
+                  duration: 0.5,
+                  delay: Math.min(index, 6) * 0.045,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="group grid gap-3 border-t border-line/70 py-6 transition-colors hover:bg-white/40 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-8"
               >
                 <div className="flex items-start justify-between gap-3 sm:block">
                   <div>
@@ -219,7 +228,7 @@ export function Notes() {
                   </p>
                   <p className="label mt-4 text-[9px]">{authorName(note)}</p>
                 </div>
-              </li>
+              </motion.li>
             ))}
           </ol>
         )}

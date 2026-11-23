@@ -22,7 +22,11 @@ function Panel({
   children: ReactNode;
 }) {
   return (
-    <section className="grid gap-6 border-t border-line/70 py-9 sm:grid-cols-[minmax(0,220px)_minmax(0,1fr)] sm:gap-10">
+    <section className="group relative grid gap-6 border-t border-line/70 py-9 sm:grid-cols-[minmax(0,220px)_minmax(0,1fr)] sm:gap-10">
+      <span
+        aria-hidden="true"
+        className="absolute left-0 top-0 h-px w-0 bg-ember/80 transition-all duration-700 ease-out group-hover:w-24"
+      />
       <div>
         <h2 className="font-display text-xl font-light text-ink">{title}</h2>
         {description && (

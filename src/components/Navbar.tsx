@@ -79,7 +79,7 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
                 onClick={() => onNavigate(item.route)}
                 aria-current={route === item.route ? "page" : undefined}
                 data-active={route === item.route}
-                className="link-underline group flex items-baseline gap-2"
+                className="link-underline group relative flex items-baseline gap-2"
               >
                 <span className="font-mono text-[9px] text-muted-strong transition-colors group-data-[active=true]:text-ember">
                   0{index + 1}
@@ -87,6 +87,14 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
                 <span className="text-[11px] uppercase tracking-[0.18em] text-navy/75 transition-colors group-hover:text-ink group-data-[active=true]:text-ink">
                   {t.nav[item.key]}
                 </span>
+                {route === item.route && (
+                  <motion.span
+                    layoutId="nav-active"
+                    aria-hidden="true"
+                    transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                    className="absolute -bottom-1.5 left-0 h-px w-full bg-ember"
+                  />
+                )}
               </button>
             ))}
           </nav>

@@ -1,6 +1,10 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { Ambient } from "./components/Ambient";
+import { HairLines } from "./components/ReiMarks";
 import { AuthGate } from "./components/AuthGate";
+import { ScrollProgress } from "./components/ScrollProgress";
+import { Ticker } from "./components/Ticker";
 import { Footer } from "./components/Footer";
 import { MiniPlayer } from "./components/MiniPlayer";
 import { Navbar } from "./components/Navbar";
@@ -42,9 +46,13 @@ function Experience() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="flex min-h-[100svh] flex-col bg-mist"
+      className="relative flex min-h-[100svh] flex-col"
     >
-      <AuthGate>
+      <Ambient />
+      <HairLines className="pointer-events-none fixed -right-10 bottom-16 z-0 hidden h-[58vh] w-[16vw] text-cyan/45 lg:block" />
+      <ScrollProgress />
+      <div className="relative z-10 flex flex-1 flex-col">
+        <AuthGate>
         <NotesProvider>
           <Navbar route={route} onNavigate={navigate} />
 
@@ -64,11 +72,13 @@ function Experience() {
             </motion.div>
           </main>
 
+          <Ticker />
           <Footer />
           <div aria-hidden="true" className="h-16" />
           <MiniPlayer onOpenPlaylist={() => navigate("playlist")} />
         </NotesProvider>
-      </AuthGate>
+        </AuthGate>
+      </div>
     </motion.div>
   );
 }

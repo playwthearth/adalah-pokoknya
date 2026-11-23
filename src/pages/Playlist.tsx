@@ -49,10 +49,16 @@ export function Playlist() {
                   onClick={() => (active ? toggle() : playTrack(track.id))}
                   aria-label={`${t.playlist.select}: ${track.title}`}
                   aria-current={active ? "true" : undefined}
-                  className={`group flex w-full items-center gap-4 border-t border-line/70 py-4 text-left transition-colors hover:bg-white/45 sm:gap-6 ${
-                    active ? "bg-white/35" : ""
+                  className={`group relative flex w-full items-center gap-4 overflow-hidden border-t border-line/70 py-4 text-left transition-colors hover:bg-white/60 sm:gap-6 ${
+                    active ? "bg-white/40" : ""
                   }`}
                 >
+                  <span
+                    aria-hidden="true"
+                    className={`absolute inset-y-0 left-0 w-px bg-ember transition-transform duration-500 ${
+                      active ? "scale-y-100" : "scale-y-0"
+                    }`}
+                  />
                   <span className="flex w-6 shrink-0 items-center justify-center">
                     {playing ? (
                       <span className="flex h-3.5 items-end gap-[2px]" aria-hidden="true">

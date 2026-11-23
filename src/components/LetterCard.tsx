@@ -19,9 +19,13 @@ export function LetterCard({ letter, index, onOpen }: LetterCardProps) {
     <button
       type="button"
       onClick={onOpen}
-      className="group grid w-full grid-cols-[auto_minmax(0,1fr)] gap-x-4 border-t border-line/70 py-6 text-left transition-colors hover:bg-white/40 sm:gap-x-8 sm:py-8"
+      className="group relative grid w-full grid-cols-[auto_minmax(0,1fr)] gap-x-4 overflow-hidden border-t border-line/70 py-6 text-left transition-colors hover:bg-white/50 sm:gap-x-8 sm:py-8"
     >
-      <span className="label pt-1.5 text-[9px] tracking-[0.18em]">
+      <span
+        aria-hidden="true"
+        className="absolute inset-y-0 left-0 w-px scale-y-0 bg-ember/70 transition-transform duration-500 ease-out group-hover:scale-y-100"
+      />
+      <span className="label pt-1.5 text-[9px] tracking-[0.18em] transition-colors group-hover:text-ember">
         {String(index + 1).padStart(2, "0")}
       </span>
 
