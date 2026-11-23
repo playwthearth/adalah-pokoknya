@@ -13,7 +13,7 @@ interface LightboxProps {
 }
 
 export function Lightbox({ memories, index, onClose, onChange }: LightboxProps) {
-  const { t, language, locale } = useLanguage();
+  const { t, locale } = useLanguage();
   const reduceMotion = useReducedMotion();
   const open = index !== null;
   const memory = index !== null ? memories[index] : null;
@@ -47,7 +47,7 @@ export function Lightbox({ memories, index, onClose, onChange }: LightboxProps) 
           className="fixed inset-0 z-[90] flex flex-col bg-mist"
           role="dialog"
           aria-modal="true"
-          aria-label={memory.title[language]}
+          aria-label={memory.title}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -76,23 +76,27 @@ export function Lightbox({ memories, index, onClose, onChange }: LightboxProps) 
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               className="m-0 w-full max-w-3xl shrink"
             >
-              <img
-                src={memory.image}
-                alt={memory.title[language]}
-                width={1184}
-                height={880}
-                className="max-h-[58vh] w-full border border-line/80 object-cover"
-              />
+              {memory.image && (
+                <img
+                  src={memory.image}
+                  alt={memory.title}
+                  width={1184}
+                  height={880}
+                  className="max-h-[58vh] w-full border border-line/80 object-cover"
+                />
+              )}
             </motion.figure>
 
             <div className="w-full max-w-sm shrink-0 lg:max-w-xs">
               <p className="label">{formatDate(memory.date, locale)}</p>
               <h2 className="mt-4 font-display text-3xl font-extralight text-ink">
-                {memory.title[language]}
+                {memory.title}
               </h2>
-              <p className="mt-4 text-sm leading-relaxed text-muted-strong">
-                {memory.description[language]}
-              </p>
+              {memory.note && (
+                <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-muted-strong">
+                  {memory.note}
+                </p>
+              )}
 
               <div className="mt-8 flex items-center gap-2">
                 <button

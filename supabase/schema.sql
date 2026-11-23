@@ -203,3 +203,77 @@ drop policy if exists notes_delete on public.notes;
 create policy notes_delete on public.notes
   for delete to authenticated
   using (author_id = auth.uid());
+
+-- The shared memory archive. Both members can add, edit and delete.
+-- image_url holds the original placeholder assets; image_path points at an
+-- uploaded photo in the private `memories` storage bucket.
+create table if not exists public.memories (
+  id uuid primary key default gen_random_uuid(),
+  title text not null default '' check (char_length(title) <= 120),
+  note text not null default '' check (char_length(note) <= 2000),
+  memory_date date not null default current_date,
+  image_path text,
+  image_url text,
+  created_by uuid references auth.users (id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  updated_by uuid references auth.users (id) on delete set null
+);
+
+create index if not exists memories_date_idx on public.memories (memory_date);
+
+alter table public.memories enable row level security;
+
+grant select, insert, update, delete on public.memories to authenticated;
+
+drop policy if exists memories_read on public.memories;
+create policy memories_read on public.memories
+  for select to authenticated
+  using (public.is_member());
+
+drop policy if exists memories_insert on public.memories;
+create policy memories_insert on public.memories
+  for insert to authenticated
+  with check (public.is_member() and created_by = auth.uid());
+
+drop policy if exists memories_update on public.memories;
+create policy memories_update on public.memories
+  for update to authenticated
+  using (public.is_member())
+  with check (public.is_member());
+
+drop policy if exists memories_delete on public.memories;
+create policy memories_delete on public.memories
+  for delete to authenticated
+  using (public.is_member());
+
+-- Private bucket for uploaded photos. Every object path starts with the
+-- uploader's user id; both members may read every photo.
+insert into storage.buckets (id, name, public)
+values ('memories', 'memories', false)
+on conflict (id) do nothing;
+
+drop policy if exists memories_photo_read on storage.objects;
+create policy memories_photo_read on storage.objects
+  for select to authenticated
+  using (bucket_id = 'memories' and public.is_member());
+
+drop policy if exists memories_photo_insert on storage.objects;
+create policy memories_photo_insert on storage.objects
+  for insert to authenticated
+  with check (
+    bucket_id = 'memories'
+    and public.is_member()
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists memories_photo_update on storage.objects;
+create policy memories_photo_update on storage.objects
+  for update to authenticated
+  using (bucket_id = 'memories' and public.is_member())
+  with check (bucket_id = 'memories' and public.is_member());
+
+drop policy if exists memories_photo_delete on storage.objects;
+create policy memories_photo_delete on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'memories' and public.is_member());

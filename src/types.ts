@@ -19,13 +19,17 @@ export interface Letter {
   content: Localized;
 }
 
+/** A moment either member added to the shared archive. */
 export interface Memory {
   id: string;
-  title: Localized;
+  title: string;
+  note: string;
   /** ISO date, e.g. "2026-01-01" */
   date: string;
-  image: string;
-  description: Localized;
+  /** Displayable photo URL: a signed link for uploads, a path for the originals. */
+  image: string | null;
+  /** Storage path of an uploaded photo, used when the photo is replaced. */
+  imagePath: string | null;
 }
 
 export interface Track {
