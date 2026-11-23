@@ -6,6 +6,7 @@ import { TypingText } from "../components/TypingText";
 import { site } from "../data/site";
 import type { Route } from "../hooks/useHashRoute";
 import { useLanguage } from "../hooks/useLanguage";
+import { useNotes } from "../hooks/useNotes";
 import { useNow } from "../hooks/useNow";
 import { useSettings } from "../hooks/useSettings";
 import {
@@ -24,6 +25,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const { t, locale } = useLanguage();
   const { settings } = useSettings();
   const now = useNow();
+  const { notes, loading: notesLoading, error: notesError } = useNotes();
 
   const name = settings.recipient.trim() || site.names.recipient;
   const start = parseISODate(settings.startDate);
@@ -114,8 +116,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             />
           </h1>
 
-          <p className="jp mt-3 text-sm tracking-[0.32em] text-muted">{t.dashboard.jp}</p>
-          <p className="mt-6 max-w-lg text-[13px] leading-loose text-muted">
+          <p className="jp mt-3 text-sm tracking-[0.32em] text-muted-strong">{t.dashboard.jp}</p>
+          <p className="mt-6 max-w-lg text-[13px] leading-loose text-muted-strong">
             {t.dashboard.intro}
           </p>
         </div>
@@ -152,7 +154,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           <div className="surface flex h-full flex-col justify-between p-7 sm:p-9">
             <div className="flex items-center justify-between">
               <p className="label">{t.dashboard.daily.label}</p>
-              <span className="font-mono text-[10px] tabular-nums tracking-[0.16em] text-muted/80">
+              <span className="font-mono text-[10px] tabular-nums tracking-[0.16em] text-muted-strong">
                 {String(dayOfYear).padStart(3, "0")} / 365
               </span>
             </div>
@@ -168,7 +170,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
             <div className="mt-7 flex items-center gap-3">
               <span aria-hidden="true" className="h-px w-8 bg-ember/70" />
-              <span className="jp text-[10px] tracking-[0.32em] text-muted">今日の言葉</span>
+              <span className="jp text-[10px] tracking-[0.32em] text-muted-strong">今日の言葉</span>
             </div>
           </div>
         </Reveal>
@@ -181,11 +183,11 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               <span className="font-display text-6xl font-extralight leading-none tabular-nums text-ink">
                 {days}
               </span>
-              <span className="pb-1.5 text-[11px] uppercase tracking-[0.2em] text-muted">
+              <span className="pb-1.5 text-[11px] uppercase tracking-[0.2em] text-muted-strong">
                 {t.dashboard.together.days}
               </span>
             </div>
-            <p className="mt-2 font-mono text-[11px] tabular-nums tracking-[0.12em] text-muted">
+            <p className="mt-2 font-mono text-[11px] tabular-nums tracking-[0.12em] text-muted-strong">
               {hours} {t.dashboard.together.hours} · {minutes} {t.dashboard.together.minutes}
             </p>
             <p className="label mt-4 text-[9px]">
@@ -212,8 +214,75 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
       <section className="mt-12 sm:mt-16">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <p className="label">{t.notes.latest}</p>
+          <button
+            type="button"
+            onClick={() => onNavigate("notes")}
+            className="btn-quiet"
+          >
+            {t.notes.viewAll}
+            <ArrowUpRight size={12} strokeWidth={1.5} aria-hidden="true" />
+          </button>
+        </div>
+
+        {notesLoading ? (
+          <div className="mt-5 grid gap-3 md:grid-cols-3" aria-hidden="true">
+            {[0, 1, 2].map((row) => (
+              <div
+                key={row}
+                className="h-36 animate-pulse border border-line/60 bg-white/30"
+              />
+            ))}
+          </div>
+        ) : notesError ? (
+          <p className="mt-5 text-[12px] text-muted-strong">{t.notes.loadError}</p>
+        ) : notes.length === 0 ? (
+          <div className="mt-5 border border-dashed border-line/80 bg-white/25 p-6">
+            <p className="font-display text-lg font-light text-ink">{t.notes.empty}</p>
+            <p className="mt-1 text-[12px] text-muted-strong">{t.notes.emptyHint}</p>
+            <button
+              type="button"
+              onClick={() => onNavigate("notes")}
+              className="btn-quiet mt-4"
+            >
+              {t.notes.composerTitle}
+              <ArrowUpRight size={12} strokeWidth={1.5} aria-hidden="true" />
+            </button>
+          </div>
+        ) : (
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            {notes.slice(0, 3).map((note) => (
+              <article
+                key={note.id}
+                className="flex flex-col justify-between border border-line/80 bg-white/45 p-5"
+              >
+                <div>
+                  <p className="label flex items-center gap-2 text-[9px]">
+                    <span
+                      aria-hidden="true"
+                      className={`h-1 w-1 rounded-full ${
+                        note.kind === "love" ? "bg-ember" : "bg-cyan"
+                      }`}
+                    />
+                    {note.kind === "love" ? t.notes.kindLove : t.notes.kindDaily}
+                  </p>
+                  <p className="mt-4 line-clamp-4 whitespace-pre-wrap text-[13px] leading-relaxed text-navy/85">
+                    {note.body}
+                  </p>
+                </div>
+                <p className="label mt-5 text-[9px]">
+                  {note.author_name} · {formatDate(note.created_at.slice(0, 10), locale)}
+                </p>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mt-12 sm:mt-16">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
           <p className="label">{t.dashboard.quick.label}</p>
-          <p className="text-xs text-muted">{t.dashboard.quick.subtitle}</p>
+          <p className="text-xs text-muted-strong">{t.dashboard.quick.subtitle}</p>
         </div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -243,10 +312,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                         size={13}
                         strokeWidth={1.5}
                         aria-hidden="true"
-                        className="shrink-0 text-muted/70 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-navy"
+                        className="shrink-0 text-muted-strong transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-navy"
                       />
                     </span>
-                    <span className="mt-1.5 block text-[11px] leading-relaxed text-muted">
+                    <span className="mt-1.5 block text-[11px] leading-relaxed text-muted-strong">
                       {link.description}
                     </span>
                   </span>

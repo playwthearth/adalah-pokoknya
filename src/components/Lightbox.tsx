@@ -90,7 +90,7 @@ export function Lightbox({ memories, index, onClose, onChange }: LightboxProps) 
               <h2 className="mt-4 font-display text-3xl font-extralight text-ink">
                 {memory.title[language]}
               </h2>
-              <p className="mt-4 text-sm leading-relaxed text-muted">
+              <p className="mt-4 text-sm leading-relaxed text-muted-strong">
                 {memory.description[language]}
               </p>
 
@@ -111,7 +111,7 @@ export function Lightbox({ memories, index, onClose, onChange }: LightboxProps) 
                 >
                   <ArrowRight size={15} strokeWidth={1.5} />
                 </button>
-                <span className="jp ml-3 hidden text-[10px] tracking-[0.3em] text-muted sm:block">
+                <span className="jp ml-3 hidden text-[10px] tracking-[0.3em] text-muted-strong sm:block">
                   記憶
                 </span>
               </div>

@@ -11,11 +11,15 @@ interface NavbarProps {
   onNavigate: (route: Route) => void;
 }
 
-const order: { route: Route; key: "dashboard" | "letters" | "memories" | "playlist" }[] = [
+const order: {
+  route: Route;
+  key: "dashboard" | "letters" | "memories" | "playlist" | "notes";
+}[] = [
   { route: "dashboard", key: "dashboard" },
   { route: "letters", key: "letters" },
   { route: "memories", key: "memories" },
   { route: "playlist", key: "playlist" },
+  { route: "notes", key: "notes" },
 ];
 
 export function Navbar({ route, onNavigate }: NavbarProps) {
@@ -63,7 +67,7 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
               <span className="block font-display text-[12px] uppercase tracking-[0.24em] text-ink">
                 Beyond Time
               </span>
-              <span className="jp mt-1 block text-[9px] tracking-[0.3em] text-muted">
+              <span className="jp mt-1 block text-[9px] tracking-[0.3em] text-muted-strong">
                 {site.jpTitle}
               </span>
             </span>
@@ -82,7 +86,7 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
                 data-active={route === item.route}
                 className="link-underline group flex items-baseline gap-2"
               >
-                <span className="font-mono text-[9px] text-muted/80">
+                <span className="font-mono text-[9px] text-muted-strong">
                   0{index + 1}
                 </span>
                 <span className="text-[11px] uppercase tracking-[0.18em] text-navy/75 transition-colors group-hover:text-ink group-data-[active=true]:text-ink">
@@ -102,7 +106,7 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
               className={`hidden h-9 w-9 items-center justify-center border transition-colors sm:inline-flex ${
                 route === "settings"
                   ? "border-navy/40 text-ink"
-                  : "border-line/80 text-muted hover:border-navy/30 hover:text-ink"
+                  : "border-line/80 text-muted-strong hover:border-navy/30 hover:text-ink"
               }`}
             >
               <SlidersHorizontal size={14} strokeWidth={1.5} />
@@ -161,7 +165,7 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
                   className="group flex items-center justify-between border-b border-line/60 py-4 text-left"
                 >
                   <span className="flex items-baseline gap-4">
-                    <span className="font-mono text-[10px] text-muted">0{index + 1}</span>
+                    <span className="font-mono text-[10px] text-muted-strong">0{index + 1}</span>
                     <span
                       className={`font-display text-2xl font-light ${
                         route === item.route ? "text-ink" : "text-navy/80"
@@ -174,7 +178,7 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
                     size={16}
                     strokeWidth={1.5}
                     aria-hidden="true"
-                    className="text-muted transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                    className="text-muted-strong transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
                   />
                 </motion.button>
               ))}

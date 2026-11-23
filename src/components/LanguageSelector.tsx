@@ -16,7 +16,7 @@ export function LanguageSelector({ className = "", verbose = false }: LanguageSe
     <div
       className={`relative inline-flex items-center gap-2 border border-line/80 bg-white/40 px-2.5 py-2 transition-colors hover:border-navy/30 ${className}`}
     >
-      <Globe size={12} strokeWidth={1.5} aria-hidden="true" className="text-muted" />
+      <Globe size={12} strokeWidth={1.5} aria-hidden="true" className="text-muted-strong" />
       <select
         value={language}
         onChange={(event) => setLanguage(event.target.value as Language)}
@@ -33,7 +33,7 @@ export function LanguageSelector({ className = "", verbose = false }: LanguageSe
         size={10}
         strokeWidth={1.5}
         aria-hidden="true"
-        className="pointer-events-none absolute right-2 text-muted"
+        className="pointer-events-none absolute right-2 text-muted-strong"
       />
     </div>
   );

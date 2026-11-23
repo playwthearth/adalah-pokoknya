@@ -19,7 +19,7 @@ export function PlayerArtwork({ index, active, title }: PlayerArtworkProps) {
         aria-hidden="true"
         role="presentation"
       >
-        <g fill="none" stroke="#263746" strokeOpacity="0.16" strokeWidth="0.5">
+        <g fill="none" stroke="#223A4F" strokeOpacity="0.16" strokeWidth="0.5">
           <circle cx="100" cy="100" r="88" />
           <circle cx="100" cy="100" r="72" />
           <circle cx="100" cy="100" r="56" />
@@ -30,7 +30,7 @@ export function PlayerArtwork({ index, active, title }: PlayerArtworkProps) {
           transition={{ repeat: Infinity, duration: 70, ease: "linear" }}
           style={{ originX: "100px", originY: "100px" }}
           fill="none"
-          stroke="#263746"
+          stroke="#223A4F"
           strokeOpacity="0.12"
           strokeWidth="0.5"
         >
@@ -44,23 +44,23 @@ export function PlayerArtwork({ index, active, title }: PlayerArtworkProps) {
             y1="6"
             x2="100"
             y2={i % 3 === 0 ? 13 : 10}
-            stroke="#667D91"
+            stroke="#4F5D68"
             strokeOpacity={i % 3 === 0 ? 0.55 : 0.28}
             strokeWidth="0.6"
             transform={`rotate(${angle} 100 100)`}
           />
         ))}
 
-        <g stroke="#263746" strokeOpacity="0.22" strokeWidth="0.5">
+        <g stroke="#223A4F" strokeOpacity="0.22" strokeWidth="0.5">
           <line x1="100" y1="24" x2="100" y2="176" />
           <line x1="24" y1="100" x2="176" y2="100" />
         </g>
 
-        <circle cx="100" cy="100" r="18" fill="#F4F6F8" fillOpacity="0.55" />
-        <circle cx="100" cy="100" r="18" fill="none" stroke="#263746" strokeOpacity="0.3" />
-        <circle cx="100" cy="100" r="2.4" fill="#B94C59" />
+        <circle cx="100" cy="100" r="18" fill="#F9E6E5" fillOpacity="0.55" />
+        <circle cx="100" cy="100" r="18" fill="none" stroke="#223A4F" strokeOpacity="0.3" />
+        <circle cx="100" cy="100" r="2.4" fill="#1E3A31" />
 
-        <g fontFamily="'Space Mono', monospace" fontSize="4.2" fill="#667D91" letterSpacing="1">
+        <g fontFamily="'Space Mono', monospace" fontSize="4.2" fill="#4F5D68" letterSpacing="1">
           <text x="100" y="152" textAnchor="middle">AUDIO CHANNEL</text>
           <text x="100" y="158" textAnchor="middle" opacity="0.6">音声回線</text>
         </g>
@@ -68,8 +68,8 @@ export function PlayerArtwork({ index, active, title }: PlayerArtworkProps) {
 
       <div className="absolute inset-0 flex flex-col justify-between p-4">
         <div className="flex items-start justify-between">
-          <span className="label tracking-[0.24em] text-navy/60">STEREO</span>
-          <span className="font-mono text-[10px] tracking-[0.14em] text-navy/60">
+          <span className="label tracking-[0.24em] text-navy/75">STEREO</span>
+          <span className="font-mono text-[10px] tracking-[0.14em] text-navy/75">
             AE–{String(index + 1).padStart(3, "0")}
           </span>
         </div>

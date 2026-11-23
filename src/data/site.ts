@@ -6,7 +6,7 @@ export const site = {
   title: "A Place Beyond Time",
   jpTitle: "時を越えた場所",
   /** ISO date the relationship began — used for the counter and countdown. */
-  startDate: "2024-02-14",
+  startDate: "2026-08-28",
   names: {
     recipient: "Sora",
     author: "Me",

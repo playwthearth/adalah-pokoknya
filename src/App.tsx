@@ -1,16 +1,20 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { AuthGate } from "./components/AuthGate";
 import { Footer } from "./components/Footer";
 import { MiniPlayer } from "./components/MiniPlayer";
 import { Navbar } from "./components/Navbar";
+import { AuthProvider } from "./hooks/useAuth";
 import { useHashRoute } from "./hooks/useHashRoute";
 import { LanguageProvider } from "./hooks/useLanguage";
 import { MusicPlayerProvider } from "./hooks/useMusicPlayer";
+import { NotesProvider } from "./hooks/useNotes";
 import { SettingsProvider } from "./hooks/useSettings";
 import { Dashboard } from "./pages/Dashboard";
 import { Landing } from "./pages/Landing";
 import { Letters } from "./pages/Letters";
 import { Memories } from "./pages/Memories";
+import { Notes } from "./pages/Notes";
 import { Playlist } from "./pages/Playlist";
 import { Settings } from "./pages/Settings";
 
@@ -45,26 +49,31 @@ function Experience() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="flex min-h-[100svh] flex-col bg-mist"
         >
-          <Navbar route={route} onNavigate={navigate} />
+          <AuthGate>
+            <NotesProvider>
+              <Navbar route={route} onNavigate={navigate} />
 
-          <main className="flex-1 pt-16">
-            <motion.div
-              key={route}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            >
-              {route === "dashboard" && <Dashboard onNavigate={navigate} />}
-              {route === "letters" && <Letters />}
-              {route === "memories" && <Memories />}
-              {route === "playlist" && <Playlist />}
-              {route === "settings" && <Settings />}
-            </motion.div>
-          </main>
+              <main className="flex-1 pt-16">
+                <motion.div
+                  key={route}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {route === "dashboard" && <Dashboard onNavigate={navigate} />}
+                  {route === "letters" && <Letters />}
+                  {route === "memories" && <Memories />}
+                  {route === "playlist" && <Playlist />}
+                  {route === "notes" && <Notes />}
+                  {route === "settings" && <Settings />}
+                </motion.div>
+              </main>
 
-          <Footer />
-          <div aria-hidden="true" className="h-16" />
-          <MiniPlayer onOpenPlaylist={() => navigate("playlist")} />
+              <Footer />
+              <div aria-hidden="true" className="h-16" />
+              <MiniPlayer onOpenPlaylist={() => navigate("playlist")} />
+            </NotesProvider>
+          </AuthGate>
         </motion.div>
       )}
     </AnimatePresence>
@@ -75,9 +84,11 @@ export default function App() {
   return (
     <LanguageProvider>
       <SettingsProvider>
-        <MusicPlayerProvider>
-          <Experience />
-        </MusicPlayerProvider>
+        <AuthProvider>
+          <MusicPlayerProvider>
+            <Experience />
+          </MusicPlayerProvider>
+        </AuthProvider>
       </SettingsProvider>
     </LanguageProvider>
   );

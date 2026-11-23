@@ -1,0 +1,175 @@
+-- A Place Beyond Time — Supabase schema
+-- Run this once in the Supabase SQL editor (Dashboard → SQL → New query).
+
+create extension if not exists pgcrypto;
+
+-- The two people allowed through the gate.
+create table if not exists public.members (
+  email text primary key,
+  role text not null default 'member' check (role in ('owner', 'member')),
+  created_at timestamptz not null default now()
+);
+
+-- Notes either member leaves for the other.
+create table if not exists public.notes (
+  id uuid primary key default gen_random_uuid(),
+  author_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  author_email text not null default lower(coalesce(auth.jwt() ->> 'email', '')),
+  author_name text not null default '',
+  kind text not null default 'daily' check (kind in ('daily', 'love')),
+  body text not null check (char_length(body) between 1 and 4000),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists notes_created_at_idx on public.notes (created_at desc);
+
+alter table public.members enable row level security;
+alter table public.notes enable row level security;
+
+create or replace function public.is_member()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.members m
+    where m.email = lower(coalesce(auth.jwt() ->> 'email', ''))
+  );
+$$;
+
+create or replace function public.is_owner()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.members m
+    where m.email = lower(coalesce(auth.jwt() ->> 'email', ''))
+      and m.role = 'owner'
+  );
+$$;
+
+-- Called right after sign-in. The first person through the door becomes the
+-- owner; everyone after that needs to already be on the list.
+create or replace function public.claim_membership()
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_email text := lower(coalesce(auth.jwt() ->> 'email', ''));
+  v_role text;
+begin
+  if v_email = '' then
+    return null;
+  end if;
+
+  if not exists (select 1 from public.members) then
+    insert into public.members (email, role) values (v_email, 'owner');
+  end if;
+
+  select role into v_role from public.members where email = v_email;
+  return v_role;
+end;
+$$;
+
+create or replace function public.add_member(p_email text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_email text := lower(trim(p_email));
+begin
+  if not public.is_owner() then
+    raise exception 'only the owner can add people';
+  end if;
+
+  if v_email !~ '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$' then
+    raise exception 'invalid email';
+  end if;
+
+  insert into public.members (email, role)
+  values (v_email, 'member')
+  on conflict (email) do nothing;
+end;
+$$;
+
+create or replace function public.remove_member(p_email text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_owner() then
+    raise exception 'only the owner can remove people';
+  end if;
+
+  delete from public.members
+  where email = lower(trim(p_email)) and role = 'member';
+end;
+$$;
+
+create or replace function public.list_members()
+returns table (email text, role text, created_at timestamptz)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_owner() then
+    raise exception 'only the owner can see the list';
+  end if;
+
+  return query
+    select m.email, m.role, m.created_at
+    from public.members m
+    order by m.created_at;
+end;
+$$;
+
+revoke all on function public.is_member() from public, anon;
+revoke all on function public.is_owner() from public, anon;
+revoke all on function public.claim_membership() from public, anon;
+revoke all on function public.add_member(text) from public, anon;
+revoke all on function public.remove_member(text) from public, anon;
+revoke all on function public.list_members() from public, anon;
+
+grant execute on function public.is_member() to authenticated;
+grant execute on function public.is_owner() to authenticated;
+grant execute on function public.claim_membership() to authenticated;
+grant execute on function public.add_member(text) to authenticated;
+grant execute on function public.remove_member(text) to authenticated;
+grant execute on function public.list_members() to authenticated;
+
+-- Table privileges: signed-in members get the verbs, the policies decide the rows.
+grant usage on schema public to authenticated;
+grant select on public.members to authenticated;
+grant select, insert, delete on public.notes to authenticated;
+
+drop policy if exists members_owner_read on public.members;
+create policy members_owner_read on public.members
+  for select to authenticated
+  using (public.is_owner());
+
+drop policy if exists notes_read on public.notes;
+create policy notes_read on public.notes
+  for select to authenticated
+  using (public.is_member());
+
+drop policy if exists notes_insert on public.notes;
+create policy notes_insert on public.notes
+  for insert to authenticated
+  with check (public.is_member() and author_id = auth.uid());
+
+drop policy if exists notes_delete on public.notes;
+create policy notes_delete on public.notes
+  for delete to authenticated
+  using (author_id = auth.uid());

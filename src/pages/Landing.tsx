@@ -51,7 +51,7 @@ export function Landing({ onEnter }: LandingProps) {
       </p>
 
       <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-14 text-center">
-        <motion.p {...rise(0.05)} className="label tracking-[0.3em] text-ember/80">
+        <motion.p {...rise(0.05)} className="label tracking-[0.3em] text-ember">
           {t.footer.madeFor(name)}
         </motion.p>
 
@@ -68,7 +68,7 @@ export function Landing({ onEnter }: LandingProps) {
           {t.landing.subtitle}
         </motion.p>
 
-        <motion.p {...rise(0.38)} className="mt-3 max-w-md text-[13px] leading-relaxed text-muted">
+        <motion.p {...rise(0.38)} className="mt-3 max-w-md text-[13px] leading-relaxed text-muted-strong">
           {t.landing.greeting}
         </motion.p>
 
@@ -92,7 +92,7 @@ export function Landing({ onEnter }: LandingProps) {
           </button>
         </motion.div>
 
-        <motion.p {...rise(0.6)} className="label mt-6 text-[9px] tracking-[0.16em] text-muted/80">
+        <motion.p {...rise(0.6)} className="label mt-6 text-[9px] tracking-[0.16em] text-muted-strong">
           {t.landing.hint}
         </motion.p>
       </main>
@@ -106,7 +106,7 @@ export function Landing({ onEnter }: LandingProps) {
             t.landing.labels.transmission,
           ].map((label, index) => (
             <li key={label} className="label flex items-center gap-2 text-[9px]">
-              <span aria-hidden="true" className="text-ember/60">
+              <span aria-hidden="true" className="text-ember">
                 0{index + 1}
               </span>
               {label}

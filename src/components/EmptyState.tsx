@@ -18,7 +18,7 @@ export function EmptyState({ title, hint }: EmptyStateProps) {
         <span className="absolute h-8 w-8 rounded-full border border-line" />
       </span>
       <p className="font-display text-lg font-light text-navy">{title}</p>
-      {hint && <p className="mt-2 max-w-sm text-xs leading-relaxed text-muted">{hint}</p>}
+      {hint && <p className="mt-2 max-w-sm text-xs leading-relaxed text-muted-strong">{hint}</p>}
     </motion.div>
   );
 }

@@ -57,7 +57,7 @@ export function MemoryCard({ memory, index, onOpen }: MemoryCardProps) {
         <h2 className="mt-3 font-display text-2xl font-light text-ink sm:text-3xl">
           {memory.title[language]}
         </h2>
-        <p className="mt-3 max-w-md text-[13px] leading-relaxed text-muted md:inline-block">
+        <p className="mt-3 max-w-md text-[13px] leading-relaxed text-muted-strong md:inline-block">
           {memory.description[language]}
         </p>
         <div className={`mt-4 ${flipped ? "md:justify-end" : ""} flex`}>

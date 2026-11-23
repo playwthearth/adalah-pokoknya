@@ -1,12 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
 
-export type Route = "dashboard" | "letters" | "memories" | "playlist" | "settings";
+export type Route =
+  | "dashboard"
+  | "letters"
+  | "memories"
+  | "playlist"
+  | "notes"
+  | "settings";
 
 export const routes: Route[] = [
   "dashboard",
   "letters",
   "memories",
   "playlist",
+  "notes",
   "settings",
 ];
 

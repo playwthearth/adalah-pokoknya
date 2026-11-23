@@ -63,7 +63,7 @@ export function Modal({ open, onClose, children, label, closeLabel, wide = false
             tabIndex={-1}
             className={`relative my-auto w-full ${
               wide ? "max-w-4xl" : "max-w-2xl"
-            } border border-line bg-mist shadow-[0_40px_120px_-50px_rgba(26,39,49,0.6)] outline-none`}
+            } border border-line bg-mist shadow-[0_40px_120px_-50px_rgba(24,44,60,0.55)] outline-none`}
             initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 22, scale: 0.99 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.995 }}
@@ -73,7 +73,7 @@ export function Modal({ open, onClose, children, label, closeLabel, wide = false
               type="button"
               onClick={onClose}
               aria-label={closeLabel ?? t.common.close}
-              className="absolute right-4 top-4 z-10 inline-flex h-9 w-9 items-center justify-center border border-line/80 bg-mist/90 text-muted transition-colors hover:border-navy/30 hover:text-ink"
+              className="absolute right-4 top-4 z-10 inline-flex h-9 w-9 items-center justify-center border border-line/80 bg-mist/90 text-muted-strong transition-colors hover:border-navy/30 hover:text-ink"
             >
               <X size={15} strokeWidth={1.5} />
             </button>

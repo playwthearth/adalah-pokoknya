@@ -33,7 +33,7 @@ export function Playlist() {
       <section className="mt-14" aria-label={t.playlist.playlistLabel}>
         <div className="flex items-baseline justify-between gap-4">
           <p className="label">{t.playlist.playlistLabel}</p>
-          <span className="font-mono text-[10px] tabular-nums tracking-[0.16em] text-muted">
+          <span className="font-mono text-[10px] tabular-nums tracking-[0.16em] text-muted-strong">
             {String(tracks.length).padStart(2, "0")} TRACKS
           </span>
         </div>
@@ -65,7 +65,7 @@ export function Playlist() {
                         ))}
                       </span>
                     ) : (
-                      <span className="font-mono text-[10px] text-muted/80">
+                      <span className="font-mono text-[10px] text-muted-strong">
                         {String(index + 1).padStart(2, "0")}
                       </span>
                     )}
@@ -82,7 +82,7 @@ export function Playlist() {
                     <span className="label mt-1 block truncate text-[9px]">{track.artist}</span>
                   </span>
 
-                  <span className="hidden font-mono text-[10px] tabular-nums text-muted sm:block">
+                  <span className="hidden font-mono text-[10px] tabular-nums text-muted-strong sm:block">
                     {formatDuration(track.duration ?? 0)}
                   </span>
 
@@ -90,7 +90,7 @@ export function Playlist() {
                     className={`inline-flex h-8 w-8 shrink-0 items-center justify-center border transition-colors ${
                       active
                         ? "border-navy text-navy"
-                        : "border-line text-muted group-hover:border-navy/40 group-hover:text-navy"
+                        : "border-line text-muted-strong group-hover:border-navy/40 group-hover:text-navy"
                     }`}
                   >
                     {playing ? (
@@ -109,7 +109,7 @@ export function Playlist() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.6 }}
-          className="mt-6 max-w-xl text-[11px] leading-relaxed text-muted/80"
+          className="mt-6 max-w-xl text-[11px] leading-relaxed text-muted-strong"
         >
           {t.playlist.placeholderNote}
         </motion.p>

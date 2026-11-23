@@ -12,6 +12,7 @@ export const en = {
     letters: "Letters",
     memories: "Memories",
     playlist: "Playlist",
+    notes: "Notes",
     settings: "Settings",
     openMenu: "Open menu",
     closeMenu: "Close menu",
@@ -97,7 +98,7 @@ export const en = {
   },
 
   letters: {
-    eyebrow: "MEMORY ARCHIVE",
+    eyebrow: "LETTER ARCHIVE",
     title: "Letters for You",
     description:
       "Words I could not say out loud, kept here for whenever you need them.",
@@ -152,6 +153,64 @@ export const en = {
     select: "Play this track",
   },
 
+  notes: {
+    eyebrow: "SHARED NOTES",
+    title: "What we leave each other",
+    description:
+      "A daily note, a sudden thought, or something softer. Both of you can write here.",
+    composerTitle: "Write something",
+    kindDaily: "Daily note",
+    kindLove: "Love message",
+    placeholder: "Whatever you would say if I were next to you…",
+    post: "Leave it here",
+    posting: "Sending…",
+    posted: "Left here for you.",
+    remaining: (n: number) => `${n} characters left`,
+    count: (n: number) => `${n} notes`,
+    latest: "LATEST NOTES",
+    viewAll: "All notes",
+    empty: "Nothing written yet.",
+    emptyHint: "The first note can be yours.",
+    loadError: "The notes could not be loaded.",
+    postError: "That note could not be saved. Try again.",
+    retry: "Try again",
+    delete: "Delete",
+    confirmDelete: "Delete?",
+    deleteError: "That note could not be deleted.",
+  },
+
+  auth: {
+    eyebrow: "PRIVATE ACCESS",
+    title: "This place is kept for two.",
+    subtitle:
+      "Sign in with the email that was added for you, and the password set for it.",
+    emailLabel: "Email address",
+    emailPlaceholder: "you@example.com",
+    passwordLabel: "Password",
+    passwordPlaceholder: "Your password",
+    signIn: "Enter",
+    signingIn: "Opening…",
+    invalid: "Enter a valid email address.",
+    missingPassword: "Enter your password.",
+    badCredentials: "That email and password do not match. Check them and try again.",
+    error: "We could not sign you in. Try again in a moment.",
+    pendingTitle: "Almost inside.",
+    pendingBody: (email: string) =>
+      `${email} is signed in but not on the list for this place yet. Ask the owner to add it in Settings.`,
+    checkAgain: "Check again",
+    signOut: "Sign out",
+    unconfiguredTitle: "One more step.",
+    unconfiguredBody:
+      "This build does not have its Supabase project connected yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, then rebuild.",
+    unconfiguredHint: "The setup notes are in README.md and supabase/schema.sql.",
+    loading: "Opening the room…",
+    signedInAs: "Signed in as",
+    verifyErrorTitle: "We could not check your access.",
+    verifyErrorBody:
+      "Make sure the database schema has been applied to your Supabase project, then try again.",
+    retry: "Try again",
+  },
+
   settings: {
     eyebrow: "PRIVATE TRANSMISSION",
     title: "Settings",
@@ -174,9 +233,25 @@ export const en = {
     resetConfirm: "Confirm reset",
     resetDone: "Settings restored.",
     autoSave: "Changes save automatically.",
+    accountTitle: "Account",
+    accountDesc: "The email this space is signed in with.",
+    roleOwner: "Owner",
+    roleMember: "Guest",
+    signOut: "Sign out",
+    peopleTitle: "The two of us",
+    peopleDesc: "Only these email addresses can open this place.",
+    peopleEmailLabel: "Her email",
+    peoplePlaceholder: "her@example.com",
+    peopleAdd: "Add",
+    peopleAdding: "Adding…",
+    peopleRemove: "Remove",
+    peopleEmpty: "No one added yet.",
+    peopleError: "That change could not be saved.",
+    peopleHint: "They sign in with the email and password set for them.",
+    you: "you",
     privacyTitle: "Privacy",
     privacyBody:
-      "This is a private place. Keep the link to yourself — a hidden address is a curtain, not a lock. Real protection needs server-side authentication, and private letters and photographs should stay out of public repositories.",
+      "This place now sits behind a real sign-in, and only the two addresses above can read the letters, photographs and notes. Keep the link close anyway — a lock is a lock, but a quiet door is kinder.",
   },
 
   footer: {

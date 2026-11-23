@@ -10,6 +10,7 @@ export const id: Dict = {
     letters: "Surat",
     memories: "Kenangan",
     playlist: "Daftar Lagu",
+    notes: "Catatan",
     settings: "Pengaturan",
     openMenu: "Buka menu",
     closeMenu: "Tutup menu",
@@ -95,7 +96,7 @@ export const id: Dict = {
   },
 
   letters: {
-    eyebrow: "ARSIP KENANGAN",
+    eyebrow: "ARSIP SURAT",
     title: "Surat untukmu",
     description:
       "Kata-kata yang tak sempat kuucapkan, kusimpan di sini untuk kapan pun kau membutuhkannya.",
@@ -150,6 +151,64 @@ export const id: Dict = {
     select: "Putar lagu ini",
   },
 
+  notes: {
+    eyebrow: "CATATAN BERSAMA",
+    title: "Yang kita tinggalkan satu sama lain",
+    description:
+      "Catatan harian, pikiran yang tiba-tiba, atau sesuatu yang lebih lembut. Kalian berdua bisa menulis di sini.",
+    composerTitle: "Tulis sesuatu",
+    kindDaily: "Catatan harian",
+    kindLove: "Pesan cinta",
+    placeholder: "Apa pun yang akan kau katakan jika aku ada di sampingmu…",
+    post: "Tinggalkan di sini",
+    posting: "Mengirim…",
+    posted: "Sudah ditinggalkan untukmu.",
+    remaining: (n: number) => `Sisa ${n} karakter`,
+    count: (n: number) => `${n} catatan`,
+    latest: "CATATAN TERBARU",
+    viewAll: "Semua catatan",
+    empty: "Belum ada yang ditulis.",
+    emptyHint: "Catatan pertama bisa milikmu.",
+    loadError: "Catatan tidak bisa dimuat.",
+    postError: "Catatan tidak bisa disimpan. Coba lagi.",
+    retry: "Coba lagi",
+    delete: "Hapus",
+    confirmDelete: "Hapus?",
+    deleteError: "Catatan tidak bisa dihapus.",
+  },
+
+  auth: {
+    eyebrow: "AKSES PRIBADI",
+    title: "Tempat ini dijaga untuk berdua.",
+    subtitle:
+      "Masuk dengan email yang sudah didaftarkan untukmu, beserta kata sandinya.",
+    emailLabel: "Alamat email",
+    emailPlaceholder: "kamu@contoh.com",
+    passwordLabel: "Kata sandi",
+    passwordPlaceholder: "Kata sandimu",
+    signIn: "Masuk",
+    signingIn: "Membuka…",
+    invalid: "Masukkan alamat email yang valid.",
+    missingPassword: "Masukkan kata sandimu.",
+    badCredentials: "Email dan kata sandi tidak cocok. Periksa lagi.",
+    error: "Kami tidak bisa memasukkamu. Coba lagi sebentar.",
+    pendingTitle: "Hampir masuk.",
+    pendingBody: (email: string) =>
+      `${email} sudah masuk, tetapi belum terdaftar di tempat ini. Minta pemiliknya menambahkannya di Pengaturan.`,
+    checkAgain: "Periksa lagi",
+    signOut: "Keluar",
+    unconfiguredTitle: "Satu langkah lagi.",
+    unconfiguredBody:
+      "Build ini belum terhubung ke proyek Supabase. Tambahkan VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY, lalu build ulang.",
+    unconfiguredHint: "Catatan penyiapan ada di README.md dan supabase/schema.sql.",
+    loading: "Membuka ruangan…",
+    signedInAs: "Masuk sebagai",
+    verifyErrorTitle: "Kami tidak bisa memeriksa aksesmu.",
+    verifyErrorBody:
+      "Pastikan skema database sudah dijalankan di proyek Supabase-mu, lalu coba lagi.",
+    retry: "Coba lagi",
+  },
+
   settings: {
     eyebrow: "TRANSMISI PRIBADI",
     title: "Pengaturan",
@@ -172,9 +231,25 @@ export const id: Dict = {
     resetConfirm: "Konfirmasi atur ulang",
     resetDone: "Pengaturan dipulihkan.",
     autoSave: "Perubahan tersimpan otomatis.",
+    accountTitle: "Akun",
+    accountDesc: "Email yang dipakai untuk masuk ke tempat ini.",
+    roleOwner: "Pemilik",
+    roleMember: "Tamu",
+    signOut: "Keluar",
+    peopleTitle: "Kita berdua",
+    peopleDesc: "Hanya alamat email ini yang bisa membuka tempat ini.",
+    peopleEmailLabel: "Email dia",
+    peoplePlaceholder: "dia@contoh.com",
+    peopleAdd: "Tambah",
+    peopleAdding: "Menambah…",
+    peopleRemove: "Hapus",
+    peopleEmpty: "Belum ada yang ditambahkan.",
+    peopleError: "Perubahan tidak bisa disimpan.",
+    peopleHint: "Mereka masuk dengan email dan kata sandi yang sudah diatur.",
+    you: "kamu",
     privacyTitle: "Privasi",
     privacyBody:
-      "Ini tempat pribadi. Simpan tautannya untuk dirimu sendiri — alamat tersembunyi hanyalah tirai, bukan kunci. Perlindungan sungguhan memerlukan autentikasi sisi server, dan surat serta foto pribadi sebaiknya tidak disimpan di repositori publik.",
+      "Tempat ini sekarang berada di balik proses masuk yang sungguhan, dan hanya dua alamat di atas yang bisa membaca surat, foto, dan catatan. Tetap jaga tautannya — kunci tetaplah kunci.",
   },
 
   footer: {

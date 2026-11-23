@@ -70,7 +70,7 @@ export function Letters() {
               {item.label}
               <span
                 className={`font-mono text-[9px] ${
-                  isActive ? "text-mist/60" : "text-muted/70"
+                  isActive ? "text-mist/60" : "text-muted-strong"
                 }`}
               >
                 {String(item.count).padStart(2, "0")}
@@ -117,7 +117,7 @@ export function Letters() {
                 {t.letters.categories[active.category]}
               </span>
               <span aria-hidden="true" className="h-px w-5 bg-line" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-strong">
                 {formatDate(active.date, locale)}
               </span>
             </div>
@@ -142,10 +142,10 @@ export function Letters() {
             <div className="mt-9 flex items-center gap-3 border-t border-line/70 pt-5">
               <span aria-hidden="true" className="h-px w-8 bg-ember/70" />
               <p className="label">{t.letters.from}</p>
-              <span className="jp text-[11px] tracking-[0.24em] text-muted">愛を込めて</span>
+              <span className="jp text-[11px] tracking-[0.24em] text-muted-strong">愛を込めて</span>
             </div>
 
-            <p className="label mt-6 text-[9px] text-muted/60">{t.letters.hint}</p>
+            <p className="label mt-6 text-[9px] text-muted-strong">{t.letters.hint}</p>
           </article>
         )}
       </Modal>

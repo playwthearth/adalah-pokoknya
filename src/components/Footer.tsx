@@ -14,7 +14,7 @@ export function Footer() {
           <p className="font-display text-[11px] uppercase tracking-[0.26em] text-ink">
             {site.title}
           </p>
-          <p className="jp mt-1.5 text-[10px] tracking-[0.28em] text-muted">
+          <p className="jp mt-1.5 text-[10px] tracking-[0.28em] text-muted-strong">
             {site.jpTitle}
           </p>
         </div>

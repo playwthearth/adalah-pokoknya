@@ -2,14 +2,15 @@
 
 @theme {
   /* Palette */
-  --color-mist: #f4f6f8;
-  --color-pale: #dceaf2;
-  --color-cyan: #afc8d8;
-  --color-line: #cbdbe5;
-  --color-muted: #667d91;
-  --color-navy: #263746;
-  --color-ink: #1a2731;
-  --color-ember: #b94c59;
+  --color-mist: #f9e6e5; /* blush — page ground */
+  --color-pale: #d9e7f1; /* soft tint of the palette blue */
+  --color-cyan: #a9c9df; /* sky blue — borders and accents */
+  --color-line: #b9bab8; /* gray — hairlines */
+  --color-muted: #4f5d68;
+  --color-muted-strong: #44525e; /* WCAG AA on blush and pale surfaces */
+  --color-navy: #223a4f; /* navy — primary type */
+  --color-ink: #182c3c;
+  --color-ember: #1e3a31; /* forest — signal color */
 
   /* Type */
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -110,7 +111,7 @@
     line-height: 1;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: var(--color-muted);
+    color: var(--color-muted-strong);
   }
 
   .surface {
@@ -138,7 +139,7 @@
     font-size: 0.625rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--color-muted);
+    color: var(--color-muted-strong);
     transition:
       color 240ms ease,
       border-color 240ms ease,

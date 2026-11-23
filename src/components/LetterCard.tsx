@@ -36,12 +36,12 @@ export function LetterCard({ letter, index, onOpen }: LetterCardProps) {
           </span>
         </span>
 
-        <span className="mt-2.5 block max-w-2xl text-[13px] leading-relaxed text-muted">
+        <span className="mt-2.5 block max-w-2xl text-[13px] leading-relaxed text-muted-strong">
           {excerpt}
         </span>
 
         <span className="mt-4 flex items-center gap-4">
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted/90">
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-strong">
             {formatDate(letter.date, locale)}
           </span>
           <span className="h-px flex-1 bg-line/70" aria-hidden="true" />

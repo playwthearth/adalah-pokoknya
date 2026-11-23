@@ -53,7 +53,7 @@ export function MusicPlayer() {
         <h2 className="mt-5 truncate font-display text-3xl font-extralight text-ink sm:text-4xl">
           {current?.title ?? t.playlist.empty}
         </h2>
-        <p className="mt-2 text-xs uppercase tracking-[0.2em] text-muted">
+        <p className="mt-2 text-xs uppercase tracking-[0.2em] text-muted-strong">
           {current?.artist ?? "—"}
         </p>
 
@@ -80,7 +80,7 @@ export function MusicPlayer() {
             style={fillStyle}
             disabled={!current}
           />
-          <div className="mt-2 flex items-center justify-between font-mono text-[10px] tabular-nums tracking-widest text-muted">
+          <div className="mt-2 flex items-center justify-between font-mono text-[10px] tabular-nums tracking-widest text-muted-strong">
             <span>{formatDuration(progress)}</span>
             <span>{formatDuration(duration)}</span>
           </div>
@@ -119,7 +119,7 @@ export function MusicPlayer() {
           </div>
 
           <div className="flex min-w-[140px] flex-1 items-center gap-3 sm:max-w-[200px]">
-            <Volume1 size={14} strokeWidth={1.5} aria-hidden="true" className="text-muted" />
+            <Volume1 size={14} strokeWidth={1.5} aria-hidden="true" className="text-muted-strong" />
             <label className="sr-only" htmlFor="player-volume">
               {t.playlist.volume}
             </label>
@@ -134,7 +134,7 @@ export function MusicPlayer() {
               onChange={(event) => setVolume(Number(event.target.value))}
               style={{ "--fill": `${volume * 100}%` } as CSSProperties}
             />
-            <span className="w-8 shrink-0 text-right font-mono text-[10px] tabular-nums text-muted">
+            <span className="w-8 shrink-0 text-right font-mono text-[10px] tabular-nums text-muted-strong">
               {Math.round(volume * 100)}
             </span>
           </div>

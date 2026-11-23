@@ -38,6 +38,29 @@ export interface Track {
   duration?: number;
 }
 
+export type NoteKind = "daily" | "love";
+
+/** A note either of the two members can leave for the other. */
+export interface Note {
+  id: string;
+  author_id: string;
+  author_email: string;
+  author_name: string;
+  kind: NoteKind;
+  body: string;
+  /** ISO timestamp */
+  created_at: string;
+}
+
+export type MemberRole = "owner" | "member";
+
+/** Someone allowed past the sign-in gate. */
+export interface Member {
+  email: string;
+  role: MemberRole;
+  created_at?: string;
+}
+
 export interface Identity {
   /** The person this place belongs to. */
   recipient: string;

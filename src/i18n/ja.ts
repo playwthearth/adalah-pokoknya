@@ -10,6 +10,7 @@ export const ja: Dict = {
     letters: "手紙",
     memories: "記憶",
     playlist: "プレイリスト",
+    notes: "ノート",
     settings: "設定",
     openMenu: "メニューを開く",
     closeMenu: "メニューを閉じる",
@@ -94,7 +95,7 @@ export const ja: Dict = {
   },
 
   letters: {
-    eyebrow: "記憶記録",
+    eyebrow: "手紙記録",
     title: "あなたへの手紙",
     description:
       "口に出せなかった言葉を、必要なときに読めるように、ここに置いておきます。",
@@ -149,6 +150,64 @@ export const ja: Dict = {
     select: "この曲を再生",
   },
 
+  notes: {
+    eyebrow: "共有ノート",
+    title: "ふたりが残していくもの",
+    description:
+      "日々のメモ、ふと思ったこと、もう少しやわらかい言葉。ここにはふたりとも書けます。",
+    composerTitle: "何か書く",
+    kindDaily: "日々のメモ",
+    kindLove: "愛のメッセージ",
+    placeholder: "隣にいたら言うことを、そのまま置いていって。",
+    post: "ここに残す",
+    posting: "送信中…",
+    posted: "ここに残しました。",
+    remaining: (n: number) => `残り${n}文字`,
+    count: (n: number) => `${n}件`,
+    latest: "最近のノート",
+    viewAll: "すべてのノート",
+    empty: "まだ何も書かれていません。",
+    emptyHint: "最初のノートはあなたのもの。",
+    loadError: "ノートを読み込めませんでした。",
+    postError: "ノートを保存できませんでした。もう一度お試しください。",
+    retry: "再試行",
+    delete: "削除",
+    confirmDelete: "削除しますか？",
+    deleteError: "ノートを削除できませんでした。",
+  },
+
+  auth: {
+    eyebrow: "個人アクセス",
+    title: "ここは、ふたりのための場所です。",
+    subtitle:
+      "登録されたメールアドレスと、そのパスワードで入ってください。",
+    emailLabel: "メールアドレス",
+    emailPlaceholder: "you@example.com",
+    passwordLabel: "パスワード",
+    passwordPlaceholder: "パスワードを入力",
+    signIn: "入る",
+    signingIn: "開いています…",
+    invalid: "有効なメールアドレスを入力してください。",
+    missingPassword: "パスワードを入力してください。",
+    badCredentials: "メールアドレスかパスワードが違います。確認してもう一度お試しください。",
+    error: "ログインできませんでした。少ししてからもう一度お試しください。",
+    pendingTitle: "あと少しです。",
+    pendingBody: (email: string) =>
+      `${email} でログインしましたが、まだこの場所の許可リストに入っていません。設定から追加してもらってください。`,
+    checkAgain: "もう一度確認",
+    signOut: "ログアウト",
+    unconfiguredTitle: "あと一歩です。",
+    unconfiguredBody:
+      "このビルドはまだ Supabase プロジェクトに接続されていません。VITE_SUPABASE_URL と VITE_SUPABASE_ANON_KEY を追加して、再ビルドしてください。",
+    unconfiguredHint: "設定手順は README.md と supabase/schema.sql にあります。",
+    loading: "部屋を開いています…",
+    signedInAs: "ログイン中",
+    verifyErrorTitle: "アクセスを確認できませんでした。",
+    verifyErrorBody:
+      "データベースのスキーマが適用されているか確認して、もう一度お試しください。",
+    retry: "再試行",
+  },
+
   settings: {
     eyebrow: "個人通信",
     title: "設定",
@@ -170,9 +229,25 @@ export const ja: Dict = {
     resetConfirm: "リセットを確定",
     resetDone: "設定を戻しました。",
     autoSave: "変更は自動的に保存されます。",
+    accountTitle: "アカウント",
+    accountDesc: "この場所にログインしているメールアドレス。",
+    roleOwner: "オーナー",
+    roleMember: "ゲスト",
+    signOut: "ログアウト",
+    peopleTitle: "ふたりだけ",
+    peopleDesc: "このメールアドレスだけがこの場所を開けます。",
+    peopleEmailLabel: "相手のメール",
+    peoplePlaceholder: "partner@example.com",
+    peopleAdd: "追加",
+    peopleAdding: "追加中…",
+    peopleRemove: "削除",
+    peopleEmpty: "まだ誰も登録されていません。",
+    peopleError: "変更を保存できませんでした。",
+    peopleHint: "登録されたメールアドレスとパスワードでログインします。",
+    you: "あなた",
     privacyTitle: "プライバシー",
     privacyBody:
-      "ここは個人的な場所です。リンクは自分だけのものに。隠されたアドレスは鍵ではなくカーテンです。本当の保護にはサーバー側の認証が必要で、私的な手紙や写真は公開リポジトリに置くべきではありません。",
+      "この場所は本物のログインで守られています。上に並んだ二つのアドレスだけが、手紙や写真、ノートを読めます。リンクは大切に。",
   },
 
   footer: {
