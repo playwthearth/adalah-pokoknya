@@ -2,11 +2,10 @@ import { Loader2, Send, Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { EmptyState } from "../components/EmptyState";
 import { SectionHeader } from "../components/SectionHeader";
-import { site } from "../data/site";
 import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
+import { useMyName, useNoteAuthorName } from "../hooks/useNoteAuthorName";
 import { useNotes } from "../hooks/useNotes";
-import { useSettings } from "../hooks/useSettings";
 import type { NoteKind } from "../types";
 import { formatDate } from "../utils/format";
 
@@ -14,8 +13,9 @@ const MAX_LENGTH = 1200;
 
 export function Notes() {
   const { t, locale } = useLanguage();
-  const { settings } = useSettings();
   const { userId } = useAuth();
+  const myName = useMyName();
+  const authorName = useNoteAuthorName();
   const { notes, loading, error, refresh, addNote, removeNote } = useNotes();
 
   const [kind, setKind] = useState<NoteKind>("daily");
@@ -36,7 +36,7 @@ export function Notes() {
       await addNote({
         kind,
         body,
-        authorName: settings.author.trim() || site.names.author,
+        authorName: myName,
       });
       setBody("");
       setPosted(true);
@@ -217,7 +217,7 @@ export function Notes() {
                   <p className="whitespace-pre-wrap text-[14px] leading-[1.9] text-navy/90">
                     {note.body}
                   </p>
-                  <p className="label mt-4 text-[9px]">{note.author_name}</p>
+                  <p className="label mt-4 text-[9px]">{authorName(note)}</p>
                 </div>
               </li>
             ))}

@@ -7,6 +7,7 @@ import { site } from "../data/site";
 import { useAuth } from "../hooks/useAuth";
 import type { Route } from "../hooks/useHashRoute";
 import { useLanguage } from "../hooks/useLanguage";
+import { useNoteAuthorName } from "../hooks/useNoteAuthorName";
 import { useNotes } from "../hooks/useNotes";
 import { useNow } from "../hooks/useNow";
 import { useSettings } from "../hooks/useSettings";
@@ -28,6 +29,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const { settings } = useSettings();
   const now = useNow();
   const { notes, loading: notesLoading, error: notesError } = useNotes();
+  const noteAuthor = useNoteAuthorName();
 
   // Greet whoever is signed in: the owner seat by one name, the member by another.
   const name = (role && site.greetings[role]) || settings.recipient.trim() || site.names.recipient;
@@ -274,7 +276,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                   </p>
                 </div>
                 <p className="label mt-5 text-[9px]">
-                  {note.author_name} · {formatDate(note.created_at.slice(0, 10), locale)}
+                  {noteAuthor(note)} · {formatDate(note.created_at.slice(0, 10), locale)}
                 </p>
               </article>
             ))}
