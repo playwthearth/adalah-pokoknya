@@ -33,11 +33,6 @@
   body {
     margin: 0;
     background-color: var(--color-mist);
-    /* Cold light from the upper right, a breath of blush from below. */
-    background-image:
-      radial-gradient(72% 52% at 92% -10%, rgba(169, 201, 223, 0.5), transparent 68%),
-      radial-gradient(58% 42% at 2% 104%, rgba(249, 230, 229, 0.5), transparent 70%);
-    background-attachment: fixed;
     color: var(--color-navy);
     font-family: var(--font-sans);
     font-weight: 300;
@@ -45,6 +40,20 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
+  }
+
+  /* Cold light from the upper right, a breath of blush from below. Painted on
+     its own fixed, static layer: background-attachment: fixed makes the phone
+     GPU repaint the whole viewport on every scroll frame. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      radial-gradient(72% 52% at 92% -10%, rgba(169, 201, 223, 0.5), transparent 68%),
+      radial-gradient(58% 42% at 2% 104%, rgba(249, 230, 229, 0.5), transparent 70%);
   }
 
   /* Faint scanlines over the whole plane — a monitor in a dark room. */
@@ -369,23 +378,25 @@ input[type="range"].range:disabled {
 
 /* ---- Motion layer ------------------------------------------------------ */
 
+/* Translate only. Scaling a blurred layer forces the filter to be re-rasterised
+   every frame on mobile GPUs; the drift reads the same without it. */
 @keyframes drift-a {
   0%,
   100% {
-    transform: translate3d(-3%, -2%, 0) scale(1);
+    transform: translate3d(-3%, -2%, 0);
   }
   50% {
-    transform: translate3d(4%, 3%, 0) scale(1.1);
+    transform: translate3d(4%, 3%, 0);
   }
 }
 
 @keyframes drift-b {
   0%,
   100% {
-    transform: translate3d(3%, 2%, 0) scale(1.05);
+    transform: translate3d(3%, 2%, 0);
   }
   50% {
-    transform: translate3d(-4%, -3%, 0) scale(0.95);
+    transform: translate3d(-4%, -3%, 0);
   }
 }
 
@@ -430,15 +441,14 @@ input[type="range"].range:disabled {
   }
 }
 
+/* Opacity only: an animated box-shadow repaints the dot every frame forever. */
 @keyframes ember-breathe {
   0%,
   100% {
-    opacity: 0.55;
-    box-shadow: 0 0 0 0 rgba(163, 38, 47, 0.25);
+    opacity: 0.6;
   }
   50% {
     opacity: 1;
-    box-shadow: 0 0 0 4px rgba(163, 38, 47, 0.08);
   }
 }
 
@@ -494,12 +504,15 @@ input[type="range"].range:disabled {
   display: flex;
   width: max-content;
   animation: ticker 46s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 .marquee:hover {
   animation-play-state: paused;
 }
 
 @utility ember-pulse {
+  box-shadow: 0 0 0 3px rgba(163, 38, 47, 0.07);
   animation: ember-breathe 3.6s ease-in-out infinite;
 }
 

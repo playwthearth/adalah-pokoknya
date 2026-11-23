@@ -49,7 +49,7 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-line/70 bg-mist/85 backdrop-blur-md">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-line/70 bg-mist/95 sm:bg-mist/85 sm:backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
           <button
             type="button"

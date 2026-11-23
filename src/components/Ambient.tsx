@@ -9,16 +9,20 @@ const SPECKS = [
 ];
 
 /**
- * Fixed decoration behind everything: two slow washes of light (her hair blue
- * and the one warm note), a faint instrument grid, drifting specks and a single
+ * Fixed decoration behind everything: slow washes of light (her hair blue and
+ * the one warm note), a faint instrument grid, drifting specks and a single
  * pass of light that travels down the screen. Purely visual.
+ *
+ * Phones get a lighter version — fewer blurred layers and a much smaller blur
+ * radius, because a 110px blur on a viewport-sized element is the most
+ * expensive thing here on a mobile GPU.
  */
 export function Ambient() {
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      <div className="absolute -left-[18%] top-[6%] h-[52vw] w-[52vw] rounded-full bg-cyan/30 blur-[110px] [animation:drift-a_30s_ease-in-out_infinite]" />
-      <div className="absolute -right-[14%] bottom-[2%] h-[44vw] w-[44vw] rounded-full bg-[#f9e6e5]/55 blur-[120px] [animation:drift-b_38s_ease-in-out_infinite]" />
-      <div className="absolute left-[38%] top-[42%] h-[28vw] w-[28vw] rounded-full bg-[#dbe8f1]/45 blur-[90px] [animation:drift-a_44s_ease-in-out_infinite]" />
+      <div className="absolute -left-[18%] top-[6%] h-[52vw] w-[52vw] rounded-full bg-cyan/30 blur-[48px] [animation:drift-a_30s_ease-in-out_infinite] will-change-transform sm:blur-[110px]" />
+      <div className="absolute -right-[14%] bottom-[2%] h-[44vw] w-[44vw] rounded-full bg-[#f9e6e5]/55 blur-[52px] [animation:drift-b_38s_ease-in-out_infinite] will-change-transform sm:blur-[120px]" />
+      <div className="absolute left-[38%] top-[42%] hidden h-[28vw] w-[28vw] rounded-full bg-[#dbe8f1]/45 blur-[90px] [animation:drift-a_44s_ease-in-out_infinite] will-change-transform sm:block" />
 
       <div
         className="hud-grid absolute inset-0 opacity-50"
@@ -33,7 +37,7 @@ export function Ambient() {
       {SPECKS.map((speck, index) => (
         <span
           key={index}
-          className="absolute rounded-full bg-ember/40"
+          className={`absolute rounded-full bg-ember/40 ${index > 2 ? "hidden sm:block" : ""}`}
           style={{
             left: speck.left,
             top: speck.top,
@@ -44,7 +48,7 @@ export function Ambient() {
         />
       ))}
 
-      <div className="absolute inset-x-0 h-[22vh] bg-gradient-to-b from-transparent via-cyan/25 to-transparent [animation:sweep_16s_linear_infinite]" />
+      <div className="absolute inset-x-0 h-[22vh] bg-gradient-to-b from-transparent via-cyan/25 to-transparent will-change-transform [animation:sweep_16s_linear_infinite]" />
     </div>
   );
 }

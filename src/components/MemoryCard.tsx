@@ -51,7 +51,7 @@ export function MemoryCard({ memory, index, onOpen, onEdit }: MemoryCardProps) {
             aria-hidden="true"
             className="absolute inset-0 bg-navy/0 transition-colors duration-500 group-hover:bg-navy/10"
           />
-          <span className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center border border-mist/60 bg-mist/20 text-mist opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
+          <span className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center border border-mist/60 bg-mist/20 text-mist opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:backdrop-blur-sm">
             <ArrowUpRight size={14} strokeWidth={1.5} />
           </span>
           {/* Viewfinder ticks over the photograph. */}
