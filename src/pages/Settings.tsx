@@ -278,58 +278,6 @@ export function Settings() {
           </div>
         </Panel>
 
-        <Panel title={t.settings.personalTitle} description={t.settings.personalDesc}>
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div>
-              <label htmlFor="recipient-name" className="label block">
-                {t.settings.theirName}
-              </label>
-              <input
-                id="recipient-name"
-                type="text"
-                maxLength={40}
-                autoComplete="off"
-                value={settings.recipient}
-                placeholder={t.settings.theirNamePlaceholder}
-                onChange={(event) => update({ recipient: event.target.value })}
-                className={`${fieldClass} mt-2`}
-              />
-            </div>
-            <div>
-              <label htmlFor="author-name" className="label block">
-                {t.settings.yourName}
-              </label>
-              <input
-                id="author-name"
-                type="text"
-                maxLength={40}
-                autoComplete="off"
-                value={settings.author}
-                placeholder={t.settings.yourNamePlaceholder}
-                onChange={(event) => update({ author: event.target.value })}
-                className={`${fieldClass} mt-2`}
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <label htmlFor="start-date" className="label block">
-                {t.settings.anniversary}
-              </label>
-              <input
-                id="start-date"
-                type="date"
-                value={settings.startDate}
-                onChange={(event) => {
-                  if (event.target.value) update({ startDate: event.target.value });
-                }}
-                className={`${fieldClass} mt-2 block max-w-[220px] font-mono text-[12px]`}
-              />
-              <p className="mt-2 text-[11px] leading-relaxed text-muted-strong">
-                {t.settings.anniversaryHint}
-              </p>
-            </div>
-          </div>
-        </Panel>
-
         <Panel title={t.settings.privacyTitle}>
           <p className="text-[12.5px] leading-relaxed text-muted-strong">{t.settings.privacyBody}</p>
         </Panel>
