@@ -33,6 +33,11 @@
   body {
     margin: 0;
     background-color: var(--color-mist);
+    /* Cold light from the upper right, a breath of blush from below. */
+    background-image:
+      radial-gradient(72% 52% at 92% -10%, rgba(169, 201, 223, 0.5), transparent 68%),
+      radial-gradient(58% 42% at 2% 104%, rgba(249, 230, 229, 0.5), transparent 70%);
+    background-attachment: fixed;
     color: var(--color-navy);
     font-family: var(--font-sans);
     font-weight: 300;
@@ -40,20 +45,6 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
-  }
-
-  /* Cold light from the upper right, a breath of blush from below. Painted on
-     its own fixed, static layer: background-attachment: fixed makes the phone
-     GPU repaint the whole viewport on every scroll frame. */
-  body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background-image:
-      radial-gradient(72% 52% at 92% -10%, rgba(169, 201, 223, 0.5), transparent 68%),
-      radial-gradient(58% 42% at 2% 104%, rgba(249, 230, 229, 0.5), transparent 70%);
   }
 
   /* Faint scanlines over the whole plane — a monitor in a dark room. */
@@ -504,8 +495,6 @@ input[type="range"].range:disabled {
   display: flex;
   width: max-content;
   animation: ticker 46s linear infinite;
-  will-change: transform;
-  backface-visibility: hidden;
 }
 .marquee:hover {
   animation-play-state: paused;
