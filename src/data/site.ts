@@ -11,6 +11,11 @@ export const site = {
     recipient: "Sora",
     author: "Me",
   },
+  /** The name each account is greeted by, keyed by the role it signs in with. */
+  greetings: {
+    owner: "Ayyash",
+    member: "Maureen",
+  },
 };
 
 export const storageKeys = {

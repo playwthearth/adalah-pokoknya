@@ -4,6 +4,7 @@ import { Clock } from "../components/Clock";
 import { Reveal } from "../components/Reveal";
 import { TypingText } from "../components/TypingText";
 import { site } from "../data/site";
+import { useAuth } from "../hooks/useAuth";
 import type { Route } from "../hooks/useHashRoute";
 import { useLanguage } from "../hooks/useLanguage";
 import { useNotes } from "../hooks/useNotes";
@@ -23,11 +24,13 @@ interface DashboardProps {
 
 export function Dashboard({ onNavigate }: DashboardProps) {
   const { t, locale } = useLanguage();
+  const { role } = useAuth();
   const { settings } = useSettings();
   const now = useNow();
   const { notes, loading: notesLoading, error: notesError } = useNotes();
 
-  const name = settings.recipient.trim() || site.names.recipient;
+  // Greet whoever is signed in: the owner seat by one name, the member by another.
+  const name = (role && site.greetings[role]) || settings.recipient.trim() || site.names.recipient;
   const start = parseISODate(settings.startDate);
   const validStart = !Number.isNaN(start.getTime());
   const elapsedMs = now.getTime() - start.getTime();
