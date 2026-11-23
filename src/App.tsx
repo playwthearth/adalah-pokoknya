@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { AuthGate } from "./components/AuthGate";
 import { Footer } from "./components/Footer";
@@ -32,51 +32,44 @@ function Experience() {
     navigate("dashboard");
   };
 
+  // Swapped directly rather than through AnimatePresence: an exit animation
+  // that never reports completion (reduced-motion devices) would leave the
+  // landing page on screen forever and the app would never mount.
+  if (!entered) return <Landing onEnter={enter} />;
+
   return (
-    <AnimatePresence mode="wait">
-      {!entered ? (
-        <motion.div
-          key="landing"
-          exit={{ opacity: 0, transition: { duration: 0.45, ease: "easeInOut" } }}
-        >
-          <Landing onEnter={enter} />
-        </motion.div>
-      ) : (
-        <motion.div
-          key="app"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="flex min-h-[100svh] flex-col bg-mist"
-        >
-          <AuthGate>
-            <NotesProvider>
-              <Navbar route={route} onNavigate={navigate} />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="flex min-h-[100svh] flex-col bg-mist"
+    >
+      <AuthGate>
+        <NotesProvider>
+          <Navbar route={route} onNavigate={navigate} />
 
-              <main className="flex-1 pt-16">
-                <motion.div
-                  key={route}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  {route === "dashboard" && <Dashboard onNavigate={navigate} />}
-                  {route === "letters" && <Letters />}
-                  {route === "memories" && <Memories />}
-                  {route === "playlist" && <Playlist />}
-                  {route === "notes" && <Notes />}
-                  {route === "settings" && <Settings />}
-                </motion.div>
-              </main>
+          <main className="flex-1 pt-16">
+            <motion.div
+              key={route}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {route === "dashboard" && <Dashboard onNavigate={navigate} />}
+              {route === "letters" && <Letters />}
+              {route === "memories" && <Memories />}
+              {route === "playlist" && <Playlist />}
+              {route === "notes" && <Notes />}
+              {route === "settings" && <Settings />}
+            </motion.div>
+          </main>
 
-              <Footer />
-              <div aria-hidden="true" className="h-16" />
-              <MiniPlayer onOpenPlaylist={() => navigate("playlist")} />
-            </NotesProvider>
-          </AuthGate>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          <Footer />
+          <div aria-hidden="true" className="h-16" />
+          <MiniPlayer onOpenPlaylist={() => navigate("playlist")} />
+        </NotesProvider>
+      </AuthGate>
+    </motion.div>
   );
 }
 

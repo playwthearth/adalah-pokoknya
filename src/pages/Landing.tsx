@@ -31,7 +31,7 @@ export function Landing({ onEnter }: LandingProps) {
         className="pointer-events-none absolute inset-3 border border-navy/12 sm:inset-5"
       />
       <CornerTicks className="inset-3 z-20 sm:inset-5" />
-      <MoonMark className="pointer-events-none absolute -right-[34vw] -top-[26vw] w-[86vw] max-w-[640px] text-cyan/70 sm:-right-[8%] sm:-top-[16%] sm:w-[44vw]" />
+      <MoonMark className="pointer-events-none absolute hidden text-cyan/70 sm:block sm:-right-[6%] sm:-top-[18%] sm:w-[40vw] sm:max-w-[560px]" />
       <HairLines className="hair-drift pointer-events-none absolute -left-[4%] top-[22%] hidden h-[64vh] w-[24vw] text-cyan/70 md:block" />
 
       <span
@@ -41,7 +41,7 @@ export function Landing({ onEnter }: LandingProps) {
         零
       </span>
 
-      <header className="relative z-10 flex items-start justify-between gap-6 px-7 pt-7 sm:px-11 sm:pt-9">
+      <header className="relative z-10 flex flex-col gap-5 px-7 pt-7 sm:flex-row sm:items-start sm:justify-between sm:gap-6 sm:px-11 sm:pt-9">
         <div>
           <p className="label">{t.landing.eyebrow}</p>
           <p className="label mt-3 flex items-center gap-2.5">
@@ -52,7 +52,7 @@ export function Landing({ onEnter }: LandingProps) {
             00 / 零
           </p>
         </div>
-        <div className="text-right">
+        <div className="sm:text-right">
           <Clock label={t.landing.clockLabel} showDate />
           <p aria-hidden="true" className="serial mt-2.5 text-[9px] text-ember">
             Unit 00
@@ -62,7 +62,7 @@ export function Landing({ onEnter }: LandingProps) {
 
       <p
         aria-hidden="true"
-        className="vertical-jp absolute right-9 top-1/2 z-10 hidden -translate-y-1/2 text-[10px] text-navy/30 lg:block"
+        className="vertical-jp absolute bottom-32 right-9 z-10 hidden text-[10px] text-navy/35 lg:block"
       >
         {t.landing.jp}
       </p>
@@ -121,7 +121,7 @@ export function Landing({ onEnter }: LandingProps) {
       </main>
 
       <footer className="relative z-10 border-t border-line/60 px-7 py-5 sm:px-11">
-        <ul className="grid grid-cols-2 gap-x-6 gap-y-3 sm:flex sm:items-center sm:justify-between">
+        <ul className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           {[
             t.landing.labels.space,
             t.landing.labels.connection,

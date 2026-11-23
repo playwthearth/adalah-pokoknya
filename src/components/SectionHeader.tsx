@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { useLanguage } from "../hooks/useLanguage";
-import { CornerTicks } from "./ReiMarks";
 
 interface SectionHeaderProps {
   eyebrow: string;
@@ -21,7 +20,7 @@ export function SectionHeader({ eyebrow, title, jp, description, aside }: Sectio
       {jp && (
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute -top-6 right-0 hidden select-none font-jp text-[clamp(4rem,9vw,7rem)] font-light leading-none text-cyan/35 md:block"
+          className="pointer-events-none absolute -top-2 right-0 hidden select-none font-jp text-[clamp(3rem,5.5vw,4.5rem)] font-light leading-none text-cyan/30 md:block"
         >
           {jp}
         </span>
@@ -50,10 +49,7 @@ export function SectionHeader({ eyebrow, title, jp, description, aside }: Sectio
           )}
         </div>
         {aside && (
-          <div className="relative px-3 py-2">
-            <CornerTicks className="inset-0" />
-            {aside}
-          </div>
+          <div className="border border-line/80 bg-white/40 px-3 py-2">{aside}</div>
         )}
       </div>
     </header>
