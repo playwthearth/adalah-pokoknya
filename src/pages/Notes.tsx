@@ -116,7 +116,10 @@ export function Notes() {
           />
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <p className="label text-[9px]">{t.notes.remaining(MAX_LENGTH - body.length)}</p>
+            <p className="label text-[9px]">
+              {t.notes.remaining(MAX_LENGTH - body.length)}
+              {kind === "daily" && <> · {t.notes.dailyExpiry}</>}
+            </p>
             <button
               type="submit"
               disabled={posting || !body.trim()}

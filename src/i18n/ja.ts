@@ -197,6 +197,7 @@ export const ja: Dict = {
     posting: "送信中…",
     posted: "ここに残しました。",
     remaining: (n: number) => `残り${n}文字`,
+    dailyExpiry: "デイリーノートは24時間で消えます",
     count: (n: number) => `${n}件`,
     latest: "最近のノート",
     viewAll: "すべてのノート",

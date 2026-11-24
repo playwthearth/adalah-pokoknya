@@ -200,6 +200,7 @@ export const en = {
     posting: "Sending…",
     posted: "Left here for you.",
     remaining: (n: number) => `${n} characters left`,
+    dailyExpiry: "Daily notes fade after 24 hours",
     count: (n: number) => `${n} notes`,
     latest: "LATEST NOTES",
     viewAll: "All notes",

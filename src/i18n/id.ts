@@ -198,6 +198,7 @@ export const id: Dict = {
     posting: "Mengirim…",
     posted: "Sudah ditinggalkan untukmu.",
     remaining: (n: number) => `Sisa ${n} karakter`,
+    dailyExpiry: "Catatan harian hilang setelah 24 jam",
     count: (n: number) => `${n} catatan`,
     latest: "CATATAN TERBARU",
     viewAll: "Semua catatan",
