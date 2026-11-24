@@ -123,7 +123,7 @@ export function Notes() {
             <button
               type="submit"
               disabled={posting || !body.trim()}
-              className="inline-flex items-center gap-2 border border-navy/70 px-5 py-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-navy transition-colors hover:bg-navy hover:text-mist disabled:cursor-not-allowed disabled:opacity-50"
+              className="press inline-flex items-center gap-2 border border-navy/70 px-5 py-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-navy hover:border-navy hover:bg-navy hover:text-mist disabled:cursor-not-allowed disabled:opacity-50"
             >
               {posting ? t.notes.posting : t.notes.post}
               <Send size={12} strokeWidth={1.5} aria-hidden="true" />
@@ -189,7 +189,7 @@ export function Notes() {
                   delay: Math.min(index, 6) * 0.045,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className="group grid gap-3 border-t border-line/70 py-6 transition-colors hover:bg-white/40 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-8"
+                className="rail group -ml-3 grid gap-3 border-t border-line/70 py-6 pl-3 transition-colors duration-500 hover:border-line hover:bg-white/50 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-8"
               >
                 <div className="flex items-start justify-between gap-3 sm:block">
                   <div>

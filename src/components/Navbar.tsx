@@ -49,7 +49,7 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-line/70 bg-mist/95 sm:bg-mist/85 sm:backdrop-blur-md">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-line/70 bg-mist/95 shadow-[inset_0_-1px_0_rgba(255,255,255,0.55),0_10px_30px_-28px_rgba(21,40,58,0.5)] sm:bg-mist/80 sm:backdrop-blur-md sm:backdrop-saturate-150">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
           <button
             type="button"
@@ -81,18 +81,22 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
                 data-active={route === item.route}
                 className="link-underline group relative flex items-baseline gap-2"
               >
-                <span className="font-mono text-[9px] text-muted-strong transition-colors group-data-[active=true]:text-ember">
+                <span className="font-mono text-[9px] text-muted-strong transition-colors duration-300 group-data-[active=true]:text-ember">
                   0{index + 1}
                 </span>
-                <span className="text-[11px] uppercase tracking-[0.18em] text-navy/75 transition-colors group-hover:text-ink group-data-[active=true]:text-ink">
+                <span className="text-[11px] uppercase tracking-[0.18em] text-navy/75 transition-colors duration-300 group-hover:text-ink group-data-[active=true]:text-ink">
                   {t.nav[item.key]}
                 </span>
+                <span
+                  aria-hidden="true"
+                  className="absolute -bottom-1.5 left-0 h-px w-full origin-left scale-x-0 bg-ember/35 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100"
+                />
                 {route === item.route && (
                   <motion.span
                     layoutId="nav-active"
                     aria-hidden="true"
                     transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                    className="absolute -bottom-1.5 left-0 h-px w-full bg-ember"
+                    className="absolute -bottom-1.5 left-0 h-px w-full bg-ember shadow-[0_0_10px_rgba(163,38,47,0.45)]"
                   />
                 )}
               </button>

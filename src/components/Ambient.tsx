@@ -10,8 +10,9 @@ const SPECKS = [
 
 /**
  * Fixed decoration behind everything: slow washes of light (her hair blue and
- * the one warm note), a faint instrument grid, drifting specks and a single
- * pass of light that travels down the screen. Purely visual.
+ * the one warm note), a low horizon of cold light, a faint instrument grid,
+ * drifting specks, a single pass of light down the screen, a vignette and a
+ * whisper of grain. Purely visual.
  *
  * Phones get a lighter version — fewer blurred layers and a much smaller blur
  * radius, because a 110px blur on a viewport-sized element is the most
@@ -20,9 +21,16 @@ const SPECKS = [
 export function Ambient() {
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      <div className="absolute -left-[18%] top-[6%] h-[52vw] w-[52vw] rounded-full bg-cyan/30 blur-[48px] [animation:drift-a_30s_ease-in-out_infinite] sm:blur-[110px]" />
-      <div className="absolute -right-[14%] bottom-[2%] h-[44vw] w-[44vw] rounded-full bg-[#f9e6e5]/55 blur-[52px] [animation:drift-b_38s_ease-in-out_infinite] sm:blur-[120px]" />
-      <div className="absolute left-[38%] top-[42%] hidden h-[28vw] w-[28vw] rounded-full bg-[#dbe8f1]/45 blur-[90px] [animation:drift-a_44s_ease-in-out_infinite] sm:block" />
+      {/* The two washes that carry the palette. */}
+      <div className="absolute -left-[18%] top-[6%] h-[52vw] w-[52vw] rounded-full bg-cyan/30 blur-[48px] [animation:drift-a_34s_ease-in-out_infinite] sm:blur-[110px]" />
+      <div className="absolute -right-[14%] bottom-[2%] h-[44vw] w-[44vw] rounded-full bg-[#f9e6e5]/55 blur-[52px] [animation:drift-b_42s_ease-in-out_infinite] sm:blur-[120px]" />
+      <div className="absolute left-[38%] top-[42%] hidden h-[28vw] w-[28vw] rounded-full bg-[#dbe8f1]/45 blur-[90px] [animation:drift-a_52s_ease-in-out_infinite] sm:block" />
+      {/* A fourth, colder bloom high in the frame keeps the top from going flat. */}
+      <div className="absolute left-[24%] -top-[16%] hidden h-[38vw] w-[46vw] rounded-full bg-[#e8f1f8]/60 blur-[120px] [animation:drift-b_60s_ease-in-out_infinite] md:block" />
+
+      {/* The horizon: light pooled low in the room. */}
+      <div className="horizon absolute inset-x-[-10%] top-[68%] hidden h-px opacity-40 sm:block" />
+      <div className="horizon absolute inset-x-[-10%] top-[68%] hidden h-[2px] opacity-20 blur-[26px] sm:block" />
 
       <div
         className="hud-grid absolute inset-0 opacity-50"
@@ -48,7 +56,11 @@ export function Ambient() {
         />
       ))}
 
-      <div className="absolute inset-x-0 h-[22vh] bg-gradient-to-b from-transparent via-cyan/25 to-transparent [animation:sweep_16s_linear_infinite]" />
+      <div className="absolute inset-x-0 h-[22vh] bg-gradient-to-b from-transparent via-cyan/25 to-transparent [animation:sweep_18s_linear_infinite]" />
+
+      {/* Depth and texture, laid over the light rather than under it. */}
+      <div className="vignette absolute inset-0" />
+      <div className="grain absolute -inset-6" />
     </div>
   );
 }

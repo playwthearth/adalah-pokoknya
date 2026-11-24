@@ -49,7 +49,7 @@ export function MemoryCard({ memory, index, onOpen, onEdit }: MemoryCardProps) {
           )}
           <span
             aria-hidden="true"
-            className="absolute inset-0 bg-navy/0 transition-colors duration-500 group-hover:bg-navy/10"
+            className="absolute inset-0 bg-gradient-to-t from-navy/45 via-navy/5 to-transparent opacity-0 transition-opacity duration-700 ease-out group-hover:opacity-100"
           />
           <span className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center border border-mist/60 bg-mist/20 text-mist opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:backdrop-blur-sm">
             <ArrowUpRight size={14} strokeWidth={1.5} />
@@ -61,7 +61,7 @@ export function MemoryCard({ memory, index, onOpen, onEdit }: MemoryCardProps) {
             <span className="absolute bottom-0 left-0 h-3 w-3 border-b border-l border-mist/70" />
             <span className="absolute bottom-0 right-0 h-3 w-3 border-b border-r border-mist/70" />
           </span>
-          <span className="label absolute left-3 top-3 bg-mist/85 px-2 py-1 text-[8px] text-navy">
+          <span className="label absolute left-3 top-3 bg-mist/85 px-2 py-1 text-[8px] text-navy transition-colors duration-500 group-hover:bg-mist group-hover:text-ember">
             {String(index + 1).padStart(2, "0")}
           </span>
         </button>

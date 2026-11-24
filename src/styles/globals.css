@@ -157,6 +157,30 @@
       rgba(169, 201, 223, 0.18)
     );
     border: 1px solid color-mix(in srgb, var(--color-cyan) 58%, transparent);
+    /* A panel sits a hair above the plane: a lit top edge, a soft cast shadow. */
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.85),
+      0 1px 2px rgba(21, 40, 58, 0.03),
+      0 26px 60px -46px rgba(21, 40, 58, 0.45);
+    transition:
+      box-shadow 620ms var(--ease-out-expo),
+      border-color 320ms ease,
+      background-color 320ms ease;
+  }
+
+  .surface::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.95),
+      transparent 68%
+    );
+    opacity: 0.7;
   }
 
   /* Instrument-panel graph paper, kept almost invisible. */
@@ -463,7 +487,12 @@ input[type="range"].range:disabled {
 }
 .hover-lift:hover {
   transform: translateY(-3px);
-  box-shadow: 0 22px 45px -34px rgba(21, 40, 58, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 30px 60px -38px rgba(21, 40, 58, 0.55);
+}
+.hover-lift:active {
+  transform: translateY(-1px);
 }
 
 @utility sheen {
@@ -507,4 +536,136 @@ input[type="range"].range:disabled {
 
 @utility pulse-ring {
   animation: pulse-ring 2.8s ease-out infinite;
+}
+
+/* ═══ Cinematic polish ═════════════════════════════════════════════════════
+   Shared timing for the whole surface layer. One curve, three durations, so
+   every hover, reveal and panel lift feels like the same hand moved it. */
+:root {
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* A slow halo behind a heading — the room breathing around the words. */
+@keyframes halo-breathe {
+  0%,
+  100% {
+    opacity: 0.32;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(1.07);
+  }
+}
+
+/* A single arc of light that crosses a panel once, on arrival. */
+@keyframes sheen-once {
+  from {
+    transform: translateX(-140%) skewX(-14deg);
+  }
+  to {
+    transform: translateX(340%) skewX(-14deg);
+  }
+}
+
+/* Media that settles into place: the smallest possible parallax. */
+@keyframes orbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@utility hero-halo {
+  position: relative;
+  isolation: isolate;
+}
+.hero-halo::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -12%;
+  top: -46%;
+  height: 190%;
+  width: 78%;
+  pointer-events: none;
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(169, 201, 223, 0.5),
+    rgba(249, 230, 229, 0.18) 55%,
+    transparent 72%
+  );
+  filter: blur(26px);
+  animation: halo-breathe 16s ease-in-out infinite;
+}
+
+/* A crimson hairline that draws itself down the left edge of a row. */
+@utility rail {
+  position: relative;
+}
+.rail::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform: scaleY(0);
+  transform-origin: top;
+  background: linear-gradient(to bottom, var(--color-ember) 0%, transparent 92%);
+  transition: transform 620ms var(--ease-out-expo);
+  pointer-events: none;
+}
+.rail:hover::before,
+.rail:focus-within::before {
+  transform: scaleY(1);
+}
+
+/* Physical press: buttons answer before they act. */
+@utility press {
+  transition:
+    transform 160ms var(--ease-soft),
+    background-color 240ms ease,
+    border-color 240ms ease,
+    color 240ms ease;
+}
+.press:active {
+  transform: translateY(1px) scale(0.995);
+}
+
+/* Ambient chrome used by the fixed decoration layer. */
+.vignette {
+  background:
+    radial-gradient(120% 90% at 50% 0%, transparent 40%, rgba(21, 40, 58, 0.07) 100%),
+    radial-gradient(90% 70% at 50% 110%, transparent 45%, rgba(163, 38, 47, 0.04) 100%);
+}
+
+.grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+}
+
+/* A horizon of cold light, low in the frame. */
+.horizon {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(169, 201, 223, 0.55) 22%,
+    rgba(207, 225, 238, 0.75) 50%,
+    rgba(169, 201, 223, 0.55) 78%,
+    transparent
+  );
+  filter: blur(12px);
+}
+
+/* Type that catches the light at its top edge. */
+.lit-text {
+  background-image: linear-gradient(178deg, #1d3040 0%, #15283a 46%, #223a4f 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }

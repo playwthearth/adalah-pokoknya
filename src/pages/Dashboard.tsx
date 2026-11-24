@@ -124,7 +124,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
       <section className="relative grid gap-10 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:gap-14">
         <HairLines className="pointer-events-none absolute -right-6 -top-16 hidden h-[300px] w-[180px] text-cyan/45 xl:block" />
-        <div>
+        <div className="hero-halo">
           <p className="label flex items-center gap-2.5">
             <span
               aria-hidden="true"
@@ -177,7 +177,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
       <section className="mt-12 grid gap-5 sm:mt-16 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
         <Reveal>
-          <div className="surface hover-lift relative flex h-full flex-col justify-between p-7 sm:p-9">
+          <div className="surface hover-lift group relative flex h-full flex-col justify-between p-7 sm:p-9">
             <CornerTicks className="inset-0" />
             <div className="flex items-center justify-between">
               <p className="label">{t.dashboard.daily.label}</p>
@@ -187,7 +187,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             </div>
 
             <blockquote className="mt-9 min-h-[5.5rem]">
-              <span aria-hidden="true" className="font-display text-2xl text-ember/60">
+              <span
+                aria-hidden="true"
+                className="inline-block font-display text-2xl text-ember/60 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-0.5 group-hover:text-ember/90"
+              >
                 “
               </span>
               <p className="mt-2 font-display text-xl font-extralight leading-snug text-ink sm:text-[1.7rem]">
@@ -277,7 +280,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             {notes.slice(0, 3).map((note) => (
               <article
                 key={note.id}
-                className="hover-lift flex flex-col justify-between border border-line/80 bg-white/45 p-5 hover:bg-white/70"
+                className="hover-lift rail flex flex-col justify-between border border-line/80 bg-white/45 p-5 hover:border-navy/20 hover:bg-white/70"
               >
                 <div>
                   <p className="label flex items-center gap-2 text-[9px]">
@@ -316,7 +319,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 <button
                   type="button"
                   onClick={() => onNavigate(link.route)}
-                  className="hover-lift sheen group flex h-full w-full flex-col justify-between border border-line/80 bg-white/45 p-5 text-left hover:border-navy/30 hover:bg-white/75"
+                  className="hover-lift sheen press rail group flex h-full w-full flex-col justify-between border border-line/80 bg-white/45 p-5 text-left hover:border-navy/30 hover:bg-white/75"
                 >
                   <span className="flex items-start justify-between">
                     <Icon

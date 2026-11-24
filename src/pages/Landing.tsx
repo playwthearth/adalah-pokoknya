@@ -17,9 +17,13 @@ export function Landing({ onEnter }: LandingProps) {
   const reduceMotion = useReducedMotion();
 
   const rise = (delay: number) => ({
-    initial: { opacity: 0, y: reduceMotion ? 0 : 14 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.9, delay, ease: [0.22, 1, 0.36, 1] as const },
+    initial: {
+      opacity: 0,
+      y: reduceMotion ? 0 : 16,
+      filter: reduceMotion ? "blur(0px)" : "blur(8px)",
+    },
+    animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+    transition: { duration: 1.1, delay, ease: [0.16, 1, 0.3, 1] as const },
   });
 
   return (
@@ -74,7 +78,7 @@ export function Landing({ onEnter }: LandingProps) {
 
         <motion.h1
           {...rise(0.15)}
-          className="mt-7 font-display text-[clamp(2.7rem,9.5vw,6.5rem)] font-extralight leading-[0.94] tracking-[-0.02em] text-ink"
+          className="hero-halo mt-7 font-display text-[clamp(2.7rem,9.5vw,6.5rem)] font-extralight leading-[0.94] tracking-[-0.02em] text-ink"
         >
           A Place
           <br />
@@ -99,7 +103,7 @@ export function Landing({ onEnter }: LandingProps) {
           <button
             type="button"
             onClick={onEnter}
-            className="sheen group relative inline-flex items-center gap-4 border border-navy/70 px-9 py-4 text-navy transition-colors duration-300 hover:border-ember hover:bg-navy hover:text-mist sm:px-12"
+            className="sheen press group relative inline-flex items-center gap-4 border border-navy/70 px-9 py-4 text-navy hover:border-ember hover:bg-navy hover:text-mist sm:px-12"
           >
             <span aria-hidden="true" className="absolute -left-px -top-px h-1.5 w-1.5 bg-ember" />
             <span aria-hidden="true" className="absolute -bottom-px -right-px h-1.5 w-1.5 bg-ember" />

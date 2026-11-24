@@ -18,8 +18,12 @@ export function Reveal({
   immediate = false,
 }: RevealProps) {
   const reduceMotion = useReducedMotion();
-  const hidden = { opacity: 0, y: reduceMotion ? 0 : distance };
-  const visible = { opacity: 1, y: 0 };
+  const hidden = {
+    opacity: 0,
+    y: reduceMotion ? 0 : distance,
+    filter: reduceMotion ? "blur(0px)" : "blur(6px)",
+  };
+  const visible = { opacity: 1, y: 0, filter: "blur(0px)" };
 
   return (
     <motion.div
@@ -28,7 +32,7 @@ export function Reveal({
       animate={immediate ? visible : undefined}
       whileInView={immediate ? undefined : visible}
       viewport={immediate ? undefined : { once: true, amount: 0.15 }}
-      transition={{ duration: 0.75, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.9, delay, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
     </motion.div>
