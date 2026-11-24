@@ -1,6 +1,8 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 import { useLanguage } from "../hooks/useLanguage";
 import type { Memory } from "../types";
 import { formatDate } from "../utils/format";
@@ -17,6 +19,7 @@ export function Lightbox({ memories, index, onClose, onChange }: LightboxProps) 
   const reduceMotion = useReducedMotion();
   const open = index !== null;
   const memory = index !== null ? memories[index] : null;
+  const panelRef = useFocusTrap<HTMLDivElement>(open, onClose);
 
   useEffect(() => {
     if (!open) return;
@@ -24,7 +27,6 @@ export function Lightbox({ memories, index, onClose, onChange }: LightboxProps) 
     document.body.style.overflow = "hidden";
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
       if (event.key === "ArrowRight" && index !== null) {
         onChange((index + 1) % memories.length);
       }
@@ -40,14 +42,17 @@ export function Lightbox({ memories, index, onClose, onChange }: LightboxProps) 
     };
   }, [open, index, memories.length, onChange, onClose]);
 
-  return (
+  // Portalled to <body>: a filtered ancestor would otherwise capture `fixed`.
+  return createPortal(
     <AnimatePresence>
       {open && memory && (
         <motion.div
+          ref={panelRef}
           className="fixed inset-0 z-[90] flex flex-col bg-mist"
           role="dialog"
           aria-modal="true"
-          aria-label={memory.title}
+          aria-labelledby="lightbox-title"
+          tabIndex={-1}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -89,7 +94,10 @@ export function Lightbox({ memories, index, onClose, onChange }: LightboxProps) 
 
             <div className="w-full max-w-sm shrink-0 lg:max-w-xs">
               <p className="label">{formatDate(memory.date, locale)}</p>
-              <h2 className="mt-4 font-display text-3xl font-extralight text-ink">
+              <h2
+                id="lightbox-title"
+                className="mt-4 font-display text-3xl font-light text-ink"
+              >
                 {memory.title}
               </h2>
               {memory.note && (
@@ -115,14 +123,15 @@ export function Lightbox({ memories, index, onClose, onChange }: LightboxProps) 
                 >
                   <ArrowRight size={15} strokeWidth={1.5} />
                 </button>
-                <span className="jp ml-3 hidden text-[10px] tracking-[0.3em] text-muted-strong sm:block">
-                  記憶
+                <span className="label ml-3 hidden text-[10px] tracking-[0.24em] text-muted-strong sm:block">
+                  {t.memories.badge}
                 </span>
               </div>
             </div>
           </div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

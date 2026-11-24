@@ -15,13 +15,15 @@ npm run build    # typecheck + production build
 | What | Where |
 | --- | --- |
 | Letters | `src/data/letters.ts` |
-| Memories | `src/data/memories.ts` |
+| Memories | Supabase table `memories` (photos in the private `memories` bucket) |
 | Playlist | `src/data/playlist.ts` |
 | Photographs | `public/assets/images/` |
 | Music | `public/assets/music/` (see its README) |
 | Interface copy (EN / ID / JA) | `src/i18n/` |
 | Name + anniversary defaults | `src/data/site.ts` |
 | Colours, type, textures | `src/styles/globals.css` |
+| Dark theme tokens | `src/styles/theme-dark.css` |
+| Theme choice (light / dark / system) | `src/hooks/useTheme.tsx`, `abt.theme` in localStorage |
 
 Letters, memories, the daily messages and every interface label exist in all
 three languages. Add an entry to a data file and it appears in the interface —
@@ -73,7 +75,12 @@ for a deployment):
 
 Both of you can post a **daily note** or a **love message** from the **Notes**
 page. The three most recent notes also appear on the dashboard. Each person can
-delete only their own notes.
+delete only their own notes. Daily notes belong to the day they were written and
+fade when that day ends in the shared timezone; love messages are kept.
+
+The Notes page filters by kind, searches the text, and opens any note in a
+reading sheet. The theme switch (sun / moon in the top bar, or **Settings →
+Appearance**) follows your device until you pick light or dark explicitly.
 
 ## Privacy
 

@@ -4,15 +4,20 @@ interface PlayerArtworkProps {
   index: number;
   active: boolean;
   title?: string;
+  className?: string;
 }
 
 const ticks = Array.from({ length: 36 }, (_, i) => i * 10);
 
-export function PlayerArtwork({ index, active, title }: PlayerArtworkProps) {
+export function PlayerArtwork({ index, active, title, className }: PlayerArtworkProps) {
   const reduceMotion = useReducedMotion();
 
   return (
-    <div className="relative aspect-square w-full overflow-hidden border border-navy/15 bg-pale">
+    <div
+      className={`relative aspect-square w-full overflow-hidden border border-navy/15 bg-pale ${
+        className ?? ""
+      }`}
+    >
       <svg
         viewBox="0 0 200 200"
         className="absolute inset-0 h-full w-full"

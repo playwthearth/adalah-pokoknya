@@ -1,6 +1,8 @@
 import { Crop, Loader2, Trash2, Upload, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { MAX_PHOTO_BYTES, type MemoryDraft } from "../hooks/useMemories";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 import { useLanguage } from "../hooks/useLanguage";
 import type { Memory } from "../types";
 import { PhotoCropper } from "./PhotoCropper";
@@ -34,6 +36,13 @@ export function MemoryEditor({ memory, onClose, onSave, onDelete }: MemoryEditor
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  // Escape leaves cropping first, then the sheet. The trap owns focus and the
+  // Escape key itself, so it replaces the old document listener.
+  const sheetRef = useFocusTrap<HTMLDivElement>(true, () => {
+    if (busy) return;
+    if (cropSource) setCropSource(null);
+    else onClose();
+  });
 
   // A freshly chosen file wins over the photo that is already saved.
   const preview = useMemo(
@@ -57,17 +66,6 @@ export function MemoryEditor({ memory, onClose, onSave, onDelete }: MemoryEditor
       document.body.style.overflow = original;
     };
   }, []);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || busy) return;
-      // Escape first steps out of cropping, then out of the whole sheet.
-      if (cropSource) setCropSource(null);
-      else onClose();
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [busy, cropSource, onClose]);
 
   const chooseFile = (file: File | null) => {
     setError(null);
@@ -138,9 +136,14 @@ export function MemoryEditor({ memory, onClose, onSave, onDelete }: MemoryEditor
     }
   };
 
-  return (
+  // Portalled to <body>: an ancestor with a CSS filter (the page transition)
+  // becomes the containing block for fixed children, which would pin this
+  // sheet to the top of the document instead of the viewport.
+  return createPortal(
     <div
-      className="fixed inset-0 z-[88] overflow-y-auto overscroll-contain bg-navy/40 sm:flex sm:items-start sm:justify-center sm:p-8 sm:backdrop-blur-sm"
+      ref={sheetRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-[88] overflow-y-auto overscroll-contain bg-scrim/60 outline-none sm:flex sm:items-start sm:justify-center sm:p-8 sm:backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-label={memory ? t.memories.editing : t.memories.creating}
@@ -326,6 +329,7 @@ export function MemoryEditor({ memory, onClose, onSave, onDelete }: MemoryEditor
           )}
         </footer>
       </form>
-    </div>
+    </div>,
+    document.body,
   );
 }

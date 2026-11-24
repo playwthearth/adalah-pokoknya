@@ -35,7 +35,7 @@ export function Landing({ onEnter }: LandingProps) {
         className="pointer-events-none absolute inset-3 border border-navy/12 sm:inset-5"
       />
       <CornerTicks className="inset-3 z-20 sm:inset-5" />
-      <MoonMark className="hair-drift pointer-events-none absolute hidden text-cyan/70 sm:block sm:-right-[6%] sm:-top-[18%] sm:w-[40vw] sm:max-w-[560px]" />
+      <MoonMark className="moon hair-drift pointer-events-none absolute hidden text-cyan/70 sm:block sm:-right-[6%] sm:-top-[18%] sm:w-[40vw] sm:max-w-[560px]" />
       <HairLines className="hair-drift pointer-events-none absolute -left-[4%] top-[22%] hidden h-[64vh] w-[24vw] text-cyan/70 md:block" />
 
       <span

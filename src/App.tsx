@@ -1,39 +1,86 @@
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { MotionConfig, motion } from "framer-motion";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Ambient } from "./components/Ambient";
 import { HairLines } from "./components/ReiMarks";
 import { AuthGate } from "./components/AuthGate";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ScrollProgress } from "./components/ScrollProgress";
 import { Ticker } from "./components/Ticker";
 import { Footer } from "./components/Footer";
 import { MiniPlayer } from "./components/MiniPlayer";
 import { Navbar } from "./components/Navbar";
+import { site } from "./data/site";
 import { AuthProvider } from "./hooks/useAuth";
 import { useHashRoute } from "./hooks/useHashRoute";
-import { LanguageProvider } from "./hooks/useLanguage";
+import { LanguageProvider, useLanguage } from "./hooks/useLanguage";
 import { MusicPlayerProvider } from "./hooks/useMusicPlayer";
 import { NotesProvider } from "./hooks/useNotes";
 import { SettingsProvider } from "./hooks/useSettings";
+import { ThemeProvider } from "./hooks/useTheme";
 import { Dashboard } from "./pages/Dashboard";
 import { Landing } from "./pages/Landing";
-import { Letters } from "./pages/Letters";
-import { Memories } from "./pages/Memories";
-import { Notes } from "./pages/Notes";
-import { Playlist } from "./pages/Playlist";
-import { Settings } from "./pages/Settings";
+import { NotFound } from "./pages/NotFound";
+
+// The dashboard is the room you land in, so it stays in the entry bundle. The
+// other sections load the first time they are opened.
+const Letters = lazy(() => import("./pages/Letters").then((m) => ({ default: m.Letters })));
+const Memories = lazy(() => import("./pages/Memories").then((m) => ({ default: m.Memories })));
+const Notes = lazy(() => import("./pages/Notes").then((m) => ({ default: m.Notes })));
+const Playlist = lazy(() => import("./pages/Playlist").then((m) => ({ default: m.Playlist })));
+const Settings = lazy(() => import("./pages/Settings").then((m) => ({ default: m.Settings })));
+
+/** The threshold is shown once per tab, not once per reload. */
+const ENTERED_KEY = "abt.entered";
+
+function readEntered(): boolean {
+  try {
+    return window.sessionStorage.getItem(ENTERED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function PageFallback() {
+  return (
+    <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8" aria-busy="true">
+      <div className="h-3 w-24 animate-pulse bg-line/50" />
+      <div className="mt-6 h-10 w-2/3 max-w-md animate-pulse bg-line/40" />
+      <div className="mt-10 h-40 animate-pulse border border-line/60 bg-surface/30" />
+    </div>
+  );
+}
 
 function Experience() {
-  const [entered, setEntered] = useState(false);
+  const [entered, setEntered] = useState(readEntered);
   const [route, navigate] = useHashRoute();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!entered) return;
     window.scrollTo({ top: 0, behavior: "auto" });
   }, [route, entered]);
 
+  // Each room names itself in the tab and in history.
+  useEffect(() => {
+    if (!entered) {
+      document.title = site.title;
+      return;
+    }
+    document.title =
+      route === "dashboard"
+        ? site.title
+        : route === "not-found"
+          ? `${t.notFound.title} — ${site.title}`
+          : `${t.nav[route]} — ${site.title}`;
+  }, [entered, route, t]);
+
   const enter = () => {
     setEntered(true);
-    navigate("dashboard");
+    try {
+      window.sessionStorage.setItem(ENTERED_KEY, "1");
+    } catch {
+      // Still entered for this render; the flag only helps across reloads.
+    }
   };
 
   // Swapped directly rather than through AnimatePresence: an exit animation
@@ -48,35 +95,53 @@ function Experience() {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className="relative flex min-h-[100svh] flex-col"
     >
+      <a
+        href="#main"
+        onClick={(event) => {
+          event.preventDefault();
+          const main = document.getElementById("main");
+          main?.focus();
+          main?.scrollIntoView({ block: "start" });
+        }}
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:border focus:border-navy focus:bg-mist focus:px-4 focus:py-2.5 focus:font-mono focus:text-[10px] focus:uppercase focus:tracking-[0.2em] focus:text-ink"
+      >
+        {t.common.skipToContent}
+      </a>
+
       <Ambient />
       <HairLines className="pointer-events-none fixed -right-10 bottom-16 z-0 hidden h-[58vh] w-[16vw] text-cyan/45 lg:block" />
       <ScrollProgress />
       <div className="relative z-10 flex flex-1 flex-col">
         <AuthGate>
-        <NotesProvider>
-          <Navbar route={route} onNavigate={navigate} />
+          <NotesProvider>
+            <Navbar route={route} onNavigate={navigate} />
 
-          <main className="flex-1 pt-16">
-            <motion.div
-              key={route}
-              initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            >
-              {route === "dashboard" && <Dashboard onNavigate={navigate} />}
-              {route === "letters" && <Letters />}
-              {route === "memories" && <Memories />}
-              {route === "playlist" && <Playlist />}
-              {route === "notes" && <Notes />}
-              {route === "settings" && <Settings />}
-            </motion.div>
-          </main>
+            <main id="main" tabIndex={-1} className="flex-1 pt-16 outline-none">
+              <motion.div
+                key={route}
+                initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <ErrorBoundary>
+                  <Suspense fallback={<PageFallback />}>
+                    {route === "dashboard" && <Dashboard onNavigate={navigate} />}
+                    {route === "letters" && <Letters />}
+                    {route === "memories" && <Memories />}
+                    {route === "playlist" && <Playlist />}
+                    {route === "notes" && <Notes />}
+                    {route === "settings" && <Settings />}
+                    {route === "not-found" && <NotFound onNavigate={navigate} />}
+                  </Suspense>
+                </ErrorBoundary>
+              </motion.div>
+            </main>
 
-          <Ticker />
-          <Footer />
-          <div aria-hidden="true" className="h-16" />
-          <MiniPlayer onOpenPlaylist={() => navigate("playlist")} />
-        </NotesProvider>
+            <Ticker />
+            <Footer />
+            <div aria-hidden="true" className="h-[calc(4rem+env(safe-area-inset-bottom,0px))]" />
+            <MiniPlayer onOpenPlaylist={() => navigate("playlist")} />
+          </NotesProvider>
         </AuthGate>
       </div>
     </motion.div>
@@ -85,14 +150,20 @@ function Experience() {
 
 export default function App() {
   return (
-    <LanguageProvider>
-      <AuthProvider>
-        <SettingsProvider>
-          <MusicPlayerProvider>
-            <Experience />
-          </MusicPlayerProvider>
-        </SettingsProvider>
-      </AuthProvider>
-    </LanguageProvider>
+    <ThemeProvider>
+      <MotionConfig reducedMotion="user">
+        <LanguageProvider>
+          <AuthProvider>
+            <SettingsProvider>
+              <MusicPlayerProvider>
+                <ErrorBoundary>
+                  <Experience />
+                </ErrorBoundary>
+              </MusicPlayerProvider>
+            </SettingsProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </MotionConfig>
+    </ThemeProvider>
   );
 }

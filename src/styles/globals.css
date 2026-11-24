@@ -1,22 +1,29 @@
 @import "tailwindcss";
 
 @theme {
-  /* Palette — Rei: bone white, hair blue, crimson eyes, deep navy */
-  --color-mist: #f3f1f0; /* bone — page ground, the hospital light */
-  --color-pale: #dbe8f1; /* plugsuit shadow */
-  --color-cyan: #a9c9df; /* her hair — the tint of everything */
+  /* Palette — Rei, rebuilt on the blue-grey ground: cool paper, hair blue,
+     crimson eyes, deep navy. Every token is semantic, so a single override
+     under [data-theme="dark"] re-themes the whole surface layer. */
+  --color-mist: #f4f7fa; /* page ground — the hospital light */
+  --color-pale: #dceaf1; /* plugsuit shadow, secondary surface */
+  --color-cyan: #a8c9da; /* her hair — the tint of everything */
   --color-hair: #cfe1ee; /* highlight strand */
-  --color-line: #b9bab8; /* hairlines */
-  --color-muted: #4f5d68;
-  --color-muted-strong: #44525e; /* WCAG AA on bone and pale surfaces */
-  --color-navy: #223a4f; /* navy — primary type */
-  --color-ink: #15283a;
+  --color-surface: #ffffff; /* raised panel */
+  --color-scrim: #15283a; /* what sits behind a dialog, in both themes */
+  --color-glow-warm: #f9e6e5; /* the one warm note in the ambient light */
+  --color-glow-pale: #dbe8f1;
+  --color-glow-cold: #e8f1f8;
+  --color-line: #dfe7ec; /* hairlines */
+  --color-muted: #6b7f8c;
+  --color-muted-strong: #566a78; /* WCAG AA on the page ground and pale */
+  --color-navy: #263746; /* navy — primary type */
+  --color-ink: #1d2c3a;
   --color-ember: #a3262f; /* crimson — the only saturated signal, her eyes */
   --color-lcl: #bf7a2e; /* terminal amber, used sparingly */
 
   /* Type */
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Outfit", "Inter", ui-sans-serif, sans-serif;
+  --font-display: "Cormorant Garamond", "Outfit", ui-serif, Georgia, serif;
   --font-jp: "Noto Sans JP", "Inter", sans-serif;
   --font-mono: "Space Mono", ui-monospace, "SFMono-Regular", monospace;
 
@@ -89,8 +96,9 @@
   }
 
   :focus-visible {
-    outline: 1px solid var(--color-ember);
-    outline-offset: 4px;
+    outline: 2px solid var(--color-ember);
+    outline-offset: 3px;
+    border-radius: 1px;
   }
 
   img {

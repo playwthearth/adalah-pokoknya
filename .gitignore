@@ -28,3 +28,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Local scratch: screenshots, one-off scripts (may contain test credentials)
+artifacts/
+.cloud-attachments/

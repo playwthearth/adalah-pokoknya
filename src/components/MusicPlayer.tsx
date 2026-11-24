@@ -1,5 +1,13 @@
 import type { CSSProperties } from "react";
-import { AlertCircle, Pause, Play, SkipBack, SkipForward, Volume1 } from "lucide-react";
+import {
+  AlertCircle,
+  Pause,
+  Play,
+  SkipBack,
+  SkipForward,
+  Volume1,
+  VolumeX,
+} from "lucide-react";
 import { useLanguage } from "../hooks/useLanguage";
 import { useMusicPlayer } from "../hooks/useMusicPlayer";
 import { formatDuration } from "../utils/format";
@@ -15,12 +23,14 @@ export function MusicPlayer() {
     progress,
     duration,
     volume,
+    muted,
     hasError,
     toggle,
     next,
     previous,
     seek,
     setVolume,
+    toggleMute,
   } = useMusicPlayer();
 
   const percent = duration > 0 ? Math.min(100, (progress / duration) * 100) : 0;
@@ -29,9 +39,16 @@ export function MusicPlayer() {
   return (
     <section
       aria-label={t.playlist.nowPlaying}
-      className="surface grid grid-cols-1 gap-8 p-5 sm:p-7 md:grid-cols-[minmax(0,260px)_minmax(0,1fr)] md:items-center md:gap-10"
+      className="surface grid grid-cols-1 gap-6 p-5 sm:gap-8 sm:p-7 md:grid-cols-[minmax(0,260px)_minmax(0,1fr)] md:items-center md:gap-10"
     >
-      <PlayerArtwork index={currentIndex} active={isPlaying} title={current?.title} />
+      <div className="flex justify-center md:block">
+        <PlayerArtwork
+          index={currentIndex}
+          active={isPlaying}
+          title={current?.title}
+          className="w-48 max-w-[260px] sm:w-60 md:w-full"
+        />
+      </div>
 
       <div className="min-w-0">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -92,7 +109,7 @@ export function MusicPlayer() {
               type="button"
               onClick={previous}
               aria-label={t.playlist.previous}
-              className="inline-flex h-10 w-10 items-center justify-center border border-line text-navy transition-colors hover:border-navy/40 hover:bg-white/50"
+              className="inline-flex h-11 w-11 items-center justify-center border border-line text-navy transition-colors hover:border-navy/40 hover:bg-surface/50"
             >
               <SkipBack size={15} strokeWidth={1.5} />
             </button>
@@ -112,14 +129,26 @@ export function MusicPlayer() {
               type="button"
               onClick={next}
               aria-label={t.playlist.next}
-              className="inline-flex h-10 w-10 items-center justify-center border border-line text-navy transition-colors hover:border-navy/40 hover:bg-white/50"
+              className="inline-flex h-11 w-11 items-center justify-center border border-line text-navy transition-colors hover:border-navy/40 hover:bg-surface/50"
             >
               <SkipForward size={15} strokeWidth={1.5} />
             </button>
           </div>
 
           <div className="flex min-w-[140px] flex-1 items-center gap-3 sm:max-w-[200px]">
-            <Volume1 size={14} strokeWidth={1.5} aria-hidden="true" className="text-muted-strong" />
+            <button
+              type="button"
+              onClick={toggleMute}
+              aria-label={muted ? t.playlist.unmute : t.playlist.mute}
+              aria-pressed={muted}
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center border border-line/80 text-navy/75 transition-colors hover:border-navy/40 hover:text-ink"
+            >
+              {muted ? (
+                <VolumeX size={15} strokeWidth={1.5} aria-hidden="true" />
+              ) : (
+                <Volume1 size={15} strokeWidth={1.5} aria-hidden="true" />
+              )}
+            </button>
             <label className="sr-only" htmlFor="player-volume">
               {t.playlist.volume}
             </label>

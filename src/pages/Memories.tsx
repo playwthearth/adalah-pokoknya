@@ -44,13 +44,13 @@ export function Memories() {
         <div className="mt-10 space-y-10" aria-hidden="true">
           {[0, 1].map((row) => (
             <div key={row} className="grid gap-6 md:grid-cols-2">
-              <div className="aspect-[4/3] animate-pulse border border-line/60 bg-white/30" />
-              <div className="h-32 animate-pulse border border-line/60 bg-white/30" />
+              <div className="aspect-[4/3] animate-pulse border border-line/60 bg-surface/30" />
+              <div className="h-32 animate-pulse border border-line/60 bg-surface/30" />
             </div>
           ))}
         </div>
       ) : error ? (
-        <div className="mt-10 border border-line/80 bg-white/30 p-6">
+        <div className="mt-10 border border-line/80 bg-surface/30 p-6">
           <p className="text-[13px] text-muted-strong">{t.memories.loadError}</p>
           <button type="button" onClick={() => void refresh()} className="btn-quiet mt-3">
             {t.memories.retry}

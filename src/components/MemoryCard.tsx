@@ -19,7 +19,7 @@ export function MemoryCard({ memory, index, onOpen, onEdit }: MemoryCardProps) {
       {/* Timeline node */}
       <span
         aria-hidden="true"
-        className="absolute left-[7px] top-2 hidden h-2 w-2 -translate-x-1/2 rounded-full border border-cyan bg-mist md:left-1/2 md:top-1/2 md:block"
+        className="absolute left-[7px] top-2 h-2 w-2 -translate-x-1/2 rounded-full border border-cyan bg-mist md:left-1/2 md:top-1/2"
       >
         <span className="absolute inset-[3px] rounded-full bg-ember/70" />
       </span>
@@ -49,9 +49,9 @@ export function MemoryCard({ memory, index, onOpen, onEdit }: MemoryCardProps) {
           )}
           <span
             aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-t from-navy/45 via-navy/5 to-transparent opacity-0 transition-opacity duration-700 ease-out group-hover:opacity-100"
+            className="absolute inset-0 bg-gradient-to-t from-scrim/45 via-scrim/5 to-transparent opacity-0 transition-opacity duration-700 ease-out group-hover:opacity-100"
           />
-          <span className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center border border-mist/60 bg-mist/20 text-mist opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:backdrop-blur-sm">
+          <span className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center border border-white/60 bg-white/20 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:backdrop-blur-sm">
             <ArrowUpRight size={14} strokeWidth={1.5} />
           </span>
           {/* Viewfinder ticks over the photograph. */}

@@ -205,7 +205,7 @@ grant execute on function public.list_members() to authenticated;
 -- Table privileges: signed-in members get the verbs, the policies decide the rows.
 grant usage on schema public to authenticated;
 grant select on public.members to authenticated;
-grant select, insert, delete on public.notes to authenticated;
+grant select, insert, update, delete on public.notes to authenticated;
 grant select, insert, update on public.settings to authenticated;
 
 drop policy if exists members_owner_read on public.members;
@@ -237,6 +237,14 @@ create policy settings_update on public.settings
 drop policy if exists notes_insert on public.notes;
 create policy notes_insert on public.notes
   for insert to authenticated
+  with check (public.is_member() and author_id = auth.uid());
+
+-- Editing a note in place needs this policy on the live project too; without
+-- it PostgREST refuses the update and the app falls back to replacing the row.
+drop policy if exists notes_update on public.notes;
+create policy notes_update on public.notes
+  for update to authenticated
+  using (author_id = auth.uid())
   with check (public.is_member() and author_id = auth.uid());
 
 drop policy if exists notes_delete on public.notes;

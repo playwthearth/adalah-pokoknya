@@ -30,7 +30,9 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const { t, locale } = useLanguage();
   const { role } = useAuth();
   const { settings } = useSettings();
-  const now = useNow();
+  // Update every minute (60,000ms): Clock handles its own 1s tick independently,
+  // preventing 60 unnecessary full-tree Dashboard re-renders per minute.
+  const now = useNow(60_000);
   const { notes, loading: notesLoading, error: notesError } = useNotes();
   const noteAuthor = useNoteAuthorName();
 
@@ -61,6 +63,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const hours = started ? Math.floor(elapsedMs / 3_600_000) % 24 : 0;
   const minutes = started ? Math.floor(elapsedMs / 60_000) % 60 : 0;
 
+  const daysInYear =
+    new Date(Date.UTC(zoneNow.year, 1, 29)).getUTCMonth() === 1 ? 366 : 365;
   const dayOfYear =
     Math.floor(
       (civilMs(zoneNow) - civilMs({ year: zoneNow.year, month: 1, day: 1 })) / 86_400_000,
@@ -189,7 +193,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             <div className="flex items-center justify-between">
               <p className="label">{t.dashboard.daily.label}</p>
               <span className="font-mono text-[10px] tabular-nums tracking-[0.16em] text-muted-strong">
-                {String(dayOfYear).padStart(3, "0")} / 365
+                {String(dayOfYear).padStart(3, "0")} / {daysInYear}
               </span>
             </div>
 
@@ -207,7 +211,9 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
             <div className="mt-7 flex items-center gap-3">
               <span aria-hidden="true" className="h-px w-8 bg-ember/70" />
-              <span className="jp text-[10px] tracking-[0.32em] text-muted-strong">今日の言葉</span>
+              <span className="label text-[10px] tracking-[0.24em] text-muted-strong">
+                {t.dashboard.daily.signature}
+              </span>
             </div>
           </div>
         </Reveal>
@@ -263,14 +269,14 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             {[0, 1, 2].map((row) => (
               <div
                 key={row}
-                className="h-36 animate-pulse border border-line/60 bg-white/30"
+                className="h-36 animate-pulse border border-line/60 bg-surface/30"
               />
             ))}
           </div>
         ) : notesError ? (
           <p className="mt-5 text-[12px] text-muted-strong">{t.notes.loadError}</p>
         ) : notes.length === 0 ? (
-          <div className="mt-5 border border-dashed border-line/80 bg-white/25 p-6">
+          <div className="mt-5 border border-dashed border-line/80 bg-surface/25 p-6">
             <p className="font-display text-lg font-light text-ink">{t.notes.empty}</p>
             <p className="mt-1 text-[12px] text-muted-strong">{t.notes.emptyHint}</p>
             <button
@@ -287,7 +293,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             {notes.slice(0, 3).map((note) => (
               <article
                 key={note.id}
-                className="hover-lift rail flex flex-col justify-between border border-line/80 bg-white/45 p-5 hover:border-navy/20 hover:bg-white/70"
+                className="hover-lift rail flex flex-col justify-between border border-line/80 bg-surface/45 p-5 hover:border-navy/20 hover:bg-surface/70"
               >
                 <div>
                   <p className="label flex items-center gap-2 text-[9px]">
@@ -327,7 +333,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 <button
                   type="button"
                   onClick={() => onNavigate(link.route)}
-                  className="hover-lift sheen press rail group flex h-full w-full flex-col justify-between border border-line/80 bg-white/45 p-5 text-left hover:border-navy/30 hover:bg-white/75"
+                  className="hover-lift sheen press rail group flex h-full w-full flex-col justify-between border border-line/80 bg-surface/45 p-5 text-left hover:border-navy/30 hover:bg-surface/75"
                 >
                   <span className="flex items-start justify-between">
                     <Icon

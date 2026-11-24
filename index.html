@@ -4,18 +4,47 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#F9E6E5" />
-    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#f4f7fa" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="robots" content="noindex, nofollow" />
     <meta
       name="description"
-      content="A quiet little universe, made just for you."
+      content="A quiet place beyond time — a few letters, a memory archive and small notes, kept for two."
     />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="A Place Beyond Time" />
+    <meta property="og:title" content="A Place Beyond Time" />
+    <meta
+      property="og:description"
+      content="A quiet place beyond time — a few letters, a memory archive and small notes, kept for two."
+    />
+    <meta property="og:locale" content="en_GB" />
     <title>A Place Beyond Time</title>
+
+    <!-- Paint the saved theme before anything renders, so a reload never
+         flashes the wrong ground. Kept tiny and dependency-free on purpose. -->
+    <script>
+      (function () {
+        try {
+          var stored = window.localStorage.getItem("abt.theme");
+          var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          var theme =
+            stored === "light" || stored === "dark" ? stored : prefersDark ? "dark" : "light";
+          var root = document.documentElement;
+          root.dataset.theme = theme;
+          root.style.colorScheme = theme;
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute("content", theme === "dark" ? "#111b25" : "#f4f7fa");
+        } catch (error) {
+          /* Storage blocked: the default light theme still applies. */
+        }
+      })();
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Outfit:wght@200;300;400;500&family=Noto+Sans+JP:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;500&family=Space+Mono:wght@400&display=swap"
       rel="stylesheet"
     />
   </head>

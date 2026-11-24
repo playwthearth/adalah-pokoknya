@@ -47,6 +47,7 @@ export const ja: Dict = {
       "ここにあるものは、すべて残ります。手紙も、写真も、歌も。何も急いでいません。",
     daily: {
       label: "今日の通信",
+      signature: "今日の言葉",
       messages: [
         "そのままでいい。ほかの何かになる必要はない。",
         "距離の遠さは、あなたを想う一度きり。",
@@ -113,12 +114,14 @@ export const ja: Dict = {
     emptyHint: "書かれ次第、ここに並びます。",
     hint: "Esc で閉じる",
     from: "愛を込めて",
+    signoff: "愛を込めて",
   },
 
   memories: {
     eyebrow: "記憶記録",
     title: "私たちの記憶",
     description: "忘れられなかった、小さな瞬間。",
+    badge: "記憶",
     count: (n: number) => `${n}の記憶`,
     view: "記憶を開く",
     empty: "記録はまだ空です。",
@@ -169,6 +172,7 @@ export const ja: Dict = {
       "ある日を思い出させる歌。ひとつ選んで、少しだけここにいてください。",
     nowPlaying: "再生中",
     playlistLabel: "プレイリスト",
+    tracksLabel: "曲",
     empty: "まだ曲がありません。",
     emptyHint:
       "public/assets/music に音声ファイルを追加し、src/data/playlist.ts に登録してください。",
@@ -181,6 +185,8 @@ export const ja: Dict = {
     placeholderNote:
       "ここにある三曲は生成された音で、あなたたちの歌の代わりです。いつでも差し替えてください。",
     openPlayer: "プレイヤーを開く",
+    mute: "ミュート",
+    unmute: "ミュート解除",
     select: "この曲を再生",
   },
 
@@ -209,6 +215,29 @@ export const ja: Dict = {
     delete: "削除",
     confirmDelete: "削除しますか？",
     deleteError: "ノートを削除できませんでした。",
+    filterAll: "すべてのノート",
+    searchLabel: "ノートを検索",
+    searchPlaceholder: "書いたことを検索…",
+    searchEmpty: "一致するものがありません。",
+    fadesTonight: "今夜消えます",
+    openNote: "このノートを読む",
+    filtered: (n: number) => `${n}件を表示`,
+    edit: "編集",
+    cancelEdit: "編集をキャンセル",
+    editingNote: "ノートを編集中",
+    saveChanges: "変更を保存",
+    savingChanges: "保存中…",
+    updated: "ノートを更新しました。",
+    updateError: "ノートを更新できませんでした。もう一度お試しください。",
+    loadEarlier: "過去のノートを読み込む",
+    loadingEarlier: "過去のノートを読み込み中…",
+  },
+
+  notFound: {
+    eyebrow: "航法エラー / 404",
+    title: "到達不能な座標",
+    subtitle: "指定された経路はサンクチュアリ内に存在しません。",
+    returnDashboard: "ダッシュボードへ戻る",
   },
 
   auth: {
@@ -247,6 +276,11 @@ export const ja: Dict = {
     eyebrow: "個人通信",
     title: "設定",
     description: "この場所をあなたのものにする、小さな調整。",
+    themeTitle: "外観",
+    themeDesc: "ライト、ダーク、または端末の設定に合わせます。",
+    themeSystem: "システム",
+    themeLight: "ライト",
+    themeDark: "ダーク",
     languageTitle: "言語",
     languageDesc: "この空間全体が、あなたとともに変わります。",
     audioTitle: "オーディオ",
@@ -298,5 +332,6 @@ export const ja: Dict = {
     minutesShort: "分",
     secondsShort: "秒",
     of: "の",
+    skipToContent: "本文へスキップ",
   },
 };

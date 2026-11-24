@@ -12,7 +12,7 @@ const SIGN_REFRESH_MS = 90 * 60 * 1000;
  * Safety net under realtime: if the socket drops, a quiet read still brings the
  * other person's change in while the tab is on screen.
  */
-const POLL_MS = 10000;
+const POLL_MS = 60000;
 
 export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 

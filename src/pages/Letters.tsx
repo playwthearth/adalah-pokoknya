@@ -61,7 +61,7 @@ export function Letters() {
               type="button"
               onClick={() => setFilter(item.key)}
               aria-pressed={isActive}
-              className={`inline-flex items-center gap-2 border px-3 py-2 text-[10px] uppercase tracking-[0.16em] transition-colors ${
+              className={`inline-flex min-h-11 items-center gap-2 border px-3.5 py-2 text-[10px] uppercase tracking-[0.16em] transition-colors ${
                 isActive
                   ? "border-navy bg-navy text-mist"
                   : "border-line/80 bg-transparent text-navy/70 hover:border-navy/35 hover:text-ink"
@@ -142,7 +142,9 @@ export function Letters() {
             <div className="mt-9 flex items-center gap-3 border-t border-line/70 pt-5">
               <span aria-hidden="true" className="h-px w-8 bg-ember/70" />
               <p className="label">{t.letters.from}</p>
-              <span className="jp text-[11px] tracking-[0.24em] text-muted-strong">愛を込めて</span>
+              <span className="text-[11px] tracking-[0.2em] text-muted-strong font-display italic">
+                {t.letters.signoff}
+              </span>
             </div>
 
             <p className="label mt-6 text-[9px] text-muted-strong">{t.letters.hint}</p>

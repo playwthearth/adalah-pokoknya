@@ -50,6 +50,7 @@ export const en = {
       "Everything here stays — the letters, the photographs, the songs. None of it is in a hurry.",
     daily: {
       label: "DAILY TRANSMISSION",
+      signature: "Words for today",
       messages: [
         "You do not have to be anything other than what you are.",
         "Some distances are only as far as a thought of you.",
@@ -116,12 +117,14 @@ export const en = {
     emptyHint: "They will appear here as soon as they are written.",
     hint: "Press Esc to close",
     from: "With love",
+    signoff: "Forever yours",
   },
 
   memories: {
     eyebrow: "MEMORY ARCHIVE",
     title: "Our Memories",
     description: "Small moments that refused to be forgotten.",
+    badge: "Memory",
     count: (n: number) => `${n} memories`,
     view: "Open memory",
     empty: "The archive is empty for now.",
@@ -172,6 +175,7 @@ export const en = {
       "Songs that feel like certain days. Choose one, and stay a while.",
     nowPlaying: "NOW PLAYING",
     playlistLabel: "PLAYLIST",
+    tracksLabel: "tracks",
     empty: "No songs yet.",
     emptyHint:
       "Add audio files to public/assets/music and list them in src/data/playlist.ts.",
@@ -184,6 +188,8 @@ export const en = {
     placeholderNote:
       "The three tracks here are generated tones, standing in for your songs. Replace them whenever you are ready.",
     openPlayer: "Open player",
+    mute: "Mute",
+    unmute: "Unmute",
     select: "Play this track",
   },
 
@@ -212,6 +218,29 @@ export const en = {
     delete: "Delete",
     confirmDelete: "Delete?",
     deleteError: "That note could not be deleted.",
+    filterAll: "All notes",
+    searchLabel: "Search notes",
+    searchPlaceholder: "Search what we wrote…",
+    searchEmpty: "Nothing matches that search.",
+    fadesTonight: "Fades tonight",
+    openNote: "Read this note",
+    filtered: (n: number) => `${n} shown`,
+    edit: "Edit",
+    cancelEdit: "Cancel edit",
+    editingNote: "Editing note",
+    saveChanges: "Save changes",
+    savingChanges: "Saving…",
+    updated: "Note updated.",
+    updateError: "That note could not be updated. Try again.",
+    loadEarlier: "Load earlier notes",
+    loadingEarlier: "Loading earlier notes…",
+  },
+
+  notFound: {
+    eyebrow: "NAVIGATION FAULT / 404",
+    title: "Coordinates Beyond Reach",
+    subtitle: "The requested path does not exist in the sanctuary.",
+    returnDashboard: "Return to Dashboard",
   },
 
   auth: {
@@ -250,6 +279,11 @@ export const en = {
     eyebrow: "PRIVATE TRANSMISSION",
     title: "Settings",
     description: "Small adjustments to make this space yours.",
+    themeTitle: "Appearance",
+    themeDesc: "Light, dark, or whatever your device is set to.",
+    themeSystem: "System",
+    themeLight: "Light",
+    themeDark: "Dark",
     languageTitle: "Language",
     languageDesc: "The whole space changes with you.",
     audioTitle: "Audio",
@@ -301,6 +335,7 @@ export const en = {
     minutesShort: "min",
     secondsShort: "sec",
     of: "of",
+    skipToContent: "Skip to content",
   },
 };
 

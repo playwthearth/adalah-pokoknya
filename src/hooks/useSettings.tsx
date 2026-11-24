@@ -45,7 +45,7 @@ const COLUMNS = "id, recipient, author, start_date, timezone";
  * Safety net under realtime: if the socket drops, a quiet read still brings the
  * other person's change in while the tab is on screen.
  */
-const POLL_MS = 10000;
+const POLL_MS = 30000;
 
 interface SettingsContextValue {
   settings: Settings;

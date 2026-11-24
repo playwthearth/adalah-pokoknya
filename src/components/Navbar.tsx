@@ -1,9 +1,10 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, Menu, SlidersHorizontal, X } from "lucide-react";
+import { ArrowUpRight, Menu, Moon, SlidersHorizontal, Sun, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { site } from "../data/site";
 import type { Route } from "../hooks/useHashRoute";
 import { useLanguage } from "../hooks/useLanguage";
+import { useTheme } from "../hooks/useTheme";
 import { LanguageSelector } from "./LanguageSelector";
 import { ZeroMark } from "./ReiMarks";
 
@@ -25,8 +26,14 @@ const order: {
 
 export function Navbar({ route, onNavigate }: NavbarProps) {
   const { t } = useLanguage();
+  const { theme, setPreference } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const reduceMotion = useReducedMotion();
+
+  const dark = theme === "dark";
+  const themeLabel = `${t.settings.themeTitle}: ${dark ? t.settings.themeLight : t.settings.themeDark}`;
+
+  const toggleTheme = () => setPreference(dark ? "light" : "dark");
 
   // Close the mobile drawer when the route changes, on Escape, and lock scroll.
   useEffect(() => {
@@ -49,33 +56,30 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-line/70 bg-mist/95 shadow-[inset_0_-1px_0_rgba(255,255,255,0.55),0_10px_30px_-28px_rgba(21,40,58,0.5)] sm:bg-mist/80 sm:backdrop-blur-md sm:backdrop-saturate-150">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-line/70 bg-mist/95 sm:bg-mist/80 sm:backdrop-blur-md sm:backdrop-saturate-150">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
-          <button
-            type="button"
+          <a
+            href="#/dashboard"
             onClick={() => onNavigate("dashboard")}
             aria-label={t.nav.dashboard}
-            className="group flex items-center gap-3 text-left"
+            className="group flex shrink-0 items-center gap-3 text-left"
           >
             <ZeroMark />
             <span className="leading-none">
-              <span className="block font-display text-[12px] uppercase tracking-[0.24em] text-ink">
+              <span className="block whitespace-nowrap font-display text-[13px] uppercase tracking-[0.22em] text-ink">
                 Beyond Time
               </span>
-              <span className="jp mt-1 block text-[9px] tracking-[0.3em] text-muted-strong">
+              <span className="jp mt-1 hidden whitespace-nowrap text-[9px] tracking-[0.3em] text-muted-strong sm:block">
                 {site.jpTitle}
               </span>
             </span>
-          </button>
+          </a>
 
-          <nav
-            aria-label={t.nav.primary}
-            className="hidden items-center gap-7 lg:flex"
-          >
+          <nav aria-label={t.nav.primary} className="hidden items-center gap-7 lg:flex">
             {order.map((item, index) => (
-              <button
+              <a
                 key={item.route}
-                type="button"
+                href={`#/${item.route}`}
                 onClick={() => onNavigate(item.route)}
                 aria-current={route === item.route ? "page" : undefined}
                 data-active={route === item.route}
@@ -99,7 +103,7 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
                     className="absolute -bottom-1.5 left-0 h-px w-full bg-ember shadow-[0_0_10px_rgba(163,38,47,0.45)]"
                   />
                 )}
-              </button>
+              </a>
             ))}
           </nav>
 
@@ -107,26 +111,39 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
             <LanguageSelector />
             <button
               type="button"
+              onClick={toggleTheme}
+              aria-label={themeLabel}
+              title={themeLabel}
+              className="inline-flex h-10 w-10 items-center justify-center border border-line/80 text-muted-strong transition-colors hover:border-navy/30 hover:text-ink"
+            >
+              {dark ? (
+                <Sun size={15} strokeWidth={1.5} aria-hidden="true" />
+              ) : (
+                <Moon size={15} strokeWidth={1.5} aria-hidden="true" />
+              )}
+            </button>
+            <a
+              href="#/settings"
               onClick={() => onNavigate("settings")}
               aria-label={t.nav.settings}
               aria-current={route === "settings" ? "page" : undefined}
-              className={`hidden h-9 w-9 items-center justify-center border transition-colors sm:inline-flex ${
+              className={`hidden h-10 w-10 items-center justify-center border transition-colors sm:inline-flex ${
                 route === "settings"
                   ? "border-navy/40 text-ink"
                   : "border-line/80 text-muted-strong hover:border-navy/30 hover:text-ink"
               }`}
             >
-              <SlidersHorizontal size={14} strokeWidth={1.5} />
-            </button>
+              <SlidersHorizontal size={14} strokeWidth={1.5} aria-hidden="true" />
+            </a>
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
               aria-label={t.nav.openMenu}
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
-              className="inline-flex h-9 w-9 items-center justify-center border border-line/80 text-navy transition-colors hover:border-navy/30 lg:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center border border-line/80 text-navy transition-colors hover:border-navy/30 lg:hidden"
             >
-              <Menu size={17} strokeWidth={1.5} />
+              <Menu size={17} strokeWidth={1.5} aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -143,16 +160,16 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
             transition={{ duration: 0.25 }}
           >
             <div className="flex h-16 items-center justify-between border-b border-line/70 px-5">
-              <span className="font-display text-[12px] uppercase tracking-[0.24em] text-ink">
+              <span className="font-display text-[13px] uppercase tracking-[0.22em] text-ink">
                 Beyond Time
               </span>
               <button
                 type="button"
                 onClick={() => setMenuOpen(false)}
                 aria-label={t.nav.closeMenu}
-                className="inline-flex h-9 w-9 items-center justify-center border border-line text-navy"
+                className="inline-flex h-11 w-11 items-center justify-center border border-line text-navy"
               >
-                <X size={17} strokeWidth={1.5} />
+                <X size={17} strokeWidth={1.5} aria-hidden="true" />
               </button>
             </div>
 
@@ -161,9 +178,9 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
               className="flex flex-1 flex-col justify-center gap-1 px-6 py-10"
             >
               {order.map((item, index) => (
-                <motion.button
+                <motion.a
                   key={item.route}
-                  type="button"
+                  href={`#/${item.route}`}
                   onClick={() => onNavigate(item.route)}
                   initial={reduceMotion ? false : { opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -193,20 +210,34 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
                     aria-hidden="true"
                     className="text-muted-strong transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
                   />
-                </motion.button>
+                </motion.a>
               ))}
             </nav>
 
             <div className="flex items-center justify-between gap-4 border-t border-line/70 px-6 py-5">
               <LanguageSelector />
-              <button
-                type="button"
-                onClick={() => onNavigate("settings")}
-                className="btn-quiet"
-              >
-                <SlidersHorizontal size={13} strokeWidth={1.5} />
-                {t.nav.settings}
-              </button>
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  aria-label={themeLabel}
+                  className="inline-flex h-11 w-11 items-center justify-center border border-line/80 text-navy"
+                >
+                  {dark ? (
+                    <Sun size={15} strokeWidth={1.5} aria-hidden="true" />
+                  ) : (
+                    <Moon size={15} strokeWidth={1.5} aria-hidden="true" />
+                  )}
+                </button>
+                <a
+                  href="#/settings"
+                  onClick={() => onNavigate("settings")}
+                  className="btn-quiet min-h-11"
+                >
+                  <SlidersHorizontal size={13} strokeWidth={1.5} aria-hidden="true" />
+                  {t.nav.settings}
+                </a>
+              </div>
             </div>
           </motion.div>
         )}

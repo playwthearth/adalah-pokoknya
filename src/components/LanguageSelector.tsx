@@ -14,7 +14,7 @@ export function LanguageSelector({ className = "", verbose = false }: LanguageSe
 
   return (
     <div
-      className={`relative inline-flex items-center gap-2 border border-line/80 bg-white/40 px-2.5 py-2 transition-colors hover:border-navy/30 ${className}`}
+      className={`relative inline-flex items-center gap-2 border border-line/80 bg-surface/40 px-2.5 py-2 transition-colors hover:border-navy/30 ${className}`}
     >
       <Globe size={12} strokeWidth={1.5} aria-hidden="true" className="text-muted-strong" />
       <select

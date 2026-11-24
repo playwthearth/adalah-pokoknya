@@ -22,9 +22,13 @@ interface NewNote {
 interface NotesContextValue {
   notes: Note[];
   loading: boolean;
+  loadingMore: boolean;
+  hasMore: boolean;
   error: boolean;
   refresh: () => Promise<void>;
+  loadMore: () => Promise<void>;
   addNote: (note: NewNote) => Promise<void>;
+  updateNote: (id: string, note: NewNote) => Promise<void>;
   removeNote: (id: string) => Promise<void>;
 }
 
@@ -37,7 +41,7 @@ const NOTE_LIMIT = 60;
  * or the socket drops, a quiet read still brings the other person's note in
  * while the tab is on screen. Never runs in the background.
  */
-const POLL_MS = 10000;
+const POLL_MS = 30000;
 /**
  * A daily note belongs to the day it was written and goes when that day ends
  * in the shared zone. Love messages are kept for good.
@@ -71,13 +75,16 @@ export function NotesProvider({ children }: { children: ReactNode }) {
   const timeZone = settings.timezone;
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [limit, setLimit] = useState(NOTE_LIMIT);
   const [error, setError] = useState(false);
 
   /**
    * `silent` reads happen in the background: they must not flash the skeleton
    * or replace a note that arrived while the request was in flight.
    */
-  const load = useCallback(async (silent: boolean) => {
+  const load = useCallback(async (silent: boolean, fetchLimit = limit) => {
     const client = supabase;
     if (!client) return;
 
@@ -91,7 +98,7 @@ export function NotesProvider({ children }: { children: ReactNode }) {
       .select(NOTE_COLUMNS)
       .or(freshFilter())
       .order("created_at", { ascending: false })
-      .limit(NOTE_LIMIT);
+      .limit(fetchLimit);
 
     if (failure) {
       if (!silent) {
@@ -101,7 +108,9 @@ export function NotesProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const rows = ((data ?? []) as Note[]).filter((note) => currentDaily(note, timeZone));
+    const rawRows = (data ?? []) as Note[];
+    setHasMore(rawRows.length >= fetchLimit);
+    const rows = rawRows.filter((note) => currentDaily(note, timeZone));
     setNotes((current) => {
       if (!silent) return rows;
       // A note saved while this read was running is newer than anything the
@@ -122,7 +131,7 @@ export function NotesProvider({ children }: { children: ReactNode }) {
         if (purgeError) console.error("[notes] purge failed", purgeError);
       });
     }
-  }, [timeZone]);
+  }, [timeZone, limit]);
 
   const refresh = useCallback(() => load(false), [load]);
 
@@ -167,6 +176,16 @@ export function NotesProvider({ children }: { children: ReactNode }) {
       )
       .on(
         "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "notes" },
+        (payload) => {
+          const updated = payload.new as Note;
+          setNotes((current) =>
+            current.map((note) => (note.id === updated.id ? updated : note)),
+          );
+        },
+      )
+      .on(
+        "postgres_changes",
         { event: "DELETE", schema: "public", table: "notes" },
         (payload) => {
           const removed = (payload.old as { id?: string }).id;
@@ -187,6 +206,18 @@ export function NotesProvider({ children }: { children: ReactNode }) {
       void client.removeChannel(channel);
     };
   }, [userId, load, timeZone]);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    const nextLimit = limit + 30;
+    setLimit(nextLimit);
+    try {
+      await load(true, nextLimit);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [limit, loadingMore, hasMore, load]);
 
   const addNote = useCallback(
     async ({ kind, body, authorName }: NewNote) => {
@@ -209,7 +240,71 @@ export function NotesProvider({ children }: { children: ReactNode }) {
       setNotes((current) =>
         current.some((note) => note.id === saved.id)
           ? current
-          : [saved, ...current].slice(0, NOTE_LIMIT),
+          : [saved, ...current].slice(0, limit),
+      );
+    },
+    [userId, email, limit],
+  );
+
+  const updateNote = useCallback(
+    async (id: string, { kind, body, authorName }: NewNote) => {
+      if (!supabase || !userId) throw new Error("not signed in");
+
+      // 1. Attempt in-place update first
+      const { data, error: failure } = await supabase
+        .from("notes")
+        .update({
+          kind,
+          body: body.trim(),
+          author_name: authorName.slice(0, 40) || "—",
+        })
+        .eq("id", id)
+        .eq("author_id", userId)
+        .select(NOTE_COLUMNS)
+        .single();
+
+      if (!failure && data) {
+        const updated = data as Note;
+        setNotes((current) =>
+          current.map((note) => (note.id === id ? updated : note)),
+        );
+        return;
+      }
+
+      // 2. In-place update is refused when the table has no UPDATE grant or
+      //    policy yet (see supabase/schema.sql: notes_update). Fall back to a
+      //    replace — but write the new row first and only then remove the old
+      //    one, so a failed request can never leave the note missing. The note
+      //    keeps its text; only its id and created_at are renewed.
+      const insertRes = await supabase
+        .from("notes")
+        .insert({
+          author_id: userId,
+          author_email: email,
+          author_name: authorName.slice(0, 40) || "—",
+          kind,
+          body: body.trim(),
+        })
+        .select(NOTE_COLUMNS)
+        .single();
+
+      if (insertRes.error) throw insertRes.error;
+      const reinserted = insertRes.data as Note;
+
+      const deleteRes = await supabase
+        .from("notes")
+        .delete()
+        .eq("id", id)
+        .eq("author_id", userId);
+
+      if (deleteRes.error) {
+        // Undo the copy so the list does not show the note twice, then report.
+        await supabase.from("notes").delete().eq("id", reinserted.id).eq("author_id", userId);
+        throw deleteRes.error;
+      }
+
+      setNotes((current) =>
+        current.map((note) => (note.id === id ? reinserted : note)),
       );
     },
     [userId, email],
@@ -223,8 +318,30 @@ export function NotesProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<NotesContextValue>(
-    () => ({ notes, loading, error, refresh, addNote, removeNote }),
-    [notes, loading, error, refresh, addNote, removeNote],
+    () => ({
+      notes,
+      loading,
+      loadingMore,
+      hasMore,
+      error,
+      refresh,
+      loadMore,
+      addNote,
+      updateNote,
+      removeNote,
+    }),
+    [
+      notes,
+      loading,
+      loadingMore,
+      hasMore,
+      error,
+      refresh,
+      loadMore,
+      addNote,
+      updateNote,
+      removeNote,
+    ],
   );
 
   return <NotesContext.Provider value={value}>{children}</NotesContext.Provider>;

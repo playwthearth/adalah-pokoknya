@@ -83,7 +83,7 @@ export function SectionHeader({ eyebrow, title, jp, description, aside }: Sectio
         {aside && (
           <motion.div
             {...rise(0.22)}
-            className="border border-line/80 bg-white/40 px-3 py-2"
+            className="border border-line/80 bg-surface/40 px-3 py-2"
           >
             {aside}
           </motion.div>

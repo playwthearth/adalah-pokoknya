@@ -280,7 +280,7 @@ export function PhotoCropper({ source, onCancel, onConfirm }: PhotoCropperProps)
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
         style={{ aspectRatio: String(shapeRatio) }}
-        className="relative w-full touch-none select-none overflow-hidden bg-navy/90"
+        className="relative w-full touch-none select-none overflow-hidden bg-scrim/90"
       >
         {previewUrl && geometry ? (
           <img
@@ -313,10 +313,10 @@ export function PhotoCropper({ source, onCancel, onConfirm }: PhotoCropperProps)
 
         {/* Viewfinder ticks and a quiet third grid, over the crop frame. */}
         <span aria-hidden="true" className="pointer-events-none absolute inset-0">
-          <span className="absolute inset-y-0 left-1/3 w-px bg-mist/20" />
-          <span className="absolute inset-y-0 left-2/3 w-px bg-mist/20" />
-          <span className="absolute inset-x-0 top-1/3 h-px bg-mist/20" />
-          <span className="absolute inset-x-0 top-2/3 h-px bg-mist/20" />
+          <span className="absolute inset-y-0 left-1/3 w-px bg-white/20" />
+          <span className="absolute inset-y-0 left-2/3 w-px bg-white/20" />
+          <span className="absolute inset-x-0 top-1/3 h-px bg-white/20" />
+          <span className="absolute inset-x-0 top-2/3 h-px bg-white/20" />
           <span className="absolute left-0 top-0 h-4 w-4 border-l border-t border-mist/80" />
           <span className="absolute right-0 top-0 h-4 w-4 border-r border-t border-mist/80" />
           <span className="absolute bottom-0 left-0 h-4 w-4 border-b border-l border-mist/80" />

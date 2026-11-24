@@ -6,7 +6,8 @@ export type Route =
   | "memories"
   | "playlist"
   | "notes"
-  | "settings";
+  | "settings"
+  | "not-found";
 
 export const routes: Route[] = [
   "dashboard",
@@ -19,7 +20,8 @@ export const routes: Route[] = [
 
 function parse(hash: string): Route {
   const clean = hash.replace(/^#\/?/, "").split("?")[0];
-  return (routes as string[]).includes(clean) ? (clean as Route) : "dashboard";
+  if (!clean || clean === "") return "dashboard";
+  return (routes as string[]).includes(clean) ? (clean as Route) : "not-found";
 }
 
 export function useHashRoute(): [Route, (route: Route) => void] {

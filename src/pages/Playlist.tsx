@@ -34,7 +34,7 @@ export function Playlist() {
         <div className="flex items-baseline justify-between gap-4">
           <p className="label">{t.playlist.playlistLabel}</p>
           <span className="font-mono text-[10px] tabular-nums tracking-[0.16em] text-muted-strong">
-            {String(tracks.length).padStart(2, "0")} TRACKS
+            {String(tracks.length).padStart(2, "0")} {t.playlist.tracksLabel}
           </span>
         </div>
 
@@ -49,8 +49,8 @@ export function Playlist() {
                   onClick={() => (active ? toggle() : playTrack(track.id))}
                   aria-label={`${t.playlist.select}: ${track.title}`}
                   aria-current={active ? "true" : undefined}
-                  className={`group relative flex w-full items-center gap-4 overflow-hidden border-t border-line/70 py-4 text-left transition-colors hover:bg-white/60 sm:gap-6 ${
-                    active ? "bg-white/40" : ""
+                  className={`group relative flex w-full items-center gap-4 overflow-hidden border-t border-line/70 py-4 text-left transition-colors hover:bg-surface/60 sm:gap-6 ${
+                    active ? "bg-surface/40" : ""
                   }`}
                 >
                   <span

@@ -19,7 +19,7 @@ export function LetterCard({ letter, index, onOpen }: LetterCardProps) {
     <button
       type="button"
       onClick={onOpen}
-      className="group relative grid w-full grid-cols-[auto_minmax(0,1fr)] gap-x-4 overflow-hidden border-t border-line/70 py-6 text-left transition-colors hover:bg-white/50 sm:gap-x-8 sm:py-8"
+      className="group relative grid w-full grid-cols-[auto_minmax(0,1fr)] gap-x-4 overflow-hidden border-t border-line/70 py-6 text-left transition-colors hover:bg-surface/50 sm:gap-x-8 sm:py-8"
     >
       <span
         aria-hidden="true"

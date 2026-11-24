@@ -48,6 +48,7 @@ export const id: Dict = {
       "Semua yang ada di sini tinggal — surat, foto, lagu. Tidak ada yang terburu-buru.",
     daily: {
       label: "PESAN HARIAN",
+      signature: "Kata-kata hari ini",
       messages: [
         "Kamu tidak perlu menjadi apa pun selain dirimu sendiri.",
         "Beberapa jarak hanya sejauh satu pikiran tentangmu.",
@@ -114,12 +115,14 @@ export const id: Dict = {
     emptyHint: "Surat akan muncul di sini begitu ditulis.",
     hint: "Tekan Esc untuk menutup",
     from: "Dengan cinta",
+    signoff: "Selalu milikmu",
   },
 
   memories: {
     eyebrow: "ARSIP KENANGAN",
     title: "Kenangan kita",
     description: "Momen-momen kecil yang menolak untuk dilupakan.",
+    badge: "Kenangan",
     count: (n: number) => `${n} kenangan`,
     view: "Buka kenangan",
     empty: "Arsip masih kosong untuk sekarang.",
@@ -170,6 +173,7 @@ export const id: Dict = {
       "Lagu yang terasa seperti hari-hari tertentu. Pilih satu, dan tinggallah sebentar.",
     nowPlaying: "SEDANG DIPUTAR",
     playlistLabel: "DAFTAR LAGU",
+    tracksLabel: "lagu",
     empty: "Belum ada lagu.",
     emptyHint:
       "Tambahkan file audio ke public/assets/music dan daftarkan di src/data/playlist.ts.",
@@ -182,6 +186,8 @@ export const id: Dict = {
     placeholderNote:
       "Tiga lagu di sini adalah nada buatan, sebagai pengganti lagu kalian. Ganti kapan pun.",
     openPlayer: "Buka pemutar",
+    mute: "Bisukan",
+    unmute: "Nyalakan suara",
     select: "Putar lagu ini",
   },
 
@@ -210,6 +216,29 @@ export const id: Dict = {
     delete: "Hapus",
     confirmDelete: "Hapus?",
     deleteError: "Catatan tidak bisa dihapus.",
+    filterAll: "Semua catatan",
+    searchLabel: "Cari catatan",
+    searchPlaceholder: "Cari apa yang kami tulis…",
+    searchEmpty: "Tidak ada yang cocok dengan pencarian itu.",
+    fadesTonight: "Hilang malam ini",
+    openNote: "Baca catatan ini",
+    filtered: (n: number) => `${n} tampil`,
+    edit: "Ubah",
+    cancelEdit: "Batal ubah",
+    editingNote: "Mengubah catatan",
+    saveChanges: "Simpan perubahan",
+    savingChanges: "Menyimpan…",
+    updated: "Catatan diperbarui.",
+    updateError: "Catatan tidak bisa diperbarui. Coba lagi.",
+    loadEarlier: "Muat catatan sebelumnya",
+    loadingEarlier: "Memuat catatan sebelumnya…",
+  },
+
+  notFound: {
+    eyebrow: "KESALAHAN NAVIGASI / 404",
+    title: "Koordinat Tak Terjangkau",
+    subtitle: "Jalur yang diminta tidak ditemukan di dalam suaka.",
+    returnDashboard: "Kembali ke Beranda",
   },
 
   auth: {
@@ -248,6 +277,11 @@ export const id: Dict = {
     eyebrow: "TRANSMISI PRIBADI",
     title: "Pengaturan",
     description: "Penyesuaian kecil untuk membuat ruang ini milikmu.",
+    themeTitle: "Tampilan",
+    themeDesc: "Terang, gelap, atau mengikuti pengaturan perangkatmu.",
+    themeSystem: "Sistem",
+    themeLight: "Terang",
+    themeDark: "Gelap",
     languageTitle: "Bahasa",
     languageDesc: "Seluruh ruang ini ikut berubah bersamamu.",
     audioTitle: "Audio",
@@ -299,5 +333,6 @@ export const id: Dict = {
     minutesShort: "mnt",
     secondsShort: "dtk",
     of: "dari",
+    skipToContent: "Lewati ke konten",
   },
 };

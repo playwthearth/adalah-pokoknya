@@ -22,6 +22,11 @@ export const site = {
 
 export const storageKeys = {
   language: "abt.language",
+  /** "light" | "dark" | "system"; read by the inline boot script too. */
+  theme: "abt.theme",
+  /** Where the player stopped, so a reload resumes without autoplaying. */
+  playerTrack: "abt.player.track",
+  playerTime: "abt.player.time",
   /** Device-only player volume; names and the start date live in Supabase. */
   volume: "abt.settings.volume.v1",
   /** Earlier per-device copy of the settings; removed on load. */
