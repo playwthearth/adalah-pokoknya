@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import type { Memory } from "../types";
 import { useAuth } from "./useAuth";
@@ -6,6 +6,13 @@ import { useAuth } from "./useAuth";
 /** Private bucket: photos are read through short-lived signed links. */
 const BUCKET = "memories";
 const SIGNED_URL_TTL = 60 * 60 * 2;
+/** Re-sign a photo well before its two-hour link lapses. */
+const SIGN_REFRESH_MS = 90 * 60 * 1000;
+/**
+ * Safety net under realtime: if the socket drops, a quiet read still brings the
+ * other person's change in while the tab is on screen.
+ */
+const POLL_MS = 10000;
 
 export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 
@@ -28,6 +35,9 @@ interface MemoryRow {
 
 const COLUMNS = "id, title, note, memory_date, image_path, image_url";
 
+/** Signed links, so polling cannot make the same photo download again. */
+type SignedCache = Map<string, { url: string; expires: number }>;
+
 function extensionFor(file: File): string {
   const fromName = file.name.split(".").pop()?.toLowerCase() ?? "";
   if (/^[a-z0-9]{2,5}$/.test(fromName)) return fromName;
@@ -39,16 +49,21 @@ function extensionFor(file: File): string {
 async function withPhotos(
   client: NonNullable<typeof supabase>,
   rows: MemoryRow[],
+  cache?: SignedCache,
 ): Promise<Memory[]> {
-  const paths = rows
-    .map((row) => row.image_path)
-    .filter((path): path is string => Boolean(path));
-  const urls = new Map<string, string>();
+  const paths = [...new Set(rows.map((row) => row.image_path).filter((path): path is string => Boolean(path)))];
+  const now = Date.now();
+  const stale = paths.filter((path) => {
+    const hit = cache?.get(path);
+    return !hit || hit.expires <= now;
+  });
 
-  if (paths.length > 0) {
-    const { data } = await client.storage.from(BUCKET).createSignedUrls(paths, SIGNED_URL_TTL);
+  if (stale.length > 0) {
+    const { data } = await client.storage.from(BUCKET).createSignedUrls(stale, SIGNED_URL_TTL);
     for (const item of data ?? []) {
-      if (item.path && item.signedUrl) urls.set(item.path, item.signedUrl);
+      if (item.path && item.signedUrl) {
+        cache?.set(item.path, { url: item.signedUrl, expires: now + SIGN_REFRESH_MS });
+      }
     }
   }
 
@@ -57,7 +72,8 @@ async function withPhotos(
     title: row.title ?? "",
     note: row.note ?? "",
     date: row.memory_date ?? "",
-    image: (row.image_path ? urls.get(row.image_path) : null) ?? row.image_url ?? null,
+    image:
+      (row.image_path ? cache?.get(row.image_path)?.url : null) ?? row.image_url ?? null,
     imagePath: row.image_path,
   }));
 }
@@ -81,15 +97,27 @@ export function useMemories(): MemoriesValue {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const signed = useRef<SignedCache>(new Map());
+  /** Bumped by every local change and every realtime event. */
+  const changes = useRef(0);
 
-  const refresh = useCallback(async () => {
+  /**
+   * `silent` reads run in the background: no skeleton, no error flag, and a
+   * read that a change overtook is dropped instead of blinking it away.
+   */
+  const load = useCallback(async (silent: boolean) => {
     const client = supabase;
     if (!client) {
       setLoading(false);
       return;
     }
-    setLoading(true);
-    setError(false);
+
+    if (!silent) {
+      setLoading(true);
+      setError(false);
+    }
+
+    const before = changes.current;
     const { data, error: failure } = await client
       .from("memories")
       .select(COLUMNS)
@@ -97,18 +125,77 @@ export function useMemories(): MemoriesValue {
 
     if (failure) {
       console.error("[memories] load failed", failure);
-      setError(true);
-      setLoading(false);
+      if (!silent) {
+        setError(true);
+        setLoading(false);
+      }
       return;
     }
 
-    setMemories(await withPhotos(client, (data ?? []) as MemoryRow[]));
-    setLoading(false);
+    if (silent && changes.current !== before) return;
+
+    const next = await withPhotos(client, (data ?? []) as MemoryRow[], signed.current);
+    setMemories(next);
+    if (!silent) setLoading(false);
   }, []);
+
+  const refresh = useCallback(() => load(false), [load]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  // A memory the other person adds or edits should appear on its own.
+  useEffect(() => {
+    const client = supabase;
+    if (!client || !userId) return;
+
+    const applyRow = async (row: MemoryRow) => {
+      const [memory] = await withPhotos(client, [row], signed.current);
+      changes.current += 1;
+      setMemories((current) =>
+        [...current.filter((item) => item.id !== memory.id), memory].sort((a, b) =>
+          a.date.localeCompare(b.date),
+        ),
+      );
+    };
+
+    const channel = client
+      .channel(`memories-live-${Math.random().toString(36).slice(2, 10)}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "memories" },
+        (payload) => void applyRow(payload.new as MemoryRow),
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "memories" },
+        (payload) => void applyRow(payload.new as MemoryRow),
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "memories" },
+        (payload) => {
+          const removed = (payload.old as { id?: string }).id;
+          if (!removed) return;
+          changes.current += 1;
+          setMemories((current) => current.filter((item) => item.id !== removed));
+        },
+      )
+      .subscribe();
+
+    const tick = () => {
+      if (document.visibilityState === "visible") void load(true);
+    };
+    const timer = window.setInterval(tick, POLL_MS);
+    document.addEventListener("visibilitychange", tick);
+
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", tick);
+      void client.removeChannel(channel);
+    };
+  }, [userId, load]);
 
   const uploadPhoto = useCallback(
     async (file: File): Promise<string> => {
@@ -154,9 +241,13 @@ export function useMemories(): MemoriesValue {
         throw failure;
       }
 
-      const [memory] = await withPhotos(client, [data as MemoryRow]);
+      const [memory] = await withPhotos(client, [data as MemoryRow], signed.current);
+      changes.current += 1;
+      // The realtime echo of this insert is deduplicated by id.
       setMemories((current) =>
-        [...current, memory].sort((a, b) => a.date.localeCompare(b.date)),
+        [...current.filter((item) => item.id !== memory.id), memory].sort((a, b) =>
+          a.date.localeCompare(b.date),
+        ),
       );
     },
     [userId, uploadPhoto],
@@ -194,29 +285,34 @@ export function useMemories(): MemoriesValue {
         void client.storage.from(BUCKET).remove([previous.imagePath]);
       }
 
-      const [memory] = await withPhotos(client, [data as MemoryRow]);
+      const [memory] = await withPhotos(client, [data as MemoryRow], signed.current);
+      changes.current += 1;
       setMemories((current) =>
-        current
-          .map((item) => (item.id === id ? memory : item))
-          .sort((a, b) => a.date.localeCompare(b.date)),
+        [...current.filter((item) => item.id !== id), memory].sort((a, b) =>
+          a.date.localeCompare(b.date),
+        ),
       );
     },
     [memories, userId, uploadPhoto],
   );
 
-  const deleteMemory = useCallback(async (id: string) => {
-    const client = supabase;
-    if (!client) throw new Error("not configured");
+  const deleteMemory = useCallback(
+    async (id: string) => {
+      const client = supabase;
+      if (!client) throw new Error("not configured");
 
-    const { error: failure } = await client.from("memories").delete().eq("id", id);
-    if (failure) throw failure;
+      const { error: failure } = await client.from("memories").delete().eq("id", id);
+      if (failure) throw failure;
 
-    const removed = memories.find((memory) => memory.id === id);
-    if (removed?.imagePath) {
-      void client.storage.from(BUCKET).remove([removed.imagePath]);
-    }
-    setMemories((current) => current.filter((memory) => memory.id !== id));
-  }, [memories]);
+      const removed = memories.find((memory) => memory.id === id);
+      if (removed?.imagePath) {
+        void client.storage.from(BUCKET).remove([removed.imagePath]);
+      }
+      changes.current += 1;
+      setMemories((current) => current.filter((memory) => memory.id !== id));
+    },
+    [memories],
+  );
 
   return { memories, loading, error, refresh, addMemory, saveMemory, deleteMemory };
 }

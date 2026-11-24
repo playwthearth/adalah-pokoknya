@@ -204,6 +204,21 @@ create policy notes_delete on public.notes
   for delete to authenticated
   using (author_id = auth.uid());
 
+-- Live notes: the browser subscribes to inserts and deletes, so a note the
+-- other person leaves appears without a reload. Re-running this is harmless.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'notes'
+  ) then
+    alter publication supabase_realtime add table public.notes;
+  end if;
+end
+$$;
+
 -- The shared memory archive. Both members can add, edit and delete.
 -- image_url holds the original placeholder assets; image_path points at an
 -- uploaded photo in the private `memories` storage bucket.
@@ -246,6 +261,21 @@ drop policy if exists memories_delete on public.memories;
 create policy memories_delete on public.memories
   for delete to authenticated
   using (public.is_member());
+
+-- Live archive: both browsers subscribe to inserts, edits and deletes, so a
+-- memory the other person adds shows up without a reload. Re-running is safe.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'memories'
+  ) then
+    alter publication supabase_realtime add table public.memories;
+  end if;
+end
+$$;
 
 -- Private bucket for uploaded photos. Every object path starts with the
 -- uploader's user id; both members may read every photo.

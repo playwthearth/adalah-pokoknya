@@ -28,35 +28,112 @@ interface NotesContextValue {
 
 const NotesContext = createContext<NotesContextValue | null>(null);
 
+const NOTE_COLUMNS = "id, author_id, author_email, author_name, kind, body, created_at";
+const NOTE_LIMIT = 60;
+/**
+ * Safety net under realtime: if the notes table is not published for realtime,
+ * or the socket drops, a quiet read still brings the other person's note in
+ * while the tab is on screen. Never runs in the background.
+ */
+const POLL_MS = 10000;
+
 export function NotesProvider({ children }: { children: ReactNode }) {
   const { userId, email } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const refresh = useCallback(async () => {
-    if (!supabase) return;
-    setLoading(true);
-    setError(false);
-    const { data, error: failure } = await supabase
+  /**
+   * `silent` reads happen in the background: they must not flash the skeleton
+   * or replace a note that arrived while the request was in flight.
+   */
+  const load = useCallback(async (silent: boolean) => {
+    const client = supabase;
+    if (!client) return;
+
+    if (!silent) {
+      setLoading(true);
+      setError(false);
+    }
+
+    const { data, error: failure } = await client
       .from("notes")
-      .select("id, author_id, author_email, author_name, kind, body, created_at")
+      .select(NOTE_COLUMNS)
       .order("created_at", { ascending: false })
-      .limit(60);
+      .limit(NOTE_LIMIT);
 
     if (failure) {
-      setError(true);
-      setLoading(false);
+      if (!silent) {
+        setError(true);
+        setLoading(false);
+      }
       return;
     }
 
-    setNotes((data ?? []) as Note[]);
-    setLoading(false);
+    const rows = (data ?? []) as Note[];
+    setNotes((current) => {
+      if (!silent) return rows;
+      // A note saved while this read was running is newer than anything the
+      // read returned, so keep it instead of blinking it away.
+      const horizon = rows[0]?.created_at ?? "";
+      const fresh = current.filter(
+        (note) => note.created_at > horizon && !rows.some((row) => row.id === note.id),
+      );
+      return fresh.length > 0 ? [...fresh, ...rows] : rows;
+    });
+
+    if (!silent) setLoading(false);
   }, []);
+
+  const refresh = useCallback(() => load(false), [load]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  // Both people are usually looking at the same page: a note the other one
+  // leaves should appear on its own, without a reload.
+  useEffect(() => {
+    const client = supabase;
+    if (!client || !userId) return;
+
+    const channel = client
+      .channel("notes-live")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notes" },
+        (payload) => {
+          const incoming = payload.new as Note;
+          setNotes((current) => {
+            if (current.some((note) => note.id === incoming.id)) return current;
+            return [incoming, ...current]
+              .sort((a, b) => b.created_at.localeCompare(a.created_at))
+              .slice(0, NOTE_LIMIT);
+          });
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "notes" },
+        (payload) => {
+          const removed = (payload.old as { id?: string }).id;
+          if (removed) setNotes((current) => current.filter((note) => note.id !== removed));
+        },
+      )
+      .subscribe();
+
+    const tick = () => {
+      if (document.visibilityState === "visible") void load(true);
+    };
+    const timer = window.setInterval(tick, POLL_MS);
+    document.addEventListener("visibilitychange", tick);
+
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", tick);
+      void client.removeChannel(channel);
+    };
+  }, [userId, load]);
 
   const addNote = useCallback(
     async ({ kind, body, authorName }: NewNote) => {
@@ -70,11 +147,17 @@ export function NotesProvider({ children }: { children: ReactNode }) {
           kind,
           body: body.trim(),
         })
-        .select("id, author_id, author_email, author_name, kind, body, created_at")
+        .select(NOTE_COLUMNS)
         .single();
 
       if (failure) throw failure;
-      setNotes((current) => [data as Note, ...current]);
+      const saved = data as Note;
+      // The realtime echo of this insert is deduplicated by id.
+      setNotes((current) =>
+        current.some((note) => note.id === saved.id)
+          ? current
+          : [saved, ...current].slice(0, NOTE_LIMIT),
+      );
     },
     [userId, email],
   );
