@@ -7,8 +7,9 @@ import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
 import { useMyName, useNoteAuthorName } from "../hooks/useNoteAuthorName";
 import { useNotes } from "../hooks/useNotes";
+import { useSettings } from "../hooks/useSettings";
 import type { NoteKind } from "../types";
-import { formatDate } from "../utils/format";
+import { formatDate, zonedDateKey } from "../utils/format";
 
 const MAX_LENGTH = 1200;
 
@@ -18,6 +19,7 @@ export function Notes() {
   const myName = useMyName();
   const authorName = useNoteAuthorName();
   const { notes, loading, error, refresh, addNote, removeNote } = useNotes();
+  const { settings } = useSettings();
 
   const [kind, setKind] = useState<NoteKind>("daily");
   const [body, setBody] = useState("");
@@ -203,7 +205,10 @@ export function Notes() {
                       {note.kind === "love" ? t.notes.kindLove : t.notes.kindDaily}
                     </p>
                     <p className="label mt-2 text-[9px]">
-                      {formatDate(note.created_at.slice(0, 10), locale)}
+                      {formatDate(
+                        zonedDateKey(new Date(note.created_at), settings.timezone),
+                        locale,
+                      )}
                     </p>
                   </div>
 

@@ -13,7 +13,14 @@ import { useNoteAuthorName } from "../hooks/useNoteAuthorName";
 import { useNotes } from "../hooks/useNotes";
 import { useNow } from "../hooks/useNow";
 import { useSettings } from "../hooks/useSettings";
-import { civilMs, formatDate, greetingKey, parseISODate, zonedParts } from "../utils/format";
+import {
+  civilMs,
+  formatDate,
+  greetingKey,
+  parseISODate,
+  zonedDateKey,
+  zonedParts,
+} from "../utils/format";
 
 interface DashboardProps {
   onNavigate: (route: Route) => void;
@@ -297,7 +304,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                   </p>
                 </div>
                 <p className="label mt-5 text-[9px]">
-                  {noteAuthor(note)} · {formatDate(note.created_at.slice(0, 10), locale)}
+                  {noteAuthor(note)} ·{" "}
+                  {formatDate(zonedDateKey(new Date(note.created_at), zone), locale)}
                 </p>
               </article>
             ))}

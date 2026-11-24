@@ -24,9 +24,10 @@ create table if not exists public.notes (
 create index if not exists notes_created_at_idx on public.notes (created_at desc);
 create index if not exists notes_kind_created_idx on public.notes (kind, created_at);
 
--- Daily notes are ephemeral: a day after they are written they are removed for
--- both people. Love messages are kept. Security definer so whichever member is
--- signed in collects the expired notes, not only their own.
+-- Daily notes are ephemeral: they belong to the day they were written and are
+-- removed once that day has ended in the shared timezone, for both people.
+-- Love messages are kept. Security definer so whichever member is signed in
+-- collects the expired notes, not only their own.
 create or replace function public.purge_expired_daily_notes()
 returns integer
 language plpgsql
@@ -35,14 +36,20 @@ set search_path = public
 as $$
 declare
   removed integer;
+  v_zone text;
 begin
   if not public.is_member() then
     raise exception 'not a member' using errcode = '42501';
   end if;
 
+  select coalesce(s.timezone, 'UTC') into v_zone
+  from public.settings s
+  where s.id = 'shared';
+  v_zone := coalesce(v_zone, 'UTC');
+
   delete from public.notes
   where kind = 'daily'
-    and created_at < now() - interval '24 hours';
+    and (created_at at time zone v_zone)::date < (now() at time zone v_zone)::date;
 
   get diagnostics removed = row_count;
   return removed;

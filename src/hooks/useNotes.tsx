@@ -9,7 +9,9 @@ import {
 } from "react";
 import { supabase } from "../lib/supabase";
 import type { Note, NoteKind } from "../types";
+import { zonedDateKey } from "../utils/format";
 import { useAuth } from "./useAuth";
+import { useSettings } from "./useSettings";
 
 interface NewNote {
   kind: NoteKind;
@@ -36,25 +38,37 @@ const NOTE_LIMIT = 60;
  * while the tab is on screen. Never runs in the background.
  */
 const POLL_MS = 10000;
-/** Daily notes live for one day; love messages are kept for good. */
+/**
+ * A daily note belongs to the day it was written and goes when that day ends
+ * in the shared zone. Love messages are kept for good.
+ */
 const DAY_MS = 24 * 60 * 60 * 1000;
-/** How often a note that just turned a day old is taken off the screen. */
+/** Two days of slack so any zone's date rollover is covered by the read. */
+const READ_BACK_MS = 2 * DAY_MS;
+/** How often a note whose day has ended is taken off the screen. */
 const PRUNE_MS = 60000;
 
-function withinDay(note: Note, now = Date.now()): boolean {
-  if (note.kind !== "daily") return true;
-  const created = new Date(note.created_at).getTime();
-  return Number.isFinite(created) && now - created < DAY_MS;
+function onTheSameDay(iso: string, now: number, timeZone: string): boolean {
+  const created = new Date(iso);
+  if (Number.isNaN(created.getTime())) return false;
+  return zonedDateKey(created, timeZone) === zonedDateKey(new Date(now), timeZone);
 }
 
-/** PostgREST filter: love notes always, daily notes only from the last day. */
-function freshFilter(): string {
-  const cutoff = new Date(Date.now() - DAY_MS).toISOString().replace(/\.\d+Z$/, "Z");
+function currentDaily(note: Note, timeZone: string, now = Date.now()): boolean {
+  if (note.kind !== "daily") return true;
+  return onTheSameDay(note.created_at, now, timeZone);
+}
+
+/** PostgREST filter: love notes always, daily notes from the last two days. */
+function freshFilter(now = Date.now()): string {
+  const cutoff = new Date(now - READ_BACK_MS).toISOString().replace(/\.\d+Z$/, "Z");
   return `kind.eq.love,created_at.gt.${cutoff}`;
 }
 
 export function NotesProvider({ children }: { children: ReactNode }) {
   const { userId, email } = useAuth();
+  const { settings } = useSettings();
+  const timeZone = settings.timezone;
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -87,7 +101,7 @@ export function NotesProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const rows = ((data ?? []) as Note[]).filter((note) => withinDay(note));
+    const rows = ((data ?? []) as Note[]).filter((note) => currentDaily(note, timeZone));
     setNotes((current) => {
       if (!silent) return rows;
       // A note saved while this read was running is newer than anything the
@@ -108,7 +122,7 @@ export function NotesProvider({ children }: { children: ReactNode }) {
         if (purgeError) console.error("[notes] purge failed", purgeError);
       });
     }
-  }, []);
+  }, [timeZone]);
 
   const refresh = useCallback(() => load(false), [load]);
 
@@ -116,18 +130,18 @@ export function NotesProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, [refresh]);
 
-  // A note that turns a day old while the page is open should not wait for the
-  // next read to leave the list.
+  // A note whose day ends while the page is open should not wait for the next
+  // read to leave the list.
   useEffect(() => {
     const prune = () => {
       setNotes((current) => {
-        const next = current.filter((note) => withinDay(note));
+        const next = current.filter((note) => currentDaily(note, timeZone));
         return next.length === current.length ? current : next;
       });
     };
     const timer = window.setInterval(prune, PRUNE_MS);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [timeZone]);
 
   // Both people are usually looking at the same page: a note the other one
   // leaves should appear on its own, without a reload.
@@ -142,7 +156,7 @@ export function NotesProvider({ children }: { children: ReactNode }) {
         { event: "INSERT", schema: "public", table: "notes" },
         (payload) => {
           const incoming = payload.new as Note;
-          if (!withinDay(incoming)) return;
+          if (!currentDaily(incoming, timeZone)) return;
           setNotes((current) => {
             if (current.some((note) => note.id === incoming.id)) return current;
             return [incoming, ...current]
@@ -172,7 +186,7 @@ export function NotesProvider({ children }: { children: ReactNode }) {
       document.removeEventListener("visibilitychange", tick);
       void client.removeChannel(channel);
     };
-  }, [userId, load]);
+  }, [userId, load, timeZone]);
 
   const addNote = useCallback(
     async ({ kind, body, authorName }: NewNote) => {

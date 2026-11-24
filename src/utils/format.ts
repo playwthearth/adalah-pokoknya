@@ -115,6 +115,13 @@ export function zonedParts(date: Date, timeZone: string): ZonedParts | null {
   }
 }
 
+/** The civil date ("YYYY-MM-DD") an instant falls on in a named zone. */
+export function zonedDateKey(date: Date, timeZone: string): string {
+  const parts = zonedParts(date, timeZone);
+  if (!parts) return date.toISOString().slice(0, 10);
+  return `${parts.year}-${String(parts.month).padStart(2, "0")}-${String(parts.day).padStart(2, "0")}`;
+}
+
 /**
  * A wall-clock reading as milliseconds, both sides treated as UTC, so two
  * readings can be subtracted without the device's own zone interfering.
