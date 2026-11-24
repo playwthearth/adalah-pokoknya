@@ -1,8 +1,9 @@
-import { Loader2, Trash2, Upload, X } from "lucide-react";
+import { Crop, Loader2, Trash2, Upload, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { MAX_PHOTO_BYTES, type MemoryDraft } from "../hooks/useMemories";
 import { useLanguage } from "../hooks/useLanguage";
 import type { Memory } from "../types";
+import { PhotoCropper } from "./PhotoCropper";
 
 interface MemoryEditorProps {
   /** The memory being changed, or null for a new one. */
@@ -24,6 +25,11 @@ export function MemoryEditor({ memory, onClose, onSave, onDelete }: MemoryEditor
   const [note, setNote] = useState(memory?.note ?? "");
   const [date, setDate] = useState(memory?.date ?? new Date().toISOString().slice(0, 10));
   const [photo, setPhoto] = useState<File | null>(null);
+  /** A file or existing photo being framed before it becomes the memory's photo. */
+  const [cropSource, setCropSource] = useState<File | string | null>(null);
+  /** Bumped per photo so the cropper starts from a clean frame. */
+  const [cropKey, setCropKey] = useState(0);
+  const [preparing, setPreparing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,11 +60,14 @@ export function MemoryEditor({ memory, onClose, onSave, onDelete }: MemoryEditor
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !busy) onClose();
+      if (event.key !== "Escape" || busy) return;
+      // Escape first steps out of cropping, then out of the whole sheet.
+      if (cropSource) setCropSource(null);
+      else onClose();
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [busy, onClose]);
+  }, [busy, cropSource, onClose]);
 
   const chooseFile = (file: File | null) => {
     setError(null);
@@ -70,7 +79,28 @@ export function MemoryEditor({ memory, onClose, onSave, onDelete }: MemoryEditor
       setError(t.memories.uploadError);
       return;
     }
-    setPhoto(file);
+    setCropSource(file);
+    setCropKey((current) => current + 1);
+  };
+
+  /** Reopens the current photo (new or saved) so it can be reframed. */
+  const adjust = async () => {
+    const url = photo ? preview : memory?.image;
+    if (!url || preparing) return;
+    setError(null);
+    setPreparing(true);
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("photo could not be loaded");
+      const blob = await response.blob();
+      setCropSource(new File([blob], "memory.jpg", { type: blob.type || "image/jpeg" }));
+      setCropKey((current) => current + 1);
+    } catch (failure) {
+      console.error("[memories] photo could not be reopened", failure);
+      setError(t.memories.cropError);
+    } finally {
+      setPreparing(false);
+    }
   };
 
   const submit = async (event: FormEvent) => {
@@ -132,22 +162,34 @@ export function MemoryEditor({ memory, onClose, onSave, onDelete }: MemoryEditor
         </header>
 
         <div className="flex-1 px-5 py-5 sm:px-8 sm:py-6">
-          <div className="border border-line/80 bg-pale">
-            {preview ? (
-              <img
-                src={preview}
-                alt=""
-                width={1184}
-                height={880}
-                decoding="async"
-                className="aspect-[4/3] w-full object-cover"
-              />
-            ) : (
-              <div className="flex aspect-[4/3] items-center justify-center">
-                <span className="label text-[9px]">{t.memories.noPhoto}</span>
-              </div>
-            )}
-          </div>
+          {cropSource ? (
+            <PhotoCropper
+              key={cropKey}
+              source={cropSource}
+              onCancel={() => setCropSource(null)}
+              onConfirm={(file) => {
+                setPhoto(file);
+                setCropSource(null);
+              }}
+            />
+          ) : (
+            <div className="border border-line/80 bg-pale">
+              {preview ? (
+                <img
+                  src={preview}
+                  alt=""
+                  width={1184}
+                  height={880}
+                  decoding="async"
+                  className="aspect-[4/3] w-full object-cover"
+                />
+              ) : (
+                <div className="flex aspect-[4/3] items-center justify-center">
+                  <span className="label text-[9px]">{t.memories.noPhoto}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           <input
             ref={fileInput}
@@ -160,17 +202,40 @@ export function MemoryEditor({ memory, onClose, onSave, onDelete }: MemoryEditor
               event.target.value = "";
             }}
           />
-          <button
-            type="button"
-            onClick={() => fileInput.current?.click()}
-            className={`${actionClass} mt-3 w-full border-line text-navy/75 hover:border-navy/40 hover:text-ink sm:w-auto`}
-          >
-            <Upload size={13} strokeWidth={1.5} aria-hidden="true" />
-            {preview ? t.memories.changePhoto : t.memories.addPhoto}
-          </button>
-          <p className="label mt-2 text-[9px] normal-case tracking-[0.08em]">
-            {t.memories.photoHint}
-          </p>
+          {!cropSource && (
+            <>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInput.current?.click()}
+                  className={`${actionClass} w-full border-line text-navy/75 hover:border-navy/40 hover:text-ink sm:w-auto`}
+                >
+                  <Upload size={13} strokeWidth={1.5} aria-hidden="true" />
+                  {preview ? t.memories.changePhoto : t.memories.addPhoto}
+                </button>
+                {preview && (
+                  <button
+                    type="button"
+                    onClick={() => void adjust()}
+                    disabled={preparing}
+                    className={`${actionClass} w-full border-line text-navy/75 hover:border-navy/40 hover:text-ink disabled:opacity-60 sm:w-auto`}
+                  >
+                    {preparing ? (
+                      <Loader2 size={13} strokeWidth={1.5} className="animate-spin" aria-hidden="true" />
+                    ) : (
+                      <Crop size={13} strokeWidth={1.5} aria-hidden="true" />
+                    )}
+                    {t.memories.adjust}
+                  </button>
+                )}
+              </div>
+              <p className="label mt-2 text-[9px] normal-case tracking-[0.08em]">
+                {t.memories.photoHint}
+                {photo &&
+                  ` · ${Math.max(1, Math.round(photo.size / 1024))} ${t.memories.kb}`}
+              </p>
+            </>
+          )}
 
           <div className="mt-6 space-y-5">
             <div>
