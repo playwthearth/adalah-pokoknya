@@ -35,6 +35,11 @@ create table if not exists public.settings (
 
 insert into public.settings (id) values ('shared') on conflict (id) do nothing;
 
+-- Both people count the days together in one named zone, so neither device's
+-- own clock can shift the total by a day.
+alter table public.settings
+  add column if not exists timezone text not null default 'Asia/Jakarta';
+
 alter table public.members enable row level security;
 alter table public.notes enable row level security;
 alter table public.settings enable row level security;
@@ -215,6 +220,21 @@ begin
       and tablename = 'notes'
   ) then
     alter publication supabase_realtime add table public.notes;
+  end if;
+end
+$$;
+
+-- Live settings: a name, the anniversary or the shared timezone changed by one
+-- person reaches the other without a reload. Re-running this is harmless.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'settings'
+  ) then
+    alter publication supabase_realtime add table public.settings;
   end if;
 end
 $$;

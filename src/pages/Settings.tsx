@@ -4,10 +4,49 @@ import { LogOut, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { SectionHeader } from "../components/SectionHeader";
 import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
+import { useNow } from "../hooks/useNow";
 import { useSettings } from "../hooks/useSettings";
 import { languages } from "../i18n";
 import { supabase } from "../lib/supabase";
 import type { Member } from "../types";
+import { formatClockInZone } from "../utils/format";
+
+/** The zones worth reaching first; every other IANA zone follows below them. */
+const ZONE_CHOICES = [
+  "Asia/Jakarta",
+  "Asia/Tokyo",
+  "Asia/Singapore",
+  "Asia/Manila",
+  "Asia/Seoul",
+  "Asia/Shanghai",
+  "Asia/Kolkata",
+  "Asia/Dubai",
+  "Europe/London",
+  "Europe/Berlin",
+  "Europe/Paris",
+  "America/New_York",
+  "America/Chicago",
+  "America/Los_Angeles",
+  "America/Sao_Paulo",
+  "Australia/Perth",
+  "Australia/Sydney",
+  "Pacific/Auckland",
+  "UTC",
+];
+
+function zoneOptions(current: string): string[] {
+  const base = ZONE_CHOICES.includes(current) ? ZONE_CHOICES : [current, ...ZONE_CHOICES];
+  let all: string[] = [];
+  try {
+    const supported = (
+      Intl as unknown as { supportedValuesOf?: (key: string) => string[] }
+    ).supportedValuesOf?.("timeZone");
+    all = supported ?? [];
+  } catch {
+    all = [];
+  }
+  return [...base, ...all.filter((zone) => !base.includes(zone))];
+}
 
 const fieldClass =
   "w-full border-0 border-b border-line bg-transparent py-2 text-sm text-ink outline-none transition-colors placeholder:text-muted-strong focus:border-navy";
@@ -39,8 +78,9 @@ function Panel({
 }
 
 export function Settings() {
-  const { t, language, setLanguage } = useLanguage();
+  const { t, language, locale, setLanguage } = useLanguage();
   const { settings, update, reset } = useSettings();
+  const now = useNow(15000);
   const { email, role, signOut } = useAuth();
   const [confirming, setConfirming] = useState(false);
   const [done, setDone] = useState(false);
@@ -280,6 +320,32 @@ export function Settings() {
               {Math.round(settings.volume * 100)}
             </span>
           </div>
+        </Panel>
+
+        <Panel title={t.settings.zoneTitle} description={t.settings.zoneDesc}>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="min-w-[200px] flex-1">
+              <label htmlFor="settings-timezone" className="label block">
+                {t.settings.zoneLabel}
+              </label>
+              <select
+                id="settings-timezone"
+                value={settings.timezone}
+                onChange={(event) => update({ timezone: event.target.value })}
+                className={`${fieldClass} mt-2 cursor-pointer`}
+              >
+                {zoneOptions(settings.timezone).map((zone) => (
+                  <option key={zone} value={zone}>
+                    {zone.replace(/_/g, " ")}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <p className="pb-2 font-mono text-[11px] tabular-nums tracking-[0.12em] text-muted-strong">
+              {t.settings.zoneNow(formatClockInZone(now, locale, settings.timezone))}
+            </p>
+          </div>
+          <p className="label mt-4 text-[9px]">{t.settings.zoneHint}</p>
         </Panel>
 
         <Panel title={t.settings.privacyTitle}>

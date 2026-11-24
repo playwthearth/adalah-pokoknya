@@ -252,6 +252,12 @@ export const id: Dict = {
     audioTitle: "Audio",
     audioDesc: "Volume berlaku untuk pemutar di pojok layar.",
     volume: "Volume",
+    zoneTitle: "Waktu bersama",
+    zoneDesc: "Penghitung hari memakai satu jam bersama, di mana pun kalian berada.",
+    zoneLabel: "Zona waktu bersama",
+    zoneNow: (time: string) => `sekarang ${time} di sana`,
+    zoneHint:
+      "Kalian berdua memakai zona waktu ini, jadi jumlah hari bersama dan ulang tahun berikutnya selalu sama.",
     reset: "Atur ulang pengaturan",
     resetConfirm: "Konfirmasi atur ulang",
     resetDone: "Pengaturan dipulihkan.",

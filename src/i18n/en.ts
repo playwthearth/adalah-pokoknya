@@ -254,6 +254,12 @@ export const en = {
     audioTitle: "Audio",
     audioDesc: "Volume applies to the player in the corner.",
     volume: "Volume",
+    zoneTitle: "Time together",
+    zoneDesc: "The day counter reads one shared clock, wherever either of you is.",
+    zoneLabel: "Shared timezone",
+    zoneNow: (time: string) => `${time} there right now`,
+    zoneHint:
+      "Both of you read this timezone, so the days together and the next anniversary agree.",
     reset: "Reset settings",
     resetConfirm: "Confirm reset",
     resetDone: "Settings restored.",

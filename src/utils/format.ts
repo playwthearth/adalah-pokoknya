@@ -64,6 +64,93 @@ export function clamp(value: number, min = 0, max = 1): number {
   return Math.min(max, Math.max(min, value));
 }
 
+/** Wall-clock readings in a named zone, independent of the device's own zone. */
+export interface ZonedParts {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+}
+
+export function isValidTimeZone(timeZone: string): boolean {
+  if (!timeZone) return false;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** What a clock in `timeZone` reads at this instant. */
+export function zonedParts(date: Date, timeZone: string): ZonedParts | null {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(date);
+    const read = (type: string) => Number(parts.find((part) => part.type === type)?.value);
+    const [year, month, day, hour, minute, second] = [
+      "year",
+      "month",
+      "day",
+      "hour",
+      "minute",
+      "second",
+    ].map(read);
+    if ([year, month, day, hour, minute, second].some((value) => !Number.isFinite(value))) {
+      return null;
+    }
+    return { year, month, day, hour, minute, second };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * A wall-clock reading as milliseconds, both sides treated as UTC, so two
+ * readings can be subtracted without the device's own zone interfering.
+ */
+export function civilMs(parts: {
+  year: number;
+  month: number;
+  day: number;
+  hour?: number;
+  minute?: number;
+  second?: number;
+}): number {
+  return Date.UTC(
+    parts.year,
+    parts.month - 1,
+    parts.day,
+    parts.hour ?? 0,
+    parts.minute ?? 0,
+    parts.second ?? 0,
+  );
+}
+
+/** "14:05" as read in the shared zone. */
+export function formatClockInZone(date: Date, locale: string, timeZone: string): string {
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      timeZone,
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(date);
+  } catch {
+    return formatClock(date, locale).slice(0, 5);
+  }
+}
+
 /** Whole days between two local midnights. */
 export function daysBetween(from: Date, to: Date): number {
   const start = new Date(from.getFullYear(), from.getMonth(), from.getDate());

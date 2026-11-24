@@ -251,6 +251,12 @@ export const ja: Dict = {
     audioTitle: "オーディオ",
     audioDesc: "隅のプレイヤーに適用されます。",
     volume: "音量",
+    zoneTitle: "一緒の時間",
+    zoneDesc: "どこにいても、二人の日数は同じ時計で数えます。",
+    zoneLabel: "共有タイムゾーン",
+    zoneNow: (time: string) => `現地時間 ${time}`,
+    zoneHint:
+      "二人ともこのタイムゾーンを使うので、一緒に過ごした日数と次の記念日が揃います。",
     reset: "設定をリセット",
     resetConfirm: "リセットを確定",
     resetDone: "設定を戻しました。",

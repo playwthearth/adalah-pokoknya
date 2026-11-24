@@ -10,7 +10,7 @@ import {
 } from "react";
 import { site, storageKeys } from "../data/site";
 import { supabase } from "../lib/supabase";
-import { clamp, isValidISODate } from "../utils/format";
+import { clamp, isValidISODate, isValidTimeZone } from "../utils/format";
 import { useAuth } from "./useAuth";
 
 export interface Settings {
@@ -18,23 +18,34 @@ export interface Settings {
   author: string;
   /** ISO date the relationship began. */
   startDate: string;
+  /** IANA zone both people count the days together in. */
+  timezone: string;
   /** Player volume, 0–1. */
   volume: number;
 }
 
 /** The fields both people see the same value for. */
-type SharedSettings = Pick<Settings, "recipient" | "author" | "startDate">;
+type SharedSettings = Pick<Settings, "recipient" | "author" | "startDate" | "timezone">;
 
 const sharedDefaults: SharedSettings = {
   recipient: site.names.recipient,
   author: site.names.author,
   startDate: site.startDate,
+  timezone: site.timezone,
 };
 
 const defaultVolume = 0.6;
 
 /** Both people read and write the same row. */
 const ROW_ID = "shared";
+
+const COLUMNS = "id, recipient, author, start_date, timezone";
+
+/**
+ * Safety net under realtime: if the socket drops, a quiet read still brings the
+ * other person's change in while the tab is on screen.
+ */
+const POLL_MS = 10000;
 
 interface SettingsContextValue {
   settings: Settings;
@@ -53,13 +64,38 @@ function sanitizeShared(input: Partial<SharedSettings>): SharedSettings {
       typeof input.startDate === "string" && isValidISODate(input.startDate)
         ? input.startDate
         : sharedDefaults.startDate,
+    timezone:
+      typeof input.timezone === "string" && isValidTimeZone(input.timezone)
+        ? input.timezone
+        : sharedDefaults.timezone,
   };
 }
 
+/** Skips a re-render when a read or a realtime echo repeats what is on screen. */
+function sameShared(a: SharedSettings, b: SharedSettings): boolean {
+  return (
+    a.recipient === b.recipient &&
+    a.author === b.author &&
+    a.startDate === b.startDate &&
+    a.timezone === b.timezone
+  );
+}
+
 interface SettingsRow {
+  id?: string | null;
   recipient: string | null;
   author: string | null;
   start_date: string | null;
+  timezone: string | null;
+}
+
+function rowToShared(row: SettingsRow): SharedSettings {
+  return sanitizeShared({
+    recipient: row.recipient ?? undefined,
+    author: row.author ?? undefined,
+    startDate: row.start_date ?? undefined,
+    timezone: row.timezone ?? undefined,
+  });
 }
 
 /** Volume is a device preference, so it stays in localStorage. */
@@ -82,16 +118,20 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const sharedRef = useRef(shared);
   sharedRef.current = shared;
   const saveTimer = useRef<number | null>(null);
-  // A local edit must win over a read that was already in flight.
+  // A local edit must win over a read or an echo that is already on its way.
   const editing = useRef(false);
 
   const saveShared = useCallback(
     async (values?: SharedSettings) => {
       if (!supabase || !userId) return;
+      const next = values ?? sharedRef.current;
       const { error } = await supabase.from("settings").upsert(
         {
           id: ROW_ID,
-          ...(values ?? sharedRef.current),
+          recipient: next.recipient,
+          author: next.author,
+          start_date: next.startDate,
+          timezone: next.timezone,
           updated_at: new Date().toISOString(),
           updated_by: userId,
         },
@@ -130,10 +170,15 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     if (!client || !userId) return;
     let alive = true;
 
-    const load = async () => {
+    const applyRow = (row: SettingsRow) => {
+      const next = rowToShared(row);
+      setShared((current) => (sameShared(current, next) ? current : next));
+    };
+
+    const load = async (silent: boolean) => {
       const { data, error } = await client
         .from("settings")
-        .select("recipient, author, start_date")
+        .select(COLUMNS)
         .eq("id", ROW_ID)
         .maybeSingle();
 
@@ -146,34 +191,52 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
       if (!data) {
         // First run: create the row so both people share one source of truth.
-        void saveShared();
+        if (!silent) void saveShared();
         return;
       }
 
       if (editing.current) return;
-
-      const row = data as SettingsRow;
-      setShared(
-        sanitizeShared({
-          recipient: row.recipient ?? undefined,
-          author: row.author ?? undefined,
-          startDate: row.start_date ?? undefined,
-        }),
-      );
+      applyRow(data as SettingsRow);
     };
 
-    void load();
+    void load(false);
 
-    // Re-read when the tab comes back to the front, so her change shows up
-    // without a reload.
-    const onVisible = () => {
-      if (document.visibilityState === "visible") void load();
+    // A name, anniversary or timezone she changes should land here on its own.
+    const channel = client
+      .channel(`settings-live-${Math.random().toString(36).slice(2, 10)}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "settings" },
+        (payload) => {
+          const row = payload.new as SettingsRow;
+          if (row?.id && row.id !== ROW_ID) return;
+          if (editing.current) return;
+          applyRow(row);
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "settings" },
+        (payload) => {
+          const row = payload.new as SettingsRow;
+          if (row?.id && row.id !== ROW_ID) return;
+          if (editing.current) return;
+          applyRow(row);
+        },
+      )
+      .subscribe();
+
+    const tick = () => {
+      if (document.visibilityState === "visible") void load(true);
     };
-    document.addEventListener("visibilitychange", onVisible);
+    const timer = window.setInterval(tick, POLL_MS);
+    document.addEventListener("visibilitychange", tick);
 
     return () => {
       alive = false;
-      document.removeEventListener("visibilitychange", onVisible);
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", tick);
+      void client.removeChannel(channel);
     };
   }, [userId, saveShared]);
 
@@ -189,7 +252,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       if (typeof partial.volume === "number") setVolume(clamp(partial.volume));
 
       const touchesShared =
-        "recipient" in partial || "author" in partial || "startDate" in partial;
+        "recipient" in partial ||
+        "author" in partial ||
+        "startDate" in partial ||
+        "timezone" in partial;
       if (!touchesShared) return;
 
       setShared((current) => sanitizeShared({ ...current, ...partial }));

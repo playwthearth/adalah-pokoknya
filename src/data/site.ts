@@ -7,6 +7,8 @@ export const site = {
   jpTitle: "時を越えた場所",
   /** ISO date the relationship began — used for the counter and countdown. */
   startDate: "2026-08-28",
+  /** IANA zone the day counter reads, so both people count the same days. */
+  timezone: "Asia/Jakarta",
   names: {
     recipient: "Sora",
     author: "Me",

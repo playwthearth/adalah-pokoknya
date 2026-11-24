@@ -13,13 +13,7 @@ import { useNoteAuthorName } from "../hooks/useNoteAuthorName";
 import { useNotes } from "../hooks/useNotes";
 import { useNow } from "../hooks/useNow";
 import { useSettings } from "../hooks/useSettings";
-import {
-  daysBetween,
-  formatDate,
-  greetingKey,
-  nextAnniversary,
-  parseISODate,
-} from "../utils/format";
+import { civilMs, formatDate, greetingKey, parseISODate, zonedParts } from "../utils/format";
 
 interface DashboardProps {
   onNavigate: (route: Route) => void;
@@ -37,30 +31,53 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const name = (role && site.greetings[role]) || settings.recipient.trim() || site.names.recipient;
   const start = parseISODate(settings.startDate);
   const validStart = !Number.isNaN(start.getTime());
-  const elapsedMs = now.getTime() - start.getTime();
+
+  // Both people read the same clock: the shared zone decides what day it is,
+  // so the counter cannot disagree by a day across devices.
+  const zone = settings.timezone;
+  const zoneNow = zonedParts(now, zone) ?? {
+    year: now.getFullYear(),
+    month: now.getMonth() + 1,
+    day: now.getDate(),
+    hour: now.getHours(),
+    minute: now.getMinutes(),
+    second: now.getSeconds(),
+  };
+  const startParts = validStart
+    ? { year: start.getFullYear(), month: start.getMonth() + 1, day: start.getDate() }
+    : null;
+
+  const elapsedMs = startParts ? civilMs(zoneNow) - civilMs(startParts) : Number.NaN;
   const started = validStart && elapsedMs > 0;
 
   const days = started ? Math.floor(elapsedMs / 86_400_000) : 0;
   const hours = started ? Math.floor(elapsedMs / 3_600_000) % 24 : 0;
   const minutes = started ? Math.floor(elapsedMs / 60_000) % 60 : 0;
 
-  const dayOfYear = Math.floor(
-    (now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86_400_000,
-  );
+  const dayOfYear =
+    Math.floor(
+      (civilMs(zoneNow) - civilMs({ year: zoneNow.year, month: 1, day: 1 })) / 86_400_000,
+    ) + 1;
   const dailyMessages = t.dashboard.daily.messages;
   const dailyMessage = dailyMessages[(dayOfYear - 1) % dailyMessages.length];
 
-  const nextAnniversaryDate = validStart ? nextAnniversary(start, now) : null;
+  let nextAnniversaryISO: string | null = null;
   let countdown: string = "—";
-  if (validStart) {
+  if (validStart && startParts) {
     if (!started) {
       countdown = t.dashboard.anniversary.notStarted(
         Math.max(1, Math.ceil(-elapsedMs / 86_400_000)),
       );
-    } else if (nextAnniversaryDate) {
-      const left = daysBetween(now, nextAnniversaryDate);
+    } else {
+      const today = Date.UTC(zoneNow.year, zoneNow.month - 1, zoneNow.day) / 86_400_000;
+      let next = Date.UTC(zoneNow.year, startParts.month - 1, startParts.day) / 86_400_000;
+      if (next <= today) {
+        next = Date.UTC(zoneNow.year + 1, startParts.month - 1, startParts.day) / 86_400_000;
+      }
+      const left = next - today;
       countdown =
         left <= 0 ? t.dashboard.anniversary.today : t.dashboard.anniversary.daysLeft(left);
+      nextAnniversaryISO = new Date(next * 86_400_000).toISOString().slice(0, 10);
     }
   }
 
@@ -208,14 +225,9 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             <div className="mt-6 border-t border-line/60 pt-5">
               <p className="label">{t.dashboard.anniversary.label}</p>
               <p className="mt-2 font-display text-xl font-light text-navy">{countdown}</p>
-              {nextAnniversaryDate && started && (
+              {nextAnniversaryISO && started && (
                 <p className="label mt-1.5 text-[9px]">
-                  {formatDate(
-                    `${nextAnniversaryDate.getFullYear()}-${String(
-                      nextAnniversaryDate.getMonth() + 1,
-                    ).padStart(2, "0")}-${String(nextAnniversaryDate.getDate()).padStart(2, "0")}`,
-                    locale,
-                  )}
+                  {formatDate(nextAnniversaryISO, locale)}
                 </p>
               )}
             </div>
