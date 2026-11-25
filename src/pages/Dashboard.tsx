@@ -2,7 +2,7 @@ import { ArrowUpRight, Images, Mail, Music2, SlidersHorizontal } from "lucide-re
 import type { ComponentType } from "react";
 import { Clock } from "../components/Clock";
 import { CountUp } from "../components/CountUp";
-import { CornerTicks, HairLines } from "../components/ReiMarks";
+import { Blossom, CornerTicks, VineLines } from "../components/Marks";
 import { Reveal } from "../components/Reveal";
 import { TypingText } from "../components/TypingText";
 import { site } from "../data/site";
@@ -134,13 +134,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   return (
     <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
       <section className="relative grid gap-10 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:gap-14">
-        <HairLines className="pointer-events-none absolute -right-6 -top-16 hidden h-[300px] w-[180px] text-cyan/45 xl:block" />
+        <VineLines className="pointer-events-none absolute -right-6 -top-16 hidden h-[300px] w-[180px] text-periwinkle/40 xl:block" />
         <div className="hero-halo">
           <p className="label flex items-center gap-2.5">
-            <span
-              aria-hidden="true"
-              className="signal-dot h-1.5 w-1.5 rounded-full bg-ember"
-            />
+            <Blossom className="h-3 w-3 text-powder" />
             {t.dashboard.eyebrow}
           </p>
 
@@ -204,7 +201,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               >
                 “
               </span>
-              <p className="mt-2 font-display text-xl font-extralight leading-snug text-ink sm:text-[1.7rem]">
+              <p className="mt-2 font-serif text-[1.35rem] italic leading-snug text-ink sm:text-[1.65rem]">
                 <TypingText text={dailyMessage} speed={26} delay={600} />
               </p>
             </blockquote>

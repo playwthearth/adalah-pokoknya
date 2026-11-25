@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Blossom } from "./Marks";
 
 interface EmptyStateProps {
   title: string;
@@ -11,14 +12,15 @@ export function EmptyState({ title, hint }: EmptyStateProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="flex flex-col items-center justify-center border border-dashed border-cyan/80 px-6 py-20 text-center"
+      className="paper-tint flex flex-col items-center justify-center border-dashed px-6 py-16 text-center"
     >
-      <span aria-hidden="true" className="relative mb-6 flex h-10 w-10 items-center justify-center">
-        <span className="h-2 w-2 rounded-full bg-cyan" />
-        <span className="absolute h-8 w-8 rounded-full border border-line" />
+      <span aria-hidden="true" className="relative mb-5 flex h-12 w-12 items-center justify-center">
+        <Blossom className="bloom-in h-9 w-9 text-periwinkle" />
       </span>
-      <p className="font-display text-lg font-light text-navy">{title}</p>
-      {hint && <p className="mt-2 max-w-sm text-xs leading-relaxed text-muted-strong">{hint}</p>}
+      <p className="font-display text-xl italic text-navy">{title}</p>
+      {hint && (
+        <p className="mt-2 max-w-sm text-xs leading-relaxed text-muted-strong">{hint}</p>
+      )}
     </motion.div>
   );
 }

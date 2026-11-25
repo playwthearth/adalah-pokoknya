@@ -2,6 +2,7 @@ import { ArrowUpRight, Image as ImageIcon, Pencil } from "lucide-react";
 import { useLanguage } from "../hooks/useLanguage";
 import type { Memory } from "../types";
 import { formatDate } from "../utils/format";
+import { Blossom } from "./Marks";
 
 interface MemoryCardProps {
   memory: Memory;
@@ -13,15 +14,18 @@ interface MemoryCardProps {
 export function MemoryCard({ memory, index, onOpen, onEdit }: MemoryCardProps) {
   const { t, locale } = useLanguage();
   const flipped = index % 2 === 1;
+  // Every third plate is square, the rest alternate portrait and landscape, so
+  // the timeline reads like a scrapbook rather than a grid.
+  const shape = index % 3 === 1 ? "aspect-[4/3]" : index % 3 === 2 ? "aspect-square" : "aspect-[4/5]";
 
   return (
-    <article className="group/card relative md:grid md:grid-cols-2 md:items-center md:gap-12">
-      {/* Timeline node */}
+    <article className="group/card relative md:grid md:grid-cols-2 md:items-center md:gap-14">
+      {/* Timeline blossom */}
       <span
         aria-hidden="true"
-        className="absolute left-[7px] top-2 h-2 w-2 -translate-x-1/2 rounded-full border border-cyan bg-mist md:left-1/2 md:top-1/2"
+        className="absolute left-[7px] top-4 flex h-5 w-5 -translate-x-1/2 items-center justify-center rounded-full bg-mist md:left-1/2 md:top-1/2"
       >
-        <span className="absolute inset-[3px] rounded-full bg-ember/70" />
+        <Blossom className="h-4 w-4 text-periwinkle" />
       </span>
 
       <div className={flipped ? "md:order-2" : "md:order-1"}>
@@ -29,8 +33,14 @@ export function MemoryCard({ memory, index, onOpen, onEdit }: MemoryCardProps) {
           type="button"
           onClick={onOpen}
           aria-label={`${t.memories.view}: ${memory.title}`}
-          className="group relative block w-full overflow-hidden border border-line/80 bg-pale"
+          className={`polaroid group relative mx-auto block w-full max-w-[430px] transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:rotate-0 ${
+            flipped ? "rotate-[1.2deg]" : "-rotate-[1.2deg]"
+          }`}
         >
+          <span
+            aria-hidden="true"
+            className={`tape -top-3 ${flipped ? "right-7 rotate-[3deg]" : "left-7 -rotate-[3deg]"}`}
+          />
           {memory.image ? (
             <img
               src={memory.image}
@@ -39,51 +49,42 @@ export function MemoryCard({ memory, index, onOpen, onEdit }: MemoryCardProps) {
               height={880}
               loading="lazy"
               decoding="async"
-              className="block h-auto w-full transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+              className={`block w-full object-cover ${shape}`}
             />
           ) : (
-            <span className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 text-muted-strong">
+            <span
+              className={`flex w-full flex-col items-center justify-center gap-3 bg-lavender/40 text-muted-strong ${shape}`}
+            >
               <ImageIcon size={22} strokeWidth={1.2} aria-hidden="true" />
               <span className="label text-[9px]">{t.memories.noPhoto}</span>
             </span>
           )}
+
           <span
             aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-t from-scrim/45 via-scrim/5 to-transparent opacity-0 transition-opacity duration-700 ease-out group-hover:opacity-100"
-          />
-          <span className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center border border-white/60 bg-white/20 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:backdrop-blur-sm">
-            <ArrowUpRight size={14} strokeWidth={1.5} />
-          </span>
-          {/* Viewfinder ticks over the photograph. */}
-          <span aria-hidden="true" className="pointer-events-none absolute inset-2">
-            <span className="absolute left-0 top-0 h-3 w-3 border-l border-t border-mist/70" />
-            <span className="absolute right-0 top-0 h-3 w-3 border-r border-t border-mist/70" />
-            <span className="absolute bottom-0 left-0 h-3 w-3 border-b border-l border-mist/70" />
-            <span className="absolute bottom-0 right-0 h-3 w-3 border-b border-r border-mist/70" />
-          </span>
-          <span className="label absolute left-3 top-3 bg-mist/85 px-2 py-1 text-[8px] text-navy transition-colors duration-500 group-hover:bg-mist group-hover:text-ember">
-            {String(index + 1).padStart(2, "0")}
+            className="pointer-events-none absolute inset-x-3 bottom-2.5 flex items-baseline justify-between gap-3"
+          >
+            <span className="caption truncate text-[15px]">{memory.title}</span>
+            <span className="label shrink-0 text-[8px]">
+              {String(index + 1).padStart(2, "0")}
+            </span>
           </span>
         </button>
       </div>
 
-      <div className={`mt-5 md:mt-0 ${flipped ? "md:order-1 md:text-right" : "md:order-2"}`}>
-        <p className="label flex items-center gap-2">
-          <span
-            aria-hidden="true"
-            className="h-px w-4 bg-ember/70 transition-all duration-500 group-hover/card:w-8"
-          />
-          {formatDate(memory.date, locale)}
-        </p>
-        <h2 className="mt-3 font-display text-2xl font-light text-ink sm:text-3xl">
+      <div className={`mt-6 md:mt-0 ${flipped ? "md:order-1 md:text-right" : "md:order-2"}`}>
+        <p className="caption text-[16px] text-plum">{formatDate(memory.date, locale)}</p>
+        <h2 className="mt-1.5 font-display text-2xl leading-tight text-ink sm:text-[1.85rem]">
           {memory.title}
         </h2>
         {memory.note && (
-          <p className="mt-3 max-w-md whitespace-pre-wrap text-[13px] leading-relaxed text-muted-strong md:inline-block">
+          <p className="letter-body mt-3 max-w-md whitespace-pre-wrap text-[1.05rem] leading-[1.85] text-navy/80 md:inline-block">
             {memory.note}
           </p>
         )}
-        <div className={`mt-3 ${flipped ? "md:justify-end" : ""} flex flex-wrap items-center gap-x-6 gap-y-1`}>
+        <div
+          className={`mt-4 ${flipped ? "md:justify-end" : ""} flex flex-wrap items-center gap-x-6 gap-y-1`}
+        >
           <button type="button" onClick={onOpen} className="btn-quiet group min-h-11">
             {t.memories.view}
             <ArrowUpRight

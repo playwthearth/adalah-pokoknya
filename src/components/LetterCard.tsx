@@ -13,51 +13,51 @@ export function LetterCard({ letter, index, onOpen }: LetterCardProps) {
   const { t, language, locale } = useLanguage();
   const body = letter.content[language];
   const preview = body.replace(/\s+/g, " ").trim();
-  const excerpt = preview.length > 150 ? `${preview.slice(0, 150)}…` : preview;
+  const excerpt = preview.length > 170 ? `${preview.slice(0, 170)}…` : preview;
 
   return (
     <button
       type="button"
       onClick={onOpen}
-      className="group relative grid w-full grid-cols-[auto_minmax(0,1fr)] gap-x-4 overflow-hidden border-t border-line/70 py-6 text-left transition-colors hover:bg-surface/50 sm:gap-x-8 sm:py-8"
+      className="hover-lift group relative block w-full overflow-hidden rounded-[6px] border border-line/80 bg-surface p-6 text-left sm:p-8"
     >
       <span
         aria-hidden="true"
-        className="absolute inset-y-0 left-0 w-px scale-y-0 bg-ember/70 transition-transform duration-500 ease-out group-hover:scale-y-100"
+        className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-periwinkle/80 to-transparent"
       />
-      <span className="label pt-1.5 text-[9px] tracking-[0.18em] transition-colors group-hover:text-ember">
+      <span
+        aria-hidden="true"
+        className="absolute right-5 top-3 font-hand text-[22px] leading-none text-periwinkle"
+      >
         {String(index + 1).padStart(2, "0")}
       </span>
 
-      <span className="min-w-0">
-        <span className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-          <span className="font-display text-xl font-light text-ink transition-colors group-hover:text-navy sm:text-2xl">
-            {letter.title[language]}
-          </span>
-          <span className="label flex shrink-0 items-center gap-2 text-[9px]">
-            <span aria-hidden="true" className="h-1 w-1 rounded-full bg-ember/70" />
-            {t.letters.categories[letter.category]}
-          </span>
+      <span className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pr-8">
+        <span className="label text-[9px]">{t.letters.categories[letter.category]}</span>
+        <span aria-hidden="true" className="h-px w-4 bg-line" />
+        <span className="font-mono text-[10px] tracking-[0.14em] text-muted-strong">
+          {formatDate(letter.date, locale)}
         </span>
+      </span>
 
-        <span className="mt-2.5 block max-w-2xl text-[13px] leading-relaxed text-muted-strong">
-          {excerpt}
-        </span>
+      <span className="mt-3 block font-display text-2xl leading-tight text-ink transition-colors duration-300 group-hover:text-plum sm:text-[1.75rem]">
+        {letter.title[language]}
+      </span>
 
-        <span className="mt-4 flex items-center gap-4">
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-strong">
-            {formatDate(letter.date, locale)}
-          </span>
-          <span className="h-px flex-1 bg-line/70" aria-hidden="true" />
-          <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-navy/70 transition-colors group-hover:text-ink">
-            {t.letters.read}
-            <ArrowUpRight
-              size={12}
-              strokeWidth={1.5}
-              aria-hidden="true"
-              className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-            />
-          </span>
+      <span className="letter-body mt-3 line-clamp-3 block text-[1.05rem] leading-[1.85] text-navy/80">
+        {excerpt}
+      </span>
+
+      <span className="mt-5 flex items-center gap-3">
+        <span aria-hidden="true" className="h-px flex-1 bg-line/80" />
+        <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-navy/70 transition-colors group-hover:text-plum">
+          {t.letters.read}
+          <ArrowUpRight
+            size={12}
+            strokeWidth={1.5}
+            aria-hidden="true"
+            className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+          />
         </span>
       </span>
     </button>

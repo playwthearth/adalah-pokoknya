@@ -61,16 +61,16 @@ export function Letters() {
               type="button"
               onClick={() => setFilter(item.key)}
               aria-pressed={isActive}
-              className={`inline-flex min-h-11 items-center gap-2 border px-3.5 py-2 text-[10px] uppercase tracking-[0.16em] transition-colors ${
+              className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-[10px] uppercase tracking-[0.16em] transition-colors ${
                 isActive
                   ? "border-navy bg-navy text-mist"
-                  : "border-line/80 bg-transparent text-navy/70 hover:border-navy/35 hover:text-ink"
+                  : "border-line/80 bg-transparent text-navy/70 hover:border-plum/40 hover:text-ink"
               }`}
             >
               {item.label}
               <span
                 className={`font-mono text-[9px] ${
-                  isActive ? "text-mist/60" : "text-muted-strong"
+                  isActive ? "text-mist/70" : "text-muted-strong"
                 }`}
               >
                 {String(item.count).padStart(2, "0")}
@@ -90,7 +90,7 @@ export function Letters() {
         {visible.length === 0 ? (
           <EmptyState title={t.letters.empty} hint={t.letters.emptyHint} />
         ) : (
-          <div className="border-b border-line/70">
+          <div className="space-y-4">
             {visible.map((letter, index) => (
               <LetterCard
                 key={letter.id}
@@ -122,32 +122,39 @@ export function Letters() {
               </span>
             </div>
 
-            <h2 className="mt-5 font-display text-3xl font-extralight leading-tight text-ink sm:text-4xl">
+            <h2 className="mt-4 font-display text-3xl leading-tight text-ink sm:text-[2.4rem]">
               {active.title[language]}
             </h2>
 
-            <div className="mt-7 space-y-4 border-t border-line/70 pt-7">
+            <span aria-hidden="true" className="mt-7 block h-px w-16 bg-gradient-to-r from-periwinkle to-transparent" />
+
+            <div className="mt-6 space-y-4">
               {active.content[language]
                 .split(/\n{2,}/)
                 .map((paragraph, index) => (
                   <p
                     key={index}
-                    className="text-[14px] leading-[1.95] text-navy/85 [text-wrap:pretty]"
+                    className="letter-body text-[1.1rem] leading-[1.95] text-navy/90 [text-wrap:pretty]"
                   >
                     {paragraph}
                   </p>
                 ))}
             </div>
 
-            <div className="mt-9 flex items-center gap-3 border-t border-line/70 pt-5">
-              <span aria-hidden="true" className="h-px w-8 bg-ember/70" />
+            <div aria-hidden="true" className="mt-9 flex items-center gap-3 text-periwinkle">
+              <span className="h-px flex-1 bg-gradient-to-r from-transparent to-periwinkle/70" />
+              <span className="h-1.5 w-1.5 rotate-45 bg-periwinkle/80" />
+              <span className="h-px flex-1 bg-gradient-to-l from-transparent to-periwinkle/70" />
+            </div>
+
+            <div className="mt-6 flex items-center justify-end gap-3">
               <p className="label">{t.letters.from}</p>
-              <span className="text-[11px] tracking-[0.2em] text-muted-strong font-display italic">
+              <span className="font-serif text-[15px] italic tracking-[0.06em] text-plum">
                 {t.letters.signoff}
               </span>
             </div>
 
-            <p className="label mt-6 text-[9px] text-muted-strong">{t.letters.hint}</p>
+            <p className="caption mt-6 text-[15px] text-muted-strong">{t.letters.hint}</p>
           </article>
         )}
       </Modal>

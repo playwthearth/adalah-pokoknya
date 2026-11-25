@@ -21,7 +21,7 @@ export function Memories() {
     <button
       type="button"
       onClick={() => setCreating(true)}
-      className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-navy/70 px-4 font-mono text-[10px] uppercase tracking-[0.18em] text-navy transition-colors hover:bg-navy hover:text-mist sm:w-auto"
+                    className="press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-plum/50 px-5 font-mono text-[10px] uppercase tracking-[0.18em] text-navy transition-colors hover:bg-navy hover:text-mist sm:w-auto"
     >
       <Plus size={12} strokeWidth={1.5} aria-hidden="true" />
       {t.memories.add}
@@ -65,7 +65,7 @@ export function Memories() {
         <div className="relative mt-12 md:mt-16">
           <span
             aria-hidden="true"
-            className="absolute bottom-0 left-[7px] top-0 w-px bg-line/70 md:left-1/2"
+            className="absolute bottom-0 left-[7px] top-0 w-px bg-gradient-to-b from-periwinkle/70 via-line to-transparent md:left-1/2"
           />
           <ol className="space-y-12 md:space-y-20">
             {memories.map((memory, index) => (

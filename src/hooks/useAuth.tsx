@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { storageKeys } from "../data/site";
-import { isSupabaseConfigured, supabase } from "../lib/supabase";
+import { isSupabaseConfigured, recoveryLink, supabase } from "../lib/supabase";
 import type { MemberRole } from "../types";
 
 export type AuthStatus =
@@ -32,6 +32,11 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
   /** Re-check membership (used after the owner adds an email). */
   retry: () => Promise<void>;
+  recovery: RecoveryState;
+  /** Emails a recovery link, if that address belongs to an account. */
+  requestPasswordReset: (address: string) => Promise<ResetRequestResult>;
+  /** Saves the new password the recovery link signed in for. */
+  setNewPassword: (password: string) => Promise<NewPasswordResult>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -60,6 +65,28 @@ export interface SignInResult {
   detail?: string;
 }
 
+/** A request for a recovery link; success says nothing about who has an account. */
+export interface ResetRequestResult {
+  status: "ok" | "invalid" | "error";
+  detail?: string;
+}
+
+/** Saving a new password from a recovery link. */
+export interface NewPasswordResult {
+  status: "ok" | "tooShort" | "linkExpired" | "error";
+  detail?: string;
+}
+
+export interface RecoveryState {
+  /** A recovery link was opened: choose a new password before anything else. */
+  active: boolean;
+  /** The link in the address bar had expired or was already used. */
+  linkFailed: boolean;
+}
+
+/** Mirrors Supabase's minimum length (Authentication → Policies). */
+export const MIN_PASSWORD_LENGTH = 6;
+
 /** Flattens a Supabase error into one readable line. */
 function describeError(err: unknown): string {
   const { code, message, hint } = (err ?? {}) as {
@@ -78,6 +105,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<MemberRole | null>(null);
   const [errorDetail, setErrorDetail] = useState("");
+  const [recovery, setRecovery] = useState<RecoveryState>({
+    active: recoveryLink.kind === "recovery",
+    linkFailed: recoveryLink.kind === "failed",
+  });
   const [status, setStatus] = useState<AuthStatus>(
     isSupabaseConfigured ? "loading" : "unconfigured",
   );
@@ -195,7 +226,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRole(null);
     setErrorDetail("");
     setStatus("signedOut");
+    setRecovery({ active: false, linkFailed: false });
   }, []);
+
+  const requestPasswordReset = useCallback(
+    async (address: string): Promise<ResetRequestResult> => {
+      if (!supabase) return { status: "error" };
+      const email = address.trim().toLowerCase();
+      if (!isValidEmail(email)) return { status: "invalid" };
+
+      // The site root is where the recovery tokens meet the app; that origin
+      // has to be listed under Authentication → URL Configuration.
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/`,
+      });
+
+      if (!error) return { status: "ok" };
+
+      // Rate limits land here too. The wording stays the same on purpose, so
+      // the form cannot be used to learn which addresses have an account.
+      console.error("[auth] resetPasswordForEmail failed", error);
+      return { status: "error", detail: describeError(error) };
+    },
+    [],
+  );
+
+  const setNewPassword = useCallback(
+    async (password: string): Promise<NewPasswordResult> => {
+      if (!supabase) return { status: "error" };
+      if (password.length < MIN_PASSWORD_LENGTH) return { status: "tooShort" };
+
+      // The recovery link signed this tab in. No session means the link had
+      // expired, was already used, or was opened in a different browser.
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) return { status: "linkExpired" };
+
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) {
+        console.error("[auth] updateUser failed", error);
+        return { status: "error", detail: describeError(error) };
+      }
+
+      // Settle this session here instead of waiting on the auth listener. The
+      // listener may have fired for the recovery link before this tab was
+      // listening, and the gate would then drop her on the sign-in screen with
+      // a perfectly good session sitting behind it.
+      const { data: settled } = await supabase.auth.getSession();
+      const session = settled.session ?? data.session;
+      if (session) await resolve(session, true);
+
+      // She is inside with the new password in place, so the recovery screen
+      // has nothing left to do.
+      setRecovery({ active: false, linkFailed: false });
+      return { status: "ok" };
+    },
+    [resolve],
+  );
 
   // Walking away for half an hour ends the visit, so the gate asks for the
   // password again. The last activity is kept in storage, because closing the
@@ -285,8 +371,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signOut,
       retry,
+      recovery,
+      requestPasswordReset,
+      setNewPassword,
     }),
-    [status, role, session, errorDetail, signIn, signOut, retry],
+    [
+      status,
+      role,
+      session,
+      errorDetail,
+      signIn,
+      signOut,
+      retry,
+      recovery,
+      requestPasswordReset,
+      setNewPassword,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

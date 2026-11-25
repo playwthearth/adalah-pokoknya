@@ -6,7 +6,7 @@ import type { Route } from "../hooks/useHashRoute";
 import { useLanguage } from "../hooks/useLanguage";
 import { useTheme } from "../hooks/useTheme";
 import { LanguageSelector } from "./LanguageSelector";
-import { ZeroMark } from "./ReiMarks";
+import { FlowerSeal } from "./Marks";
 
 interface NavbarProps {
   route: Route;
@@ -56,7 +56,7 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-line/70 bg-mist/95 sm:bg-mist/80 sm:backdrop-blur-md sm:backdrop-saturate-150">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-line/80 bg-mist/92 shadow-[0_10px_30px_-28px_rgba(119,125,170,0.8)] backdrop-blur-md backdrop-saturate-150">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
           <a
             href="#/dashboard"
@@ -64,7 +64,7 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
             aria-label={t.nav.dashboard}
             className="group flex shrink-0 items-center gap-3 text-left"
           >
-            <ZeroMark />
+            <FlowerSeal />
             <span className="leading-none">
               <span className="block whitespace-nowrap font-display text-[13px] uppercase tracking-[0.22em] text-ink">
                 Beyond Time
@@ -100,7 +100,7 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
                     layoutId="nav-active"
                     aria-hidden="true"
                     transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                    className="absolute -bottom-1.5 left-0 h-px w-full bg-ember shadow-[0_0_10px_rgba(163,38,47,0.45)]"
+                    className="absolute -bottom-1.5 left-0 h-px w-full bg-plum shadow-[0_0_10px_rgba(119,125,170,0.45)]"
                   />
                 )}
               </a>

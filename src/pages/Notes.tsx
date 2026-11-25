@@ -212,10 +212,10 @@ export function Notes() {
                     type="button"
                     onClick={() => setKind(option)}
                     aria-pressed={active}
-                    className={`inline-flex min-h-11 items-center gap-2 border px-3 py-1.5 text-[9px] uppercase tracking-[0.16em] transition-colors ${
+                    className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-3.5 py-1.5 text-[9px] uppercase tracking-[0.16em] transition-colors ${
                       active
                         ? "border-navy bg-navy text-mist"
-                        : "border-line/80 text-navy/70 hover:border-navy/35 hover:text-ink"
+                        : "border-line/80 text-navy/70 hover:border-plum/40 hover:text-ink"
                     }`}
                   >
                     <span
@@ -264,7 +264,7 @@ export function Notes() {
               <button
                 type="submit"
                 disabled={posting || !body.trim()}
-                className="press inline-flex min-h-11 items-center gap-2 border border-navy/70 px-5 py-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-navy hover:border-navy hover:bg-navy hover:text-mist disabled:cursor-not-allowed disabled:opacity-50"
+                className="press inline-flex min-h-11 items-center gap-2 rounded-full border border-navy bg-navy px-5 py-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-mist transition-colors hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {posting ? t.notes.posting : editingId ? t.notes.saveChanges : t.notes.post}
                 <Send size={12} strokeWidth={1.5} aria-hidden="true" />
@@ -313,16 +313,16 @@ export function Notes() {
                     setFilter(item.key);
                   }}
                   aria-pressed={active}
-                  className={`inline-flex min-h-11 items-center gap-2 border px-3.5 py-2 text-[9px] uppercase tracking-[0.16em] transition-colors ${
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-3.5 py-2 text-[9px] uppercase tracking-[0.16em] transition-colors ${
                     active
                       ? "border-navy bg-navy text-mist"
-                      : "border-line/80 text-navy/70 hover:border-navy/35 hover:text-ink"
+                      : "border-line/80 text-navy/70 hover:border-plum/40 hover:text-ink"
                   }`}
                 >
                   {item.label}
                   <span
                     className={`font-mono text-[9px] ${
-                      active ? "text-mist/60" : "text-muted-strong"
+                      active ? "text-mist/70" : "text-muted-strong"
                     }`}
                   >
                     {item.key === "all"
@@ -353,7 +353,7 @@ export function Notes() {
                 setQuery(event.target.value);
               }}
               placeholder={t.notes.searchPlaceholder}
-              className="w-full border border-line/80 bg-transparent py-2 pl-9 pr-3 text-base text-ink outline-none transition-colors placeholder:text-muted-strong/70 focus:border-navy sm:text-sm"
+              className="w-full rounded-full border border-line/80 bg-surface/70 py-2 pl-9 pr-4 text-base text-ink outline-none transition-colors placeholder:text-muted-strong/70 focus:border-plum/60 sm:text-sm"
             />
           </div>
         </div>
@@ -385,7 +385,7 @@ export function Notes() {
             <EmptyState title={t.notes.searchEmpty} hint={t.notes.emptyHint} />
           </div>
         ) : (
-          <ol className="mt-2 border-b border-line/70">
+          <ol className="mt-4 space-y-3">
             {visible.map((note, index) => (
               <motion.li
                 key={note.id}
@@ -397,7 +397,7 @@ export function Notes() {
                   delay: Math.min(index, 6) * 0.045,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className="rail group -ml-3 grid gap-3 border-t border-line/70 py-6 pl-3 transition-colors duration-500 hover:border-line hover:bg-surface/50 sm:grid-cols-[170px_minmax(0,1fr)] sm:gap-8"
+                className="rail group grid gap-3 rounded-[6px] border border-line/70 bg-surface/80 px-4 py-5 transition-colors duration-500 hover:border-cyan/70 hover:bg-surface sm:grid-cols-[170px_minmax(0,1fr)] sm:gap-8 sm:px-6 sm:py-6"
               >
                 <div className="flex items-start justify-between gap-3 sm:block">
                   <div>
@@ -448,7 +448,7 @@ export function Notes() {
                 </div>
 
                 <div className="min-w-0">
-                  <p className="line-clamp-4 whitespace-pre-wrap text-[14px] leading-[1.9] text-navy/90">
+                  <p className="letter-body line-clamp-4 whitespace-pre-wrap text-[1.05rem] leading-[1.9] text-navy/90">
                     {note.body}
                   </p>
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -475,7 +475,7 @@ export function Notes() {
               type="button"
               onClick={() => void loadMore()}
               disabled={loadingMore}
-              className="press inline-flex min-h-11 items-center gap-2 border border-line/80 px-6 py-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-navy hover:border-navy hover:bg-surface/60 disabled:cursor-not-allowed disabled:opacity-50"
+              className="press inline-flex min-h-11 items-center gap-2 rounded-full border border-line/80 px-6 py-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-navy hover:border-plum/50 hover:bg-lavender/40 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loadingMore && <Loader2 size={12} strokeWidth={1.5} className="animate-spin" aria-hidden="true" />}
               {loadingMore ? t.notes.loadingEarlier : t.notes.loadEarlier}
@@ -523,12 +523,12 @@ export function Notes() {
 
             <h2
               id="note-detail-title"
-              className="mt-5 font-display text-3xl font-light leading-tight text-ink sm:text-4xl"
+              className="mt-4 font-display text-3xl leading-tight text-ink sm:text-[2.4rem]"
             >
               {authorName(open)}
             </h2>
 
-            <p className="mt-7 whitespace-pre-wrap border-t border-line/70 pt-7 text-[15px] leading-[1.95] text-navy/90 [text-wrap:pretty]">
+            <p className="letter-body mt-6 whitespace-pre-wrap border-t border-line/70 pt-6 text-[1.1rem] leading-[1.95] text-navy/90 [text-wrap:pretty]">
               {open.body}
             </p>
 

@@ -12,7 +12,8 @@ import { site } from "../data/site";
 import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
 import { LanguageSelector } from "./LanguageSelector";
-import { HairLines, MoonMark } from "./ReiMarks";
+import { ForgotPasswordForm, NewPasswordForm } from "./PasswordRecovery";
+import { BlossomHalo, PetalField, VineLines } from "./Marks";
 
 function AuthShell({ children }: { children: ReactNode }) {
   const { t } = useLanguage();
@@ -20,8 +21,9 @@ function AuthShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="relative flex min-h-[100svh] flex-col overflow-hidden">
-      <MoonMark className="moon pointer-events-none absolute -right-[32vw] -top-[22vw] w-[84vw] max-w-[540px] text-cyan/70 sm:-right-[6%] sm:-top-[10%] sm:w-[38vw]" />
-      <HairLines className="pointer-events-none absolute -left-[8%] bottom-[4%] hidden h-[48vh] w-[18vw] text-cyan/60 sm:block" />
+      <PetalField />
+      <BlossomHalo className="moon pointer-events-none absolute -right-[34vw] -top-[20vw] w-[86vw] max-w-[520px] text-periwinkle/70 sm:-right-[8%] sm:-top-[12%] sm:w-[36vw]" />
+      <VineLines className="pointer-events-none absolute -left-[8%] bottom-[4%] hidden h-[48vh] w-[18vw] text-periwinkle/50 sm:block" />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-3 border border-line/60 sm:inset-5"
@@ -51,7 +53,7 @@ function AuthShell({ children }: { children: ReactNode }) {
       </main>
 
       <footer className="relative z-10 border-t border-line/60 px-7 py-4 sm:px-11">
-        <p className="label flex items-center gap-2 text-[9px]">
+        <p className="caption flex items-center gap-2 text-[15px] text-muted-strong">
           <span aria-hidden="true" className="signal-dot h-1.5 w-1.5 rounded-full bg-ember" />
           {t.landing.eyebrow}
         </p>
@@ -62,11 +64,25 @@ function AuthShell({ children }: { children: ReactNode }) {
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const { t } = useLanguage();
-  const { status, email, errorDetail, signIn, signOut, retry } = useAuth();
+  const {
+    status,
+    email,
+    errorDetail,
+    signIn,
+    signOut,
+    retry,
+    recovery,
+    requestPasswordReset,
+    setNewPassword,
+  } = useAuth();
   const [address, setAddress] = useState("");
   const [password, setPassword] = useState("");
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  // An expired link lands straight on the form that sends a fresh one.
+  const [view, setView] = useState<"signIn" | "forgot">(
+    recovery.linkFailed ? "forgot" : "signIn",
+  );
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -107,6 +123,21 @@ export function AuthGate({ children }: { children: ReactNode }) {
         <p className="mt-3 text-[12px] leading-relaxed text-muted-strong">
           {t.auth.unconfiguredHint}
         </p>
+      </AuthShell>
+    );
+  }
+
+  if (recovery.active) {
+    return (
+      <AuthShell>
+        <NewPasswordForm
+          onSubmit={setNewPassword}
+          onCancel={() => void signOut()}
+          onRequestNewLink={() => {
+            void signOut();
+            setView("forgot");
+          }}
+        />
       </AuthShell>
     );
   }
@@ -184,6 +215,18 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
 
+  if (status === "signedOut" && view === "forgot") {
+    return (
+      <AuthShell>
+        <ForgotPasswordForm
+          expiredLink={recovery.linkFailed}
+          onSubmit={requestPasswordReset}
+          onBack={() => setView("signIn")}
+        />
+      </AuthShell>
+    );
+  }
+
   if (status === "signedOut") {
     return (
       <AuthShell>
@@ -241,6 +284,14 @@ export function AuthGate({ children }: { children: ReactNode }) {
             <ArrowRight size={14} strokeWidth={1.5} aria-hidden="true" />
           </button>
         </form>
+
+        <button
+          type="button"
+          onClick={() => setView("forgot")}
+          className="mt-7 block w-full text-center font-mono text-[10px] uppercase tracking-[0.2em] text-muted-strong underline-offset-4 transition-colors hover:text-navy hover:underline"
+        >
+          {t.auth.forgotPassword}
+        </button>
       </AuthShell>
     );
   }

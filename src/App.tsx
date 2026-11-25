@@ -1,7 +1,7 @@
 import { MotionConfig, motion } from "framer-motion";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Ambient } from "./components/Ambient";
-import { HairLines } from "./components/ReiMarks";
+import { VineLines } from "./components/Marks";
 import { AuthGate } from "./components/AuthGate";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ScrollProgress } from "./components/ScrollProgress";
@@ -17,6 +17,7 @@ import { MusicPlayerProvider } from "./hooks/useMusicPlayer";
 import { NotesProvider } from "./hooks/useNotes";
 import { SettingsProvider } from "./hooks/useSettings";
 import { ThemeProvider } from "./hooks/useTheme";
+import { recoveryLink } from "./lib/supabase";
 import { Dashboard } from "./pages/Dashboard";
 import { Landing } from "./pages/Landing";
 import { NotFound } from "./pages/NotFound";
@@ -31,6 +32,9 @@ const Settings = lazy(() => import("./pages/Settings").then((m) => ({ default: m
 
 /** The threshold is shown once per tab, not once per reload. */
 const ENTERED_KEY = "abt.entered";
+
+/** A password link opens onto the form itself, not the threshold page. */
+const arrivedFromLink = recoveryLink.kind !== "none";
 
 function readEntered(): boolean {
   try {
@@ -51,7 +55,7 @@ function PageFallback() {
 }
 
 function Experience() {
-  const [entered, setEntered] = useState(readEntered);
+  const [entered, setEntered] = useState(() => readEntered() || arrivedFromLink);
   const [route, navigate] = useHashRoute();
   const { t } = useLanguage();
 
@@ -109,7 +113,7 @@ function Experience() {
       </a>
 
       <Ambient />
-      <HairLines className="pointer-events-none fixed -right-10 bottom-16 z-0 hidden h-[58vh] w-[16vw] text-cyan/45 lg:block" />
+                <VineLines className="pointer-events-none fixed -right-10 bottom-16 z-0 hidden h-[58vh] w-[16vw] text-periwinkle/40 lg:block" />
       <ScrollProgress />
       <div className="relative z-10 flex flex-1 flex-col">
         <AuthGate>

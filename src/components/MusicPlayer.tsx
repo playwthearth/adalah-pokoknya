@@ -68,7 +68,7 @@ export function MusicPlayer() {
           </span>
         </div>
 
-        <h2 className="mt-5 truncate font-display text-3xl font-extralight text-ink sm:text-4xl">
+        <h2 className="mt-5 truncate font-display text-3xl text-ink sm:text-4xl">
           {current?.title ?? t.playlist.empty}
         </h2>
         <p className="mt-2 text-xs uppercase tracking-[0.2em] text-muted-strong">
@@ -110,7 +110,7 @@ export function MusicPlayer() {
               type="button"
               onClick={previous}
               aria-label={t.playlist.previous}
-              className="inline-flex h-11 w-11 items-center justify-center border border-line text-navy transition-colors hover:border-navy/40 hover:bg-surface/50"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line text-navy transition-colors hover:border-plum/50 hover:bg-lavender/40"
             >
               <SkipBack size={15} strokeWidth={1.5} />
             </button>
@@ -118,7 +118,7 @@ export function MusicPlayer() {
               type="button"
               onClick={toggle}
               aria-label={isPlaying ? t.playlist.pause : t.playlist.play}
-              className="inline-flex h-14 w-14 items-center justify-center border border-navy bg-navy text-mist transition-colors hover:bg-ink active:scale-[0.98]"
+              className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-navy bg-navy text-mist shadow-[0_14px_26px_-18px_rgba(119,125,170,1)] transition-colors hover:bg-ink active:scale-[0.98]"
             >
               {isPlaying ? (
                 <Pause size={19} strokeWidth={1.5} fill="currentColor" />
@@ -130,7 +130,7 @@ export function MusicPlayer() {
               type="button"
               onClick={next}
               aria-label={t.playlist.next}
-              className="inline-flex h-11 w-11 items-center justify-center border border-line text-navy transition-colors hover:border-navy/40 hover:bg-surface/50"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line text-navy transition-colors hover:border-plum/50 hover:bg-lavender/40"
             >
               <SkipForward size={15} strokeWidth={1.5} />
             </button>
@@ -142,7 +142,7 @@ export function MusicPlayer() {
               onClick={toggleMute}
               aria-label={muted ? t.playlist.unmute : t.playlist.mute}
               aria-pressed={muted}
-              className="inline-flex h-11 w-11 shrink-0 items-center justify-center border border-line/80 text-navy/75 transition-colors hover:border-navy/40 hover:text-ink"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line/80 text-navy/75 transition-colors hover:border-plum/50 hover:text-ink"
             >
               {muted ? (
                 <VolumeX size={15} strokeWidth={1.5} aria-hidden="true" />
