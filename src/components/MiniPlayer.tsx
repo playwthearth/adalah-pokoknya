@@ -13,7 +13,10 @@ export function MiniPlayer({ onOpenPlaylist }: MiniPlayerProps) {
   const percent = duration > 0 ? Math.min(100, (progress / duration) * 100) : 0;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line/80 bg-mist/95 pb-[env(safe-area-inset-bottom)] sm:bg-mist/92 sm:backdrop-blur-md">
+    <div
+      data-player=""
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-line/80 bg-mist/95 pb-[env(safe-area-inset-bottom)] sm:bg-mist/92 sm:backdrop-blur-md"
+    >
       <div aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-line/70">
         <div
           className="h-px bg-navy/60 transition-[width] duration-300"

@@ -11,6 +11,7 @@ import {
 import { playlist } from "../data/playlist";
 import { storageKeys } from "../data/site";
 import type { Track } from "../types";
+import { useAuth } from "./useAuth";
 import { useSettings } from "./useSettings";
 
 interface MusicPlayerContextValue {
@@ -39,23 +40,24 @@ const MusicPlayerContext = createContext<MusicPlayerContextValue | null>(null);
 /** How often the position is written to storage while playing. */
 const SAVE_EVERY_MS = 4000;
 
-/** A reload resumes the same track at roughly the same place, never playing. */
+/** A reload resumes the same track at roughly the same place. */
 function readStoredPosition(): { index: number; time: number } {
   try {
     const id = window.localStorage.getItem(storageKeys.playerTrack);
     const rawTime = window.localStorage.getItem(storageKeys.playerTime);
     const time = rawTime === null ? 0 : Number(rawTime);
     const index = playlist.findIndex((track) => track.id === id);
-    return {
-      index: index === -1 ? 0 : index,
-      time: Number.isFinite(time) && time > 0 ? time : 0,
-    };
+    // A song that is no longer listed starts from the beginning, not from the
+    // second an older playlist stopped on.
+    if (index === -1) return { index: 0, time: 0 };
+    return { index, time: Number.isFinite(time) && time > 0 ? time : 0 };
   } catch {
     return { index: 0, time: 0 };
   }
 }
 
 export function MusicPlayerProvider({ children }: { children: ReactNode }) {
+  const { status } = useAuth();
   const { settings, update } = useSettings();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const wantsPlayRef = useRef(false);
@@ -160,6 +162,43 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     const audio = audioRef.current;
     if (audio) audio.muted = muted;
   }, [muted]);
+
+  // A signed-in visit opens with the song already playing. Browsers refuse
+  // sound until the page has been touched, so a refusal waits for the next
+  // tap anywhere outside the player, whose own controls start it themselves.
+  const autostarted = useRef(false);
+  useEffect(() => {
+    if (status !== "ready" || autostarted.current) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+    autostarted.current = true;
+
+    let alive = true;
+    const start = () => {
+      if (audio.paused) void audio.play().catch(() => undefined);
+    };
+    const unlock = (event: Event) => {
+      const target = event.target;
+      // Let the player's own buttons decide; a pointerdown here would start the
+      // song and the click that follows would immediately pause it again.
+      if (target instanceof Element && target.closest("[data-player]")) return;
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+      start();
+    };
+
+    void audio.play().catch(() => {
+      if (!alive) return;
+      window.addEventListener("pointerdown", unlock);
+      window.addEventListener("keydown", unlock);
+    });
+
+    return () => {
+      alive = false;
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, [status]);
 
   // Reset transport state when the track changes.
   useEffect(() => {

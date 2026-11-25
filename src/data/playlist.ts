@@ -7,29 +7,13 @@ import type { Track } from "../types";
  *  1. Drop the audio file into  public/assets/music/
  *  2. Add an entry below with the same path, e.g. "/assets/music/our-song.mp3"
  *  3. Keep `duration` optional — it is used until the browser reads metadata.
- *
- * The files shipped here are generated ambient tones, not music. Replace them.
  */
 export const playlist: Track[] = [
   {
-    id: "track-001",
-    title: "Quiet Orbit",
-    artist: "Placeholder tone",
-    src: "/assets/music/placeholder-01.mp3",
-    duration: 26,
-  },
-  {
-    id: "track-002",
-    title: "Pale Signal",
-    artist: "Placeholder tone",
-    src: "/assets/music/placeholder-02.mp3",
-    duration: 28,
-  },
-  {
-    id: "track-003",
-    title: "Distant Shore",
-    artist: "Placeholder tone",
-    src: "/assets/music/placeholder-03.mp3",
-    duration: 24,
+    id: "am-i-bothering-you",
+    title: "Am I Bothering You?",
+    artist: "Reality Club",
+    src: "/assets/music/Am%20I%20Bothering%20You%20-%20Reality%20Club.m4a",
+    duration: 225,
   },
 ];

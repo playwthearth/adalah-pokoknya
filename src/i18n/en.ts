@@ -176,7 +176,7 @@ export const en = {
       "Songs that feel like certain days. Choose one, and stay a while.",
     nowPlaying: "NOW PLAYING",
     playlistLabel: "PLAYLIST",
-    tracksLabel: "tracks",
+    tracksLabel: "track",
     empty: "No songs yet.",
     emptyHint:
       "Add audio files to public/assets/music and list them in src/data/playlist.ts.",
@@ -187,7 +187,7 @@ export const en = {
     volume: "Volume",
     trackError: "This track could not be loaded.",
     placeholderNote:
-      "The three tracks here are generated tones, standing in for your songs. Replace them whenever you are ready.",
+      "One song, for now. It begins on its own when you arrive — pause it any time from the player below.",
     openPlayer: "Open player",
     mute: "Mute",
     unmute: "Unmute",

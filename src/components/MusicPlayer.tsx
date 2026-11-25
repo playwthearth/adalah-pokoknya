@@ -38,6 +38,7 @@ export function MusicPlayer() {
 
   return (
     <section
+      data-player=""
       aria-label={t.playlist.nowPlaying}
       className="surface grid grid-cols-1 gap-6 p-5 sm:gap-8 sm:p-7 md:grid-cols-[minmax(0,260px)_minmax(0,1fr)] md:items-center md:gap-10"
     >
