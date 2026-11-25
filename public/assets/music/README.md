@@ -1,8 +1,9 @@
 # Music
 
-`Am I Bothering You - Reality Club.m4a` is the song the player opens with.
-Other audio files can sit in this folder too, but only the ones registered in
-`src/data/playlist.ts` are listed.
+This folder holds the ten songs listed in `src/data/playlist.ts`. The first one,
+`Am I Bothering You - Reality Club.m4a`, is what a signed-in visitor hears on
+arrival. Other files can sit here too, but only the ones registered in the
+playlist are listed.
 
 To add a song:
 
@@ -14,8 +15,9 @@ To add a song:
   id: "our-song",
   title: "Song title",
   artist: "Artist",
-  src: "/assets/music/our-song.mp3",
+  src: song("our-song.mp3"),
 }
 ```
 
-Only use music you have the right to use.
+`song()` escapes spaces and Japanese characters so browsers can request the
+file. Only use music you have the right to use.

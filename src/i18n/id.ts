@@ -185,7 +185,7 @@ export const id: Dict = {
     volume: "Volume",
     trackError: "Lagu ini tidak dapat dimuat.",
     placeholderNote:
-      "Satu lagu, untuk sekarang. Ia mulai sendiri saat kamu datang — jeda kapan saja dari pemutar di bawah.",
+      "Sepuluh lagu, untuk sekarang. Yang pertama mulai sendiri saat kamu datang — jeda kapan saja dari pemutar di bawah.",
     openPlayer: "Buka pemutar",
     mute: "Bisukan",
     unmute: "Nyalakan suara",
