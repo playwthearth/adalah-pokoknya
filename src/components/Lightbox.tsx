@@ -87,7 +87,7 @@ export function Lightbox({ memories, index, onClose, onChange }: LightboxProps) 
                   alt={memory.title}
                   width={1184}
                   height={880}
-                  className="max-h-[45vh] w-full border border-line/80 object-contain sm:max-h-[58vh] sm:object-cover"
+                  className="mx-auto block max-h-[45vh] w-auto max-w-full border border-line/80 sm:max-h-[58vh]"
                 />
               )}
             </motion.figure>

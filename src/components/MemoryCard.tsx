@@ -39,7 +39,7 @@ export function MemoryCard({ memory, index, onOpen, onEdit }: MemoryCardProps) {
               height={880}
               loading="lazy"
               decoding="async"
-              className="aspect-[4/3] w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+              className="block h-auto w-full transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
             />
           ) : (
             <span className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 text-muted-strong">

@@ -184,7 +184,7 @@ export function MemoryEditor({ memory, onClose, onSave, onDelete }: MemoryEditor
                   width={1184}
                   height={880}
                   decoding="async"
-                  className="aspect-[4/3] w-full object-cover"
+                  className="mx-auto block max-h-[min(56vh,420px)] w-auto max-w-full"
                 />
               ) : (
                 <div className="flex aspect-[4/3] items-center justify-center">
