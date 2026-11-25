@@ -31,4 +31,6 @@ export const storageKeys = {
   volume: "abt.settings.volume.v1",
   /** Earlier per-device copy of the settings; removed on load. */
   legacySettings: "abt.settings.v1",
+  /** Last moment the reader did anything, so an idle visit can sign itself out. */
+  lastActive: "abt.auth.lastActive",
 } as const;
