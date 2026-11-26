@@ -3,8 +3,10 @@ import type { ComponentType } from "react";
 import { Clock } from "../components/Clock";
 import { CountUp } from "../components/CountUp";
 import { Blossom, CornerTicks, VineLines } from "../components/Marks";
+import { Plate } from "../components/Plate";
 import { Reveal } from "../components/Reveal";
 import { TypingText } from "../components/TypingText";
+import { art } from "../data/art";
 import { site } from "../data/site";
 import { useAuth } from "../hooks/useAuth";
 import type { Route } from "../hooks/useHashRoute";
@@ -153,6 +155,23 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           <p className="mt-6 max-w-lg text-[13px] leading-loose text-muted-strong">
             {t.dashboard.intro}
           </p>
+
+          {/* Two prints from the archive, left on the desk for today. */}
+          <div className="mt-8 flex items-start gap-4 sm:gap-5">
+            <Plate
+              src={art.winter}
+              caption="winter, together."
+              tilt="-2deg"
+              tape
+              className="w-[42%] max-w-[180px]"
+            />
+            <Plate
+              src={art.faces}
+              caption="so close."
+              tilt="1.6deg"
+              className="mt-6 w-[42%] max-w-[180px]"
+            />
+          </div>
         </div>
 
         <Reveal delay={0.15} className="lg:pt-1">

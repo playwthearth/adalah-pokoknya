@@ -11,6 +11,7 @@ import {
   Sparkles,
   VineLines,
 } from "../components/Marks";
+import { Plate } from "../components/Plate";
 import { art } from "../data/art";
 import { site } from "../data/site";
 import { useLanguage } from "../hooks/useLanguage";
@@ -21,16 +22,12 @@ interface LandingProps {
   onEnter: () => void;
 }
 
-/** Loose plates kept in the back of the scrapbook, pinned in as they came. */
+/** A few loose plates kept in the back of the scrapbook; the rest are pinned
+    into the other rooms, so no page holds the whole archive. */
 const SPREAD = [
-  { src: art.window, caption: "the same window.", tilt: "-1.6deg", w: 550, h: 550 },
-  { src: art.desks, caption: "an afternoon apart.", tilt: "1.4deg", w: 378, h: 378 },
-  { src: art.tea, caption: "tea, before the light.", tilt: "-1.1deg", w: 736, h: 781 },
-  { src: art.winter, caption: "winter, together.", tilt: "1.8deg", w: 736, h: 627 },
-  { src: art.scarf, caption: "you, looking away.", tilt: "-1.4deg", w: 704, h: 703 },
-  { src: art.faces, caption: "so close.", tilt: "1.2deg", w: 735, h: 850 },
-  { src: art.shore, caption: "the sea between us.", tilt: "-0.9deg", w: 736, h: 736 },
-  { src: art.dream, caption: "the same dream.", tilt: "1.1deg", w: 735, h: 805 },
+  { src: art.window, caption: "the same window.", tilt: "-1.6deg" },
+  { src: art.tea, caption: "tea, before the light.", tilt: "1.4deg" },
+  { src: art.shore, caption: "the sea between us.", tilt: "-0.9deg" },
 ] as const;
 
 /** The cover of the scrapbook: a taped triptych and the front matter. */
@@ -277,36 +274,24 @@ export function Landing({ onEnter }: LandingProps) {
           <p className="caption text-[15px] text-muted-strong">{t.landing.platesNote}</p>
         </div>
 
-        <div className="mt-7 columns-2 gap-3.5 sm:columns-3 sm:gap-5 lg:columns-4">
+        <div className="mt-7 columns-2 gap-3.5 sm:columns-3 sm:gap-5">
           {SPREAD.map((plate, index) => (
-            <motion.figure
+            <motion.div
               key={plate.src}
               initial={reduceMotion ? false : { opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.25 }}
-              transition={{ duration: 0.7, delay: (index % 4) * 0.05, ease: [0.16, 1, 0.3, 1] }}
-              className="polaroid relative mb-3.5 break-inside-avoid sm:mb-5"
-              style={{ rotate: plate.tilt }}
+              transition={{ duration: 0.7, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
+              className="mb-3.5 break-inside-avoid sm:mb-5"
             >
-              {index % 3 === 0 && (
-                <span
-                  aria-hidden="true"
-                  className="tape -top-3 left-1/2 -translate-x-1/2 -rotate-[3deg]"
-                />
-              )}
-              <img
+              <Plate
                 src={plate.src}
-                alt=""
-                width={plate.w}
-                height={plate.h}
-                loading="lazy"
-                decoding="async"
-                className="h-auto w-full"
+                caption={plate.caption}
+                tilt={plate.tilt}
+                tape={index === 0}
+                decorative={false}
               />
-              <figcaption className="caption absolute inset-x-0 bottom-1 px-2 text-center text-[13px] leading-tight sm:text-[15px]">
-                {plate.caption}
-              </figcaption>
-            </motion.figure>
+            </motion.div>
           ))}
         </div>
       </section>

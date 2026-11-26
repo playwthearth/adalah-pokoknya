@@ -9,7 +9,19 @@ interface PlayerArtworkProps {
 }
 
 /** The sleeve cycles through the archive, so no two tracks look alike. */
-const SLEEVES = [art.scrapbook, art.beach, art.dream, art.phones];
+const SLEEVES = [
+  art.scrapbook,
+  art.beach,
+  art.dream,
+  art.phones,
+  art.window,
+  art.winter,
+  art.tea,
+  art.scarf,
+  art.shore,
+  art.desks,
+  art.faces,
+];
 
 export function PlayerArtwork({ index, active, title, className }: PlayerArtworkProps) {
   const reduceMotion = useReducedMotion();

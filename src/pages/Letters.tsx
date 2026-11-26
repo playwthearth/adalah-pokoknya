@@ -3,7 +3,9 @@ import { useMemo, useState } from "react";
 import { EmptyState } from "../components/EmptyState";
 import { LetterCard } from "../components/LetterCard";
 import { Modal } from "../components/Modal";
+import { Plate } from "../components/Plate";
 import { SectionHeader } from "../components/SectionHeader";
+import { art } from "../data/art";
 import { letters } from "../data/letters";
 import { useLanguage } from "../hooks/useLanguage";
 import type { LetterCategory } from "../types";
@@ -52,32 +54,42 @@ export function Letters() {
         aside={<span className="label">{t.letters.count(sorted.length)}</span>}
       />
 
-      <div className="mt-7 flex flex-wrap gap-2">
-        {filters.map((item) => {
-          const isActive = filter === item.key;
-          return (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => setFilter(item.key)}
-              aria-pressed={isActive}
-              className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-[10px] uppercase tracking-[0.16em] transition-colors ${
-                isActive
-                  ? "border-navy bg-navy text-mist"
-                  : "border-line/80 bg-transparent text-navy/70 hover:border-plum/40 hover:text-ink"
-              }`}
-            >
-              {item.label}
-              <span
-                className={`font-mono text-[9px] ${
-                  isActive ? "text-mist/70" : "text-muted-strong"
+      <div className="mt-7 flex flex-wrap items-start justify-between gap-x-8 gap-y-5">
+        <div className="flex flex-wrap gap-2">
+          {filters.map((item) => {
+            const isActive = filter === item.key;
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => setFilter(item.key)}
+                aria-pressed={isActive}
+                className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-[10px] uppercase tracking-[0.16em] transition-colors ${
+                  isActive
+                    ? "border-navy bg-navy text-mist"
+                    : "border-line/80 bg-transparent text-navy/70 hover:border-plum/40 hover:text-ink"
                 }`}
               >
-                {String(item.count).padStart(2, "0")}
-              </span>
-            </button>
-          );
-        })}
+                {item.label}
+                <span
+                  className={`font-mono text-[9px] ${
+                    isActive ? "text-mist/70" : "text-muted-strong"
+                  }`}
+                >
+                  {String(item.count).padStart(2, "0")}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <Plate
+          src={art.scarf}
+          caption="you, looking away."
+          tilt="2deg"
+          tape
+          className="ml-auto w-28 shrink-0 sm:w-36"
+        />
       </div>
 
       <motion.div

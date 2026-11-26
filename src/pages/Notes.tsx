@@ -3,7 +3,9 @@ import { ArrowUpRight, Loader2, Pencil, Search, Send, Trash2, X } from "lucide-r
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { EmptyState } from "../components/EmptyState";
 import { Modal } from "../components/Modal";
+import { Plate } from "../components/Plate";
 import { SectionHeader } from "../components/SectionHeader";
+import { art } from "../data/art";
 import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
 import { useMyName, useNoteAuthorName } from "../hooks/useNoteAuthorName";
@@ -178,117 +180,127 @@ export function Notes() {
         aside={<span className="label">{t.notes.count(notes.length)}</span>}
       />
 
-      <section
-        className="surface mt-9 scroll-mt-24 p-6 sm:p-8"
-        id="note-composer"
-        aria-label={t.notes.composerTitle}
-      >
-        <form onSubmit={submit}>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            {editingId ? (
+      <div className="mt-9 grid gap-5 lg:grid-cols-[minmax(0,1fr)_10.5rem] lg:items-start">
+        <section
+          className="surface scroll-mt-24 p-6 sm:p-8"
+          id="note-composer"
+          aria-label={t.notes.composerTitle}
+        >
+          <form onSubmit={submit}>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              {editingId ? (
+                <div className="flex items-center gap-3">
+                  <p className="label flex items-center gap-2 text-ember">
+                    <span aria-hidden="true" className="signal-dot h-1.5 w-1.5 rounded-full bg-ember" />
+                    {t.notes.editingNote}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    className="btn-quiet inline-flex min-h-9 items-center gap-1.5 px-2 text-[9px] uppercase tracking-[0.14em]"
+                  >
+                    <X size={11} strokeWidth={1.5} aria-hidden="true" />
+                    {t.notes.cancelEdit}
+                  </button>
+                </div>
+              ) : (
+                <p className="label">{t.notes.composerTitle}</p>
+              )}
+              <div className="flex flex-wrap gap-2" role="group" aria-label={t.notes.composerTitle}>
+                {(["daily", "love"] as const).map((option) => {
+                  const active = kind === option;
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setKind(option)}
+                      aria-pressed={active}
+                      className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-3.5 py-1.5 text-[9px] uppercase tracking-[0.16em] transition-colors ${
+                        active
+                          ? "border-navy bg-navy text-mist"
+                          : "border-line/80 text-navy/70 hover:border-plum/40 hover:text-ink"
+                      }`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`h-1 w-1 rounded-full ${
+                          option === "love" ? "bg-ember" : "bg-cyan"
+                        }`}
+                      />
+                      {option === "daily" ? t.notes.kindDaily : t.notes.kindLove}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <label htmlFor="note-body" className="sr-only">
+              {t.notes.composerTitle}
+            </label>
+            <textarea
+              id="note-body"
+              required
+              rows={4}
+              maxLength={MAX_LENGTH}
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              placeholder={t.notes.placeholder}
+              aria-describedby="note-composer-meta"
+              className="mt-5 w-full resize-y border-0 border-b border-line bg-transparent py-3 text-base leading-relaxed text-ink outline-none transition-colors placeholder:text-muted-strong/70 focus:border-navy"
+            />
+
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <p id="note-composer-meta" className="label text-[9px]">
+                {t.notes.remaining(MAX_LENGTH - body.length)}
+                {kind === "daily" && <> · {t.notes.dailyExpiry}</>}
+              </p>
               <div className="flex items-center gap-3">
-                <p className="label flex items-center gap-2 text-ember">
-                  <span aria-hidden="true" className="signal-dot h-1.5 w-1.5 rounded-full bg-ember" />
-                  {t.notes.editingNote}
-                </p>
+                {editingId && (
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    className="btn-quiet inline-flex min-h-11 items-center gap-1.5 px-4 text-[10px] uppercase tracking-[0.16em]"
+                  >
+                    {t.notes.cancelEdit}
+                  </button>
+                )}
                 <button
-                  type="button"
-                  onClick={cancelEdit}
-                  className="btn-quiet inline-flex min-h-9 items-center gap-1.5 px-2 text-[9px] uppercase tracking-[0.14em]"
+                  type="submit"
+                  disabled={posting || !body.trim()}
+                  className="press inline-flex min-h-11 items-center gap-2 rounded-full border border-navy bg-navy px-5 py-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-mist transition-colors hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <X size={11} strokeWidth={1.5} aria-hidden="true" />
-                  {t.notes.cancelEdit}
+                  {posting ? t.notes.posting : editingId ? t.notes.saveChanges : t.notes.post}
+                  <Send size={12} strokeWidth={1.5} aria-hidden="true" />
                 </button>
               </div>
-            ) : (
-              <p className="label">{t.notes.composerTitle}</p>
+            </div>
+
+            {postError && (
+              <p role="alert" className="mt-3 text-[11px] text-ember">
+                {t.notes.postError}
+              </p>
             )}
-            <div className="flex flex-wrap gap-2" role="group" aria-label={t.notes.composerTitle}>
-              {(["daily", "love"] as const).map((option) => {
-                const active = kind === option;
-                return (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => setKind(option)}
-                    aria-pressed={active}
-                    className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-3.5 py-1.5 text-[9px] uppercase tracking-[0.16em] transition-colors ${
-                      active
-                        ? "border-navy bg-navy text-mist"
-                        : "border-line/80 text-navy/70 hover:border-plum/40 hover:text-ink"
-                    }`}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className={`h-1 w-1 rounded-full ${
-                        option === "love" ? "bg-ember" : "bg-cyan"
-                      }`}
-                    />
-                    {option === "daily" ? t.notes.kindDaily : t.notes.kindLove}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+            {updateError && (
+              <p role="alert" className="mt-3 text-[11px] text-ember">
+                {t.notes.updateError}
+              </p>
+            )}
+            {posted && (
+              <p role="status" className="mt-3 text-[11px] text-muted-strong">
+                {postedEdit ? t.notes.updated : t.notes.posted}
+              </p>
+            )}
+          </form>
+        </section>
 
-          <label htmlFor="note-body" className="sr-only">
-            {t.notes.composerTitle}
-          </label>
-          <textarea
-            id="note-body"
-            required
-            rows={4}
-            maxLength={MAX_LENGTH}
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            placeholder={t.notes.placeholder}
-            aria-describedby="note-composer-meta"
-            className="mt-5 w-full resize-y border-0 border-b border-line bg-transparent py-3 text-base leading-relaxed text-ink outline-none transition-colors placeholder:text-muted-strong/70 focus:border-navy"
-          />
-
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <p id="note-composer-meta" className="label text-[9px]">
-              {t.notes.remaining(MAX_LENGTH - body.length)}
-              {kind === "daily" && <> · {t.notes.dailyExpiry}</>}
-            </p>
-            <div className="flex items-center gap-3">
-              {editingId && (
-                <button
-                  type="button"
-                  onClick={cancelEdit}
-                  className="btn-quiet inline-flex min-h-11 items-center gap-1.5 px-4 text-[10px] uppercase tracking-[0.16em]"
-                >
-                  {t.notes.cancelEdit}
-                </button>
-              )}
-              <button
-                type="submit"
-                disabled={posting || !body.trim()}
-                className="press inline-flex min-h-11 items-center gap-2 rounded-full border border-navy bg-navy px-5 py-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-mist transition-colors hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {posting ? t.notes.posting : editingId ? t.notes.saveChanges : t.notes.post}
-                <Send size={12} strokeWidth={1.5} aria-hidden="true" />
-              </button>
-            </div>
-          </div>
-
-          {postError && (
-            <p role="alert" className="mt-3 text-[11px] text-ember">
-              {t.notes.postError}
-            </p>
-          )}
-          {updateError && (
-            <p role="alert" className="mt-3 text-[11px] text-ember">
-              {t.notes.updateError}
-            </p>
-          )}
-          {posted && (
-            <p role="status" className="mt-3 text-[11px] text-muted-strong">
-              {postedEdit ? t.notes.updated : t.notes.posted}
-            </p>
-          )}
-        </form>
-      </section>
+        <Plate
+          src={art.dream}
+          caption="the same dream."
+          tilt="1.8deg"
+          tape
+          className="hidden w-full lg:block"
+        />
+      </div>
 
       <section className="mt-12" aria-label={t.notes.latest}>
         <div className="flex flex-wrap items-baseline justify-between gap-3">

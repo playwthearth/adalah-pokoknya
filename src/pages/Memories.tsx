@@ -5,7 +5,9 @@ import { EmptyState } from "../components/EmptyState";
 import { Lightbox } from "../components/Lightbox";
 import { MemoryCard } from "../components/MemoryCard";
 import { MemoryEditor } from "../components/MemoryEditor";
+import { Plate } from "../components/Plate";
 import { SectionHeader } from "../components/SectionHeader";
+import { art } from "../data/art";
 import { useLanguage } from "../hooks/useLanguage";
 import { useMemories } from "../hooks/useMemories";
 import type { Memory } from "../types";
@@ -38,7 +40,15 @@ export function Memories() {
         aside={<span className="label">{t.memories.count(memories.length)}</span>}
       />
 
-      <div className="mt-6 sm:flex sm:justify-end">{addButton}</div>
+      <div className="mt-6 flex flex-wrap items-center justify-end gap-4 sm:gap-6">
+        <Plate
+          src={art.desks}
+          caption="an afternoon apart."
+          tilt="-1.4deg"
+          className="w-32 sm:w-40"
+        />
+        {addButton}
+      </div>
 
       {loading ? (
         <div className="mt-10 space-y-10" aria-hidden="true">

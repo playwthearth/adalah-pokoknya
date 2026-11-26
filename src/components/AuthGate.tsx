@@ -8,10 +8,12 @@ import {
   Mail,
 } from "lucide-react";
 import { useState, type FormEvent, type ReactNode } from "react";
+import { art } from "../data/art";
 import { site } from "../data/site";
 import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
 import { LanguageSelector } from "./LanguageSelector";
+import { Plate } from "./Plate";
 import { ForgotPasswordForm, NewPasswordForm } from "./PasswordRecovery";
 import { BlossomHalo, PetalField, VineLines } from "./Marks";
 
@@ -40,6 +42,11 @@ function AuthShell({ children }: { children: ReactNode }) {
         </div>
         <LanguageSelector />
       </header>
+
+      {/* A print left at the threshold, waiting for whoever comes in. */}
+      <div className="pointer-events-none absolute bottom-[13%] right-[7%] hidden w-[10.5rem] xl:block">
+        <Plate src={art.shore} caption="the sea between us." tilt="3deg" tape />
+      </div>
 
       <main className="relative z-10 flex flex-1 items-center justify-center px-6 py-10">
         <motion.div
