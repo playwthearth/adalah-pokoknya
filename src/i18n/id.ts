@@ -27,6 +27,8 @@ export const id: Dict = {
     hint: "Tidak ada yang terburu-buru di sini. Luangkan waktumu.",
     jp: "時を越えた場所",
     clockLabel: "WAKTU LOKAL",
+    plates: "Lembaran dari arsip",
+    platesNote: "halaman lepas, tetap disimpan",
     labels: {
       space: "Ruang pribadi",
       connection: "Koneksi terhubung",

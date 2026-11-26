@@ -26,6 +26,8 @@ export const ja: Dict = {
     hint: "ここでは何も急ぎません。ゆっくりどうぞ。",
     jp: "時を越えた場所",
     clockLabel: "現地時刻",
+    plates: "アーカイブの図版",
+    platesNote: "はらりと落ちたページ",
     labels: {
       space: "個人領域",
       connection: "接続完了",

@@ -29,6 +29,8 @@ export const en = {
     hint: "Nothing here is in a hurry. Take your time.",
     jp: "時を越えた場所",
     clockLabel: "LOCAL TIME",
+    plates: "Plates from the archive",
+    platesNote: "loose leaves, kept anyway",
     labels: {
       space: "Personal space",
       connection: "Connection established",
