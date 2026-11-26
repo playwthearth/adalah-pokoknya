@@ -6,7 +6,6 @@ import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
 import { useNow } from "../hooks/useNow";
 import { useSettings } from "../hooks/useSettings";
-import { useTheme, type ThemePreference } from "../hooks/useTheme";
 import { languages } from "../i18n";
 import { supabase } from "../lib/supabase";
 import type { Member } from "../types";
@@ -81,12 +80,6 @@ function Panel({
 export function Settings() {
   const { t, language, locale, setLanguage } = useLanguage();
   const { settings, update, reset } = useSettings();
-  const { preference, setPreference } = useTheme();
-  const themeOptions: { value: ThemePreference; label: string }[] = [
-    { value: "system", label: t.settings.themeSystem },
-    { value: "light", label: t.settings.themeLight },
-    { value: "dark", label: t.settings.themeDark },
-  ];
   const now = useNow(15000);
   const { email, role, signOut } = useAuth();
   const [confirming, setConfirming] = useState(false);
@@ -272,40 +265,6 @@ export function Settings() {
             </div>
           </Panel>
         )}
-
-        <Panel title={t.settings.themeTitle} description={t.settings.themeDesc}>
-          <div className="grid gap-2 sm:grid-cols-3" role="group" aria-label={t.settings.themeTitle}>
-            {themeOptions.map((option) => {
-              const active = preference === option.value;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setPreference(option.value)}
-                  aria-pressed={active}
-                  className={`group border px-4 py-3 text-left transition-colors ${
-                    active
-                      ? "border-navy bg-surface/60"
-                      : "border-line/80 hover:border-navy/35 hover:bg-surface/30"
-                  }`}
-                >
-                  <span className="flex items-center justify-between">
-                    <span className="label">{option.label}</span>
-                    <span
-                      aria-hidden="true"
-                      className={`h-1.5 w-1.5 rounded-full ${active ? "bg-ember" : "bg-line"}`}
-                    />
-                  </span>
-                  <span aria-hidden="true" className="mt-2 flex gap-1">
-                    <span className="h-4 flex-1 border border-line/80 bg-mist" />
-                    <span className="h-4 flex-1 border border-line/80 bg-pale" />
-                    <span className="h-4 flex-1 border border-line/80 bg-navy" />
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </Panel>
 
         <Panel title={t.settings.languageTitle} description={t.settings.languageDesc}>
           <div className="grid gap-2 sm:grid-cols-3">

@@ -17,6 +17,17 @@ export const id: Dict = {
     backToTop: "Kembali ke atas",
   },
 
+  notifications: {
+    label: "Notifikasi",
+    close: "Tutup notifikasi",
+    empty: "Belum ada yang baru.",
+    emptyHint: "Catatan atau kenangan yang baru ditambahkan akan muncul di sini.",
+    markAll: "Tandai semua dibaca",
+    noteTitle: "Catatan baru",
+    memoryTitle: "Kenangan baru",
+    untitled: "Tanpa judul",
+  },
+
   landing: {
     eyebrow: "TRANSMISI PRIBADI · 001",
     title: "A Place Beyond Time",
@@ -304,11 +315,6 @@ export const id: Dict = {
     eyebrow: "TRANSMISI PRIBADI",
     title: "Pengaturan",
     description: "Penyesuaian kecil untuk membuat ruang ini milikmu.",
-    themeTitle: "Tampilan",
-    themeDesc: "Terang, gelap, atau mengikuti pengaturan perangkatmu.",
-    themeSystem: "Sistem",
-    themeLight: "Terang",
-    themeDark: "Gelap",
     languageTitle: "Bahasa",
     languageDesc: "Seluruh ruang ini ikut berubah bersamamu.",
     audioTitle: "Audio",

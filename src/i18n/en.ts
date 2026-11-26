@@ -19,6 +19,17 @@ export const en = {
     backToTop: "Back to top",
   },
 
+  notifications: {
+    label: "Notifications",
+    close: "Close notifications",
+    empty: "Nothing new just yet.",
+    emptyHint: "A note or a memory added here will turn up in this list.",
+    markAll: "Mark all as read",
+    noteTitle: "A new note",
+    memoryTitle: "A new memory",
+    untitled: "Untitled",
+  },
+
   landing: {
     eyebrow: "PRIVATE TRANSMISSION · 001",
     title: "A Place Beyond Time",
@@ -306,11 +317,6 @@ export const en = {
     eyebrow: "PRIVATE TRANSMISSION",
     title: "Settings",
     description: "Small adjustments to make this space yours.",
-    themeTitle: "Appearance",
-    themeDesc: "Light, dark, or whatever your device is set to.",
-    themeSystem: "System",
-    themeLight: "Light",
-    themeDark: "Dark",
     languageTitle: "Language",
     languageDesc: "The whole space changes with you.",
     audioTitle: "Audio",

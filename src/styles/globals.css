@@ -807,3 +807,42 @@ input[type="range"].range:disabled {
     transparent
   );
 }
+
+/* ═══ Mobile budget ══════════════════════════════════════════
+   A phone GPU pays for every blurred layer, every fixed background and every
+   blended full-screen surface, on every frame. Below 640px these effects cost
+   the most and show the least, so they are switched off here. The palette, the
+   paper and the layout are untouched — only the paint work goes away. */
+@media (max-width: 639px) {
+  /* A fixed gradient makes the compositor repaint the viewport while scrolling. */
+  body {
+    background-attachment: scroll;
+  }
+
+  /* Two full-screen multiply layers at 3–5% opacity: invisible on a phone,
+     and not free. The washes above say the same thing without them. */
+  body::before,
+  .ambient .grain,
+  .ambient .ambient-sweep {
+    display: none;
+  }
+
+  /* The washes of light stay where they are. No drifting on a phone, and no
+     permanently promoted layers held in GPU memory. */
+  .ambient > * {
+    animation: none !important;
+  }
+  .ambient .will-change-transform {
+    will-change: auto;
+  }
+
+  /* One pixel of backdrop blur behind washi tape: no visible effect, real cost. */
+  .tape {
+    backdrop-filter: none;
+  }
+
+  /* A 28px-blurred halo that breathes behind two headings. */
+  .hero-halo::before {
+    animation: none;
+  }
+}

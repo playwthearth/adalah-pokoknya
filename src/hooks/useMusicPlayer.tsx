@@ -11,7 +11,6 @@ import {
 import { playlist } from "../data/playlist";
 import { storageKeys } from "../data/site";
 import type { Track } from "../types";
-import { useAuth } from "./useAuth";
 import { useSettings } from "./useSettings";
 
 interface MusicPlayerContextValue {
@@ -57,7 +56,6 @@ function readStoredPosition(): { index: number; time: number } {
 }
 
 export function MusicPlayerProvider({ children }: { children: ReactNode }) {
-  const { status } = useAuth();
   const { settings, update } = useSettings();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const wantsPlayRef = useRef(false);
@@ -163,42 +161,6 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     if (audio) audio.muted = muted;
   }, [muted]);
 
-  // A signed-in visit opens with the song already playing. Browsers refuse
-  // sound until the page has been touched, so a refusal waits for the next
-  // tap anywhere outside the player, whose own controls start it themselves.
-  const autostarted = useRef(false);
-  useEffect(() => {
-    if (status !== "ready" || autostarted.current) return;
-    const audio = audioRef.current;
-    if (!audio) return;
-    autostarted.current = true;
-
-    let alive = true;
-    const start = () => {
-      if (audio.paused) void audio.play().catch(() => undefined);
-    };
-    const unlock = (event: Event) => {
-      const target = event.target;
-      // Let the player's own buttons decide; a pointerdown here would start the
-      // song and the click that follows would immediately pause it again.
-      if (target instanceof Element && target.closest("[data-player]")) return;
-      window.removeEventListener("pointerdown", unlock);
-      window.removeEventListener("keydown", unlock);
-      start();
-    };
-
-    void audio.play().catch(() => {
-      if (!alive) return;
-      window.addEventListener("pointerdown", unlock);
-      window.addEventListener("keydown", unlock);
-    });
-
-    return () => {
-      alive = false;
-      window.removeEventListener("pointerdown", unlock);
-      window.removeEventListener("keydown", unlock);
-    };
-  }, [status]);
 
   // Reset transport state when the track changes.
   useEffect(() => {

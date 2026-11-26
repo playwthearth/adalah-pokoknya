@@ -10,6 +10,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
 import { useMyName, useNoteAuthorName } from "../hooks/useNoteAuthorName";
 import { useNotes } from "../hooks/useNotes";
+import { useNotifications } from "../hooks/useNotifications";
 import { useSettings } from "../hooks/useSettings";
 import type { Note, NoteKind } from "../types";
 import { formatDate, zonedDateKey, zonedParts } from "../utils/format";
@@ -45,6 +46,7 @@ export function Notes() {
     removeNote,
   } = useNotes();
   const { settings } = useSettings();
+  const { markSeen } = useNotifications();
 
   const [kind, setKind] = useState<NoteKind>("daily");
   const [body, setBody] = useState("");
@@ -122,6 +124,11 @@ export function Notes() {
   }, [notes, filter, query, authorName]);
 
   const open = notes.find((note) => note.id === openId) ?? null;
+
+  // Reading the room is what clears the bell for notes.
+  useEffect(() => {
+    markSeen("notes");
+  }, [markSeen]);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();

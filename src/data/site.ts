@@ -22,11 +22,13 @@ export const site = {
 
 export const storageKeys = {
   language: "abt.language",
-  /** "light" | "dark" | "system"; read by the inline boot script too. */
-  theme: "abt.theme",
   /** Where the player stopped, so a reload resumes without autoplaying. */
   playerTrack: "abt.player.track",
   playerTime: "abt.player.time",
+  /** Newest note this device has seen, so the bell knows what is new. */
+  seenNotes: "abt.seen.notes",
+  /** Newest memory this device has seen. */
+  seenMemories: "abt.seen.memories",
   /** Device-only player volume; names and the start date live in Supabase. */
   volume: "abt.settings.volume.v1",
   /** Earlier per-device copy of the settings; removed on load. */

@@ -11,7 +11,6 @@ import {
   Sparkles,
   VineLines,
 } from "../components/Marks";
-import { Plate } from "../components/Plate";
 import { art } from "../data/art";
 import { site } from "../data/site";
 import { useLanguage } from "../hooks/useLanguage";
@@ -22,13 +21,13 @@ interface LandingProps {
   onEnter: () => void;
 }
 
-/** A few loose plates kept in the back of the scrapbook; the rest are pinned
-    into the other rooms, so no page holds the whole archive. */
-const SPREAD = [
-  { src: art.window, caption: "the same window.", tilt: "-1.6deg" },
-  { src: art.tea, caption: "tea, before the light.", tilt: "1.4deg" },
-  { src: art.shore, caption: "the sea between us.", tilt: "-0.9deg" },
-] as const;
+/**
+ * The cover's own motion is a blur-in, and three of those at once is more than
+ * a phone GPU enjoys. Below 640px the prints still fade and rise, just without
+ * the filter.
+ */
+const wideScreen =
+  typeof window !== "undefined" && window.matchMedia("(min-width: 640px)").matches;
 
 /** The cover of the scrapbook: a taped triptych and the front matter. */
 export function Landing({ onEnter }: LandingProps) {
@@ -40,9 +39,13 @@ export function Landing({ onEnter }: LandingProps) {
     initial: {
       opacity: 0,
       y: reduceMotion ? 0 : 18,
-      filter: reduceMotion ? "blur(0px)" : "blur(7px)",
+      ...(wideScreen && !reduceMotion ? { filter: "blur(7px)" } : null),
     },
-    animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+    animate: {
+      opacity: 1,
+      y: 0,
+      ...(wideScreen && !reduceMotion ? { filter: "blur(0px)" } : null),
+    },
     transition: { duration: 0.9, delay, ease: [0.16, 1, 0.3, 1] as const },
   });
 
@@ -109,16 +112,13 @@ export function Landing({ onEnter }: LandingProps) {
               <img
                 src={art.saku}
                 alt=""
-                width={736}
-                height={1056}
+                width={560}
+                height={803}
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
                 className="soft-mask aspect-[3/4] w-full object-cover object-[50%_40%]"
               />
-              <figcaption className="caption absolute inset-x-0 bottom-1.5 px-2 text-center text-[11.5px] leading-tight sm:text-[12.5px] lg:text-[15px]">
-                you&rsquo;ll always be my favourite.
-              </figcaption>
             </motion.figure>
 
             {/* Right print: Subaru, crop biased to the bed and the water. */}
@@ -130,16 +130,13 @@ export function Landing({ onEnter }: LandingProps) {
               <img
                 src={art.subaru}
                 alt=""
-                width={736}
-                height={1173}
+                width={560}
+                height={892}
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
                 className="soft-mask aspect-[3/4] w-full object-cover object-[50%_58%]"
               />
-              <figcaption className="caption absolute inset-x-0 bottom-1.5 px-2 text-center text-[11.5px] leading-tight sm:text-[12.5px] lg:text-[15px]">
-                it&rsquo;s our little secret.
-              </figcaption>
             </motion.figure>
 
             {/* Landscape print laid across the bottom of both, the way a third
@@ -157,9 +154,6 @@ export function Landing({ onEnter }: LandingProps) {
                 decoding="async"
                 className="aspect-[4/3] w-full object-cover"
               />
-              <figcaption className="caption absolute inset-x-0 bottom-1.5 px-2 text-center text-[11.5px] leading-tight sm:text-[12.5px] lg:text-[15px]">
-                you and i, together.
-              </figcaption>
             </motion.figure>
 
             <Sparkles className="inset-0" />
@@ -231,70 +225,6 @@ export function Landing({ onEnter }: LandingProps) {
           </motion.p>
         </div>
       </main>
-
-      {/* Three plates from the archive, laid along the bottom of the cover. */}
-      <section
-        aria-hidden="true"
-        className="relative z-10 mx-auto hidden w-full max-w-6xl gap-5 px-10 pb-8 sm:grid sm:grid-cols-3"
-      >
-        {[
-          { src: art.beach, caption: "stay with me.", rotate: "-1.2deg" },
-          { src: art.phones, caption: "you and i are…", rotate: "1deg" },
-          { src: art.scrapbook, caption: "belong to each other.", rotate: "-0.6deg" },
-        ].map((plate) => (
-          <figure
-            key={plate.src}
-            className="polaroid relative"
-            style={{ transform: `rotate(${plate.rotate})` }}
-          >
-            <img
-              src={plate.src}
-              alt=""
-              loading="lazy"
-              decoding="async"
-              className="aspect-[4/3] w-full object-cover object-center"
-            />
-            <figcaption className="caption absolute inset-x-0 bottom-1.5 text-center">
-              {plate.caption}
-            </figcaption>
-          </figure>
-        ))}
-      </section>
-
-      {/* The rest of the shoebox: plates slipped in wherever they fit. */}
-      <section
-        aria-labelledby="plates-heading"
-        className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-14 pt-2 sm:px-10"
-      >
-        <div className="flex items-baseline gap-4">
-          <h2 id="plates-heading" className="label">
-            {t.landing.plates}
-          </h2>
-          <span aria-hidden="true" className="hair-rule hidden flex-1 sm:block" />
-          <p className="caption text-[15px] text-muted-strong">{t.landing.platesNote}</p>
-        </div>
-
-        <div className="mt-7 columns-2 gap-3.5 sm:columns-3 sm:gap-5">
-          {SPREAD.map((plate, index) => (
-            <motion.div
-              key={plate.src}
-              initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.25 }}
-              transition={{ duration: 0.7, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
-              className="mb-3.5 break-inside-avoid sm:mb-5"
-            >
-              <Plate
-                src={plate.src}
-                caption={plate.caption}
-                tilt={plate.tilt}
-                tape={index === 0}
-                decorative={false}
-              />
-            </motion.div>
-          ))}
-        </div>
-      </section>
 
       <footer className="relative z-10 border-t border-line/80 px-7 py-5 sm:px-11">
         <ul className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">

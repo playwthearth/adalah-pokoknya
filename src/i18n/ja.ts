@@ -17,6 +17,17 @@ export const ja: Dict = {
     backToTop: "上へ戻る",
   },
 
+  notifications: {
+    label: "お知らせ",
+    close: "お知らせを閉じる",
+    empty: "まだ新しいものはありません。",
+    emptyHint: "ここに追加されたノートや思い出が表示されます。",
+    markAll: "すべて既読にする",
+    noteTitle: "新しいノート",
+    memoryTitle: "新しい思い出",
+    untitled: "無題",
+  },
+
   landing: {
     eyebrow: "個人回線 · 001",
     title: "A Place Beyond Time",
@@ -303,11 +314,6 @@ export const ja: Dict = {
     eyebrow: "個人通信",
     title: "設定",
     description: "この場所をあなたのものにする、小さな調整。",
-    themeTitle: "外観",
-    themeDesc: "ライト、ダーク、または端末の設定に合わせます。",
-    themeSystem: "システム",
-    themeLight: "ライト",
-    themeDark: "ダーク",
     languageTitle: "言語",
     languageDesc: "この空間全体が、あなたとともに変わります。",
     audioTitle: "オーディオ",

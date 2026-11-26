@@ -1,11 +1,11 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, Menu, Moon, SlidersHorizontal, Sun, X } from "lucide-react";
+import { ArrowUpRight, Menu, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { site } from "../data/site";
 import type { Route } from "../hooks/useHashRoute";
 import { useLanguage } from "../hooks/useLanguage";
-import { useTheme } from "../hooks/useTheme";
 import { LanguageSelector } from "./LanguageSelector";
+import { NotificationBell } from "./NotificationBell";
 import { FlowerSeal } from "./Marks";
 
 interface NavbarProps {
@@ -26,14 +26,8 @@ const order: {
 
 export function Navbar({ route, onNavigate }: NavbarProps) {
   const { t } = useLanguage();
-  const { theme, setPreference } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const reduceMotion = useReducedMotion();
-
-  const dark = theme === "dark";
-  const themeLabel = `${t.settings.themeTitle}: ${dark ? t.settings.themeLight : t.settings.themeDark}`;
-
-  const toggleTheme = () => setPreference(dark ? "light" : "dark");
 
   // Close the mobile drawer when the route changes, on Escape, and lock scroll.
   useEffect(() => {
@@ -108,20 +102,8 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
           </nav>
 
           <div className="flex items-center gap-2">
+            <NotificationBell onNavigate={onNavigate} />
             <LanguageSelector />
-            <button
-              type="button"
-              onClick={toggleTheme}
-              aria-label={themeLabel}
-              title={themeLabel}
-              className="inline-flex h-10 w-10 items-center justify-center border border-line/80 text-muted-strong transition-colors hover:border-navy/30 hover:text-ink"
-            >
-              {dark ? (
-                <Sun size={15} strokeWidth={1.5} aria-hidden="true" />
-              ) : (
-                <Moon size={15} strokeWidth={1.5} aria-hidden="true" />
-              )}
-            </button>
             <a
               href="#/settings"
               onClick={() => onNavigate("settings")}
@@ -217,18 +199,6 @@ export function Navbar({ route, onNavigate }: NavbarProps) {
             <div className="flex items-center justify-between gap-4 border-t border-line/70 px-6 py-5">
               <LanguageSelector />
               <div className="flex items-center gap-4">
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  aria-label={themeLabel}
-                  className="inline-flex h-11 w-11 items-center justify-center border border-line/80 text-navy"
-                >
-                  {dark ? (
-                    <Sun size={15} strokeWidth={1.5} aria-hidden="true" />
-                  ) : (
-                    <Moon size={15} strokeWidth={1.5} aria-hidden="true" />
-                  )}
-                </button>
                 <a
                   href="#/settings"
                   onClick={() => onNavigate("settings")}

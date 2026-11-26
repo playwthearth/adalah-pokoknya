@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { EmptyState } from "../components/EmptyState";
 import { Lightbox } from "../components/Lightbox";
 import { MemoryCard } from "../components/MemoryCard";
@@ -10,6 +10,7 @@ import { SectionHeader } from "../components/SectionHeader";
 import { art } from "../data/art";
 import { useLanguage } from "../hooks/useLanguage";
 import { useMemories } from "../hooks/useMemories";
+import { useNotifications } from "../hooks/useNotifications";
 import type { Memory } from "../types";
 
 export function Memories() {
@@ -18,6 +19,12 @@ export function Memories() {
   const [active, setActive] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Memory | null>(null);
+  const { markSeen } = useNotifications();
+
+  // Reading the archive is what clears the bell for memories.
+  useEffect(() => {
+    markSeen("memories");
+  }, [markSeen]);
 
   const addButton = (
     <button

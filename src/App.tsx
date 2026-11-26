@@ -15,8 +15,8 @@ import { useHashRoute } from "./hooks/useHashRoute";
 import { LanguageProvider, useLanguage } from "./hooks/useLanguage";
 import { MusicPlayerProvider } from "./hooks/useMusicPlayer";
 import { NotesProvider } from "./hooks/useNotes";
+import { NotificationsProvider } from "./hooks/useNotifications";
 import { SettingsProvider } from "./hooks/useSettings";
-import { ThemeProvider } from "./hooks/useTheme";
 import { recoveryLink } from "./lib/supabase";
 import { Dashboard } from "./pages/Dashboard";
 import { Landing } from "./pages/Landing";
@@ -32,6 +32,13 @@ const Settings = lazy(() => import("./pages/Settings").then((m) => ({ default: m
 
 /** The threshold is shown once per tab, not once per reload. */
 const ENTERED_KEY = "abt.entered";
+
+/**
+ * A blur over the whole page is a luxury on a phone GPU: the route change
+ * still fades and lifts, it just stops paying for a viewport-sized filter.
+ */
+const canAnimatePageBlur =
+  typeof window !== "undefined" && window.matchMedia("(min-width: 640px)").matches;
 
 /** A password link opens onto the form itself, not the threshold page. */
 const arrivedFromLink = recoveryLink.kind !== "none";
@@ -113,38 +120,46 @@ function Experience() {
       </a>
 
       <Ambient />
-                <VineLines className="pointer-events-none fixed -right-10 bottom-16 z-0 hidden h-[58vh] w-[16vw] text-periwinkle/40 lg:block" />
+      <VineLines className="pointer-events-none fixed -right-10 bottom-16 z-0 hidden h-[58vh] w-[16vw] text-periwinkle/40 lg:block" />
       <ScrollProgress />
       <div className="relative z-10 flex flex-1 flex-col">
         <AuthGate>
           <NotesProvider>
-            <Navbar route={route} onNavigate={navigate} />
+            <NotificationsProvider>
+              <Navbar route={route} onNavigate={navigate} />
 
-            <main id="main" tabIndex={-1} className="flex-1 pt-16 outline-none">
-              <motion.div
-                key={route}
-                initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <ErrorBoundary>
-                  <Suspense fallback={<PageFallback />}>
-                    {route === "dashboard" && <Dashboard onNavigate={navigate} />}
-                    {route === "letters" && <Letters />}
-                    {route === "memories" && <Memories />}
-                    {route === "playlist" && <Playlist />}
-                    {route === "notes" && <Notes />}
-                    {route === "settings" && <Settings />}
-                    {route === "not-found" && <NotFound onNavigate={navigate} />}
-                  </Suspense>
-                </ErrorBoundary>
-              </motion.div>
-            </main>
+              <main id="main" tabIndex={-1} className="flex-1 pt-16 outline-none">
+                <motion.div
+                  key={route}
+                  initial={
+                    canAnimatePageBlur
+                      ? { opacity: 0, y: 14, filter: "blur(6px)" }
+                      : { opacity: 0, y: 14 }
+                  }
+                  animate={
+                    canAnimatePageBlur ? { opacity: 1, y: 0, filter: "blur(0px)" } : { opacity: 1, y: 0 }
+                  }
+                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <ErrorBoundary>
+                    <Suspense fallback={<PageFallback />}>
+                      {route === "dashboard" && <Dashboard onNavigate={navigate} />}
+                      {route === "letters" && <Letters />}
+                      {route === "memories" && <Memories />}
+                      {route === "playlist" && <Playlist />}
+                      {route === "notes" && <Notes />}
+                      {route === "settings" && <Settings />}
+                      {route === "not-found" && <NotFound onNavigate={navigate} />}
+                    </Suspense>
+                  </ErrorBoundary>
+                </motion.div>
+              </main>
 
-            <Ticker />
-            <Footer />
-            <div aria-hidden="true" className="h-[calc(4rem+env(safe-area-inset-bottom,0px))]" />
-            <MiniPlayer onOpenPlaylist={() => navigate("playlist")} />
+              <Ticker />
+              <Footer />
+              <div aria-hidden="true" className="h-[calc(4rem+env(safe-area-inset-bottom,0px))]" />
+              <MiniPlayer onOpenPlaylist={() => navigate("playlist")} />
+            </NotificationsProvider>
           </NotesProvider>
         </AuthGate>
       </div>
@@ -154,20 +169,18 @@ function Experience() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <MotionConfig reducedMotion="user">
-        <LanguageProvider>
-          <AuthProvider>
-            <SettingsProvider>
-              <MusicPlayerProvider>
-                <ErrorBoundary>
-                  <Experience />
-                </ErrorBoundary>
-              </MusicPlayerProvider>
-            </SettingsProvider>
-          </AuthProvider>
-        </LanguageProvider>
-      </MotionConfig>
-    </ThemeProvider>
+    <MotionConfig reducedMotion="user">
+      <LanguageProvider>
+        <AuthProvider>
+          <SettingsProvider>
+            <MusicPlayerProvider>
+              <ErrorBoundary>
+                <Experience />
+              </ErrorBoundary>
+            </MusicPlayerProvider>
+          </SettingsProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </MotionConfig>
   );
 }

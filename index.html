@@ -5,7 +5,7 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#ffffff" />
-    <meta name="color-scheme" content="light dark" />
+    <meta name="color-scheme" content="light" />
     <meta name="robots" content="noindex, nofollow" />
     <meta
       name="description"
@@ -20,26 +20,6 @@
     />
     <meta property="og:locale" content="en_GB" />
     <title>A Place Beyond Time</title>
-
-    <!-- Paint the saved theme before anything renders, so a reload never
-         flashes the wrong ground. Kept tiny and dependency-free on purpose. -->
-    <script>
-      (function () {
-        try {
-          var stored = window.localStorage.getItem("abt.theme");
-          var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-          var theme =
-            stored === "light" || stored === "dark" ? stored : prefersDark ? "dark" : "light";
-          var root = document.documentElement;
-          root.dataset.theme = theme;
-          root.style.colorScheme = theme;
-          var meta = document.querySelector('meta[name="theme-color"]');
-          if (meta) meta.setAttribute("content", theme === "dark" ? "#14141c" : "#ffffff");
-        } catch (error) {
-          /* Storage blocked: the default light theme still applies. */
-        }
-      })();
-    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

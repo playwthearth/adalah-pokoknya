@@ -16,11 +16,16 @@ const SPECKS = [
  *
  * Phones get a lighter version — fewer blurred layers and a much smaller blur
  * radius, because a 110px blur on a viewport-sized element is the most
- * expensive thing here on a mobile GPU.
+ * expensive thing here on a mobile GPU. Under 640px the washes also stop
+ * drifting and the two grain layers are dropped (see the mobile block in
+ * globals.css): a still wash looks the same and costs a fraction of the paint.
  */
 export function Ambient() {
   return (
-    <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+    <div
+      aria-hidden="true"
+      className="ambient pointer-events-none fixed inset-0 z-0 overflow-hidden"
+    >
       {/* The two washes that carry the palette, optimized with hardware compositing. */}
       <div className="transform-gpu will-change-transform absolute -left-[18%] top-[6%] h-[52vw] w-[52vw] rounded-full bg-cyan/30 blur-[30px] [animation:drift-a_34s_ease-in-out_infinite] sm:blur-[110px]" />
       <div className="transform-gpu will-change-transform absolute -right-[14%] bottom-[2%] h-[44vw] w-[44vw] rounded-full bg-glow-warm/55 blur-[32px] [animation:drift-b_42s_ease-in-out_infinite] sm:blur-[120px]" />
@@ -56,7 +61,7 @@ export function Ambient() {
         />
       ))}
 
-      <div className="transform-gpu will-change-transform absolute inset-x-0 h-[22vh] bg-gradient-to-b from-transparent via-cyan/25 to-transparent [animation:sweep_18s_linear_infinite]" />
+      <div className="ambient-sweep transform-gpu will-change-transform absolute inset-x-0 h-[22vh] bg-gradient-to-b from-transparent via-cyan/25 to-transparent [animation:sweep_18s_linear_infinite]" />
 
       {/* Depth and texture, laid over the light rather than under it. */}
       <div className="vignette absolute inset-0" />
