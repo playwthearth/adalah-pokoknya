@@ -17,6 +17,10 @@ export interface Letter {
   date: string;
   category: LetterCategory;
   content: Localized;
+  /** True for letters written in the app, not the built-in archive. */
+  added?: boolean;
+  /** The member who wrote it, so only they can remove it again. */
+  authorId?: string | null;
 }
 
 /** A moment either member added to the shared archive. */

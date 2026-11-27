@@ -426,3 +426,53 @@ drop policy if exists tracks_audio_delete on storage.objects;
 create policy tracks_audio_delete on storage.objects
   for delete to authenticated
   using (bucket_id = 'music' and public.is_member());
+
+-- Letters written in the app, on top of the ones kept in src/data/letters.ts.
+-- A letter is written in one language and shown in all three exactly as typed.
+create table if not exists public.letters (
+  id uuid primary key default gen_random_uuid(),
+  title text not null check (char_length(btrim(title)) between 1 and 120),
+  body text not null check (char_length(btrim(body)) between 1 and 4000),
+  category text not null default 'love'
+    check (category in ('love', 'birthday', 'encouragement', 'thoughts', 'special')),
+  letter_date date not null default current_date,
+  language text not null default 'en' check (language in ('en', 'id', 'ja')),
+  created_by uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists letters_date_idx on public.letters (letter_date);
+
+alter table public.letters enable row level security;
+
+grant select, insert, delete on public.letters to authenticated;
+
+drop policy if exists letters_read on public.letters;
+create policy letters_read on public.letters
+  for select to authenticated
+  using (public.is_member());
+
+drop policy if exists letters_insert on public.letters;
+create policy letters_insert on public.letters
+  for insert to authenticated
+  with check (public.is_member() and created_by = auth.uid());
+
+-- A letter belongs to whoever wrote it, so only they can take it back.
+drop policy if exists letters_delete on public.letters;
+create policy letters_delete on public.letters
+  for delete to authenticated
+  using (public.is_member() and created_by = auth.uid());
+
+-- Live archive: a letter the other person writes appears without a reload.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'letters'
+  ) then
+    alter publication supabase_realtime add table public.letters;
+  end if;
+end
+$$;

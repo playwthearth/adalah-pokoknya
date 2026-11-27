@@ -1,13 +1,17 @@
 import { motion } from "framer-motion";
+import { Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EmptyState } from "../components/EmptyState";
 import { LetterCard } from "../components/LetterCard";
+import { LetterEditor } from "../components/LetterEditor";
 import { Modal } from "../components/Modal";
 import { Plate } from "../components/Plate";
 import { SectionHeader } from "../components/SectionHeader";
 import { art } from "../data/art";
-import { letters } from "../data/letters";
+import { letters as keptLetters } from "../data/letters";
+import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
+import { useLetters } from "../hooks/useLetters";
 import type { LetterCategory } from "../types";
 import { formatDate } from "../utils/format";
 
@@ -15,12 +19,19 @@ type Filter = "all" | LetterCategory;
 
 export function Letters() {
   const { t, language, locale } = useLanguage();
+  const { userId } = useAuth();
+  const { added, error, refresh, addLetter, deleteLetter } = useLetters();
   const [filter, setFilter] = useState<Filter>("all");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [writing, setWriting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteError, setDeleteError] = useState(false);
 
+  // The letters kept in the repository come first; anything written in the app
+  // is added to the same shelf.
   const sorted = useMemo(
-    () => [...letters].sort((a, b) => b.date.localeCompare(a.date)),
-    [],
+    () => [...keptLetters, ...added].sort((a, b) => b.date.localeCompare(a.date)),
+    [added],
   );
 
   const visible = useMemo(
@@ -29,7 +40,34 @@ export function Letters() {
   );
 
   const active = sorted.find((letter) => letter.id === openId) ?? null;
-  const closeActive = () => setOpenId(null);
+
+  const openLetter = (id: string) => {
+    setConfirmDelete(false);
+    setDeleteError(false);
+    setOpenId(id);
+  };
+
+  const closeActive = () => {
+    setOpenId(null);
+    setConfirmDelete(false);
+    setDeleteError(false);
+  };
+
+  const removeActive = async () => {
+    if (!active) return;
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    setDeleteError(false);
+    try {
+      await deleteLetter(active.id);
+      closeActive();
+    } catch (failure) {
+      console.error("[letters] delete failed", failure);
+      setDeleteError(true);
+    }
+  };
 
   const filters: { key: Filter; label: string; count: number }[] = [
     {
@@ -43,6 +81,17 @@ export function Letters() {
       count: sorted.filter((letter) => letter.category === key).length,
     })),
   ];
+
+  const addButton = (
+    <button
+      type="button"
+      onClick={() => setWriting(true)}
+      className="press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-plum/50 px-5 font-mono text-[10px] uppercase tracking-[0.18em] text-navy transition-colors hover:bg-navy hover:text-mist sm:w-auto"
+    >
+      <Plus size={12} strokeWidth={1.5} aria-hidden="true" />
+      {t.letters.add}
+    </button>
+  );
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
@@ -83,14 +132,30 @@ export function Letters() {
           })}
         </div>
 
-        <Plate
-          src={art.scarf}
-          caption="you, looking away."
-          tilt="2deg"
-          tape
-          className="ml-auto w-28 shrink-0 sm:w-36"
-        />
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-4">
+          <Plate
+            src={art.scarf}
+            caption="you, looking away."
+            tilt="2deg"
+            tape
+            className="hidden w-28 shrink-0 sm:block sm:w-36"
+          />
+          {addButton}
+        </div>
       </div>
+
+      {error && (
+        <p role="alert" className="mt-4 text-[11px] text-muted-strong">
+          {t.letters.loadError}{" "}
+          <button
+            type="button"
+            onClick={() => void refresh()}
+            className="underline decoration-line underline-offset-4 transition-colors hover:text-ink"
+          >
+            {t.letters.retry}
+          </button>
+        </p>
+      )}
 
       <motion.div
         key={filter}
@@ -108,7 +173,7 @@ export function Letters() {
                 key={letter.id}
                 letter={letter}
                 index={index}
-                onOpen={() => setOpenId(letter.id)}
+                onOpen={() => openLetter(letter.id)}
               />
             ))}
           </div>
@@ -167,9 +232,32 @@ export function Letters() {
             </div>
 
             <p className="caption mt-6 text-[15px] text-muted-strong">{t.letters.hint}</p>
+
+            {active.added && active.authorId === userId && (
+              <div className="mt-8 flex flex-wrap items-center justify-end gap-3 border-t border-line/70 pt-5">
+                <button
+                  type="button"
+                  onClick={() => void removeActive()}
+                  className={`btn-quiet inline-flex min-h-11 items-center gap-2 px-3 text-[9px] uppercase tracking-[0.14em] ${
+                    confirmDelete ? "text-ember" : ""
+                  }`}
+                >
+                  <Trash2 size={11} strokeWidth={1.5} aria-hidden="true" />
+                  {confirmDelete ? t.letters.confirmDelete : t.letters.delete}
+                </button>
+              </div>
+            )}
+
+            {deleteError && (
+              <p role="alert" className="mt-3 text-right text-[11px] text-ember">
+                {t.letters.deleteError}
+              </p>
+            )}
           </article>
         )}
       </Modal>
+
+      {writing && <LetterEditor onClose={() => setWriting(false)} onSave={addLetter} />}
     </div>
   );
 }
