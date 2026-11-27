@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -31,8 +32,11 @@ export interface NotificationItem {
 interface NotificationsValue {
   items: NotificationItem[];
   unread: number;
+  /** Arrivals worth interrupting for, newest first. */
+  toasts: NotificationItem[];
   /** Called when the reader opens the room a kind lives in. */
   markSeen: (kind: NotificationKind) => void;
+  dismissToast: (id: string) => void;
 }
 
 const NotificationsContext = createContext<NotificationsValue | null>(null);
@@ -43,12 +47,20 @@ const MEMORY_LIMIT = 40;
 const POLL_MS = 60000;
 /** How much of a note the list shows before it trails off. */
 const SNIPPET = 90;
+/** How long a banner stays before it folds away on its own. */
+const TOAST_MS = 8000;
+/** More than this on screen at once reads as a wall, not a notification. */
+const TOAST_LIMIT = 3;
 
 interface MemoryMark {
   id: string;
   title: string | null;
   created_at: string;
   created_by: string | null;
+}
+
+function snippet(body: string): string {
+  return body.length > SNIPPET ? `${body.slice(0, SNIPPET).trimEnd()}…` : body;
 }
 
 function seenKey(kind: NotificationKind): string {
@@ -95,6 +107,53 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     notes: readSeen("notes"),
     memories: readSeen("memories"),
   }));
+
+  const [toasts, setToasts] = useState<NotificationItem[]>([]);
+  const [visible, setVisible] = useState(
+    () => typeof document === "undefined" || document.visibilityState === "visible",
+  );
+  /** Every id already accounted for; the first read fills it without a sound. */
+  const known = useRef(new Set<string>());
+  const primed = useRef({ notes: false, memories: false });
+  const timers = useRef(new Map<string, number>());
+
+  useEffect(() => {
+    const onVisibility = () => setVisible(document.visibilityState === "visible");
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
+  const dismissToast = useCallback((id: string) => {
+    const timer = timers.current.get(id);
+    if (timer) {
+      window.clearTimeout(timer);
+      timers.current.delete(id);
+    }
+    setToasts((current) => current.filter((toast) => toast.id !== id));
+  }, []);
+
+  const announce = useCallback(
+    (fresh: NotificationItem[]) => {
+      setToasts((current) => [...fresh, ...current].slice(0, TOAST_LIMIT));
+      for (const item of fresh) {
+        if (timers.current.has(item.id)) continue;
+        timers.current.set(
+          item.id,
+          window.setTimeout(() => dismissToast(item.id), TOAST_MS),
+        );
+      }
+    },
+    [dismissToast],
+  );
+
+  // Leave no timer behind when the provider goes away.
+  useEffect(() => {
+    const pending = timers.current;
+    return () => {
+      for (const timer of pending.values()) window.clearTimeout(timer);
+      pending.clear();
+    };
+  }, []);
 
   const loadMemories = useCallback(async () => {
     const client = supabase;
@@ -158,8 +217,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         id: `note-${note.id}`,
         kind: "notes" as const,
         author: note.author_name,
-        text:
-          note.body.length > SNIPPET ? `${note.body.slice(0, SNIPPET).trimEnd()}…` : note.body,
+        text: snippet(note.body),
         createdAt: note.created_at,
       }));
 
@@ -178,6 +236,55 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       b.createdAt.localeCompare(a.createdAt),
     );
   }, [notes, memories, seen.notes, seen.memories, userId]);
+
+  // A banner for what arrives while the page is open. Each list is seeded on
+  // its first read, so the archive that was already there is not announced;
+  // nothing is recorded while the tab is hidden, so an arrival is held for the
+  // reader's return instead of unfolding at an empty screen.
+  useEffect(() => {
+    if (!userId || !visible) return;
+
+    const fresh: NotificationItem[] = [];
+
+    if (notes.length > 0) {
+      for (const note of notes) {
+        const id = `note-${note.id}`;
+        if (known.current.has(id)) continue;
+        known.current.add(id);
+        if (!primed.current.notes || note.author_id === userId) continue;
+        fresh.push({
+          id,
+          kind: "notes",
+          author: note.author_name,
+          text: snippet(note.body),
+          createdAt: note.created_at,
+        });
+      }
+      primed.current.notes = true;
+    }
+
+    if (memories.length > 0) {
+      for (const memory of memories) {
+        const id = `memory-${memory.id}`;
+        if (known.current.has(id)) continue;
+        known.current.add(id);
+        if (!primed.current.memories || memory.created_by === userId) continue;
+        fresh.push({
+          id,
+          kind: "memories",
+          author: "",
+          text: memory.title ?? "",
+          createdAt: memory.created_at,
+        });
+      }
+      primed.current.memories = true;
+    }
+
+    if (fresh.length > 0) {
+      fresh.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      announce(fresh);
+    }
+  }, [notes, memories, userId, visible, announce]);
 
   /**
    * The first read of a list sets the mark rather than raising it: an empty
@@ -213,9 +320,11 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     () => ({
       items,
       unread: items.length,
+      toasts,
       markSeen,
+      dismissToast,
     }),
-    [items, markSeen],
+    [items, toasts, markSeen, dismissToast],
   );
 
   return (

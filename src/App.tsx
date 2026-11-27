@@ -8,6 +8,7 @@ import { ScrollProgress } from "./components/ScrollProgress";
 import { Ticker } from "./components/Ticker";
 import { Footer } from "./components/Footer";
 import { MiniPlayer } from "./components/MiniPlayer";
+import { NotificationToasts } from "./components/NotificationToasts";
 import { Navbar } from "./components/Navbar";
 import { site } from "./data/site";
 import { AuthProvider } from "./hooks/useAuth";
@@ -128,6 +129,7 @@ function Experience() {
           <NotesProvider>
             <NotificationsProvider>
               <Navbar route={route} onNavigate={navigate} />
+              <NotificationToasts onNavigate={navigate} />
 
               <main id="main" tabIndex={-1} className="flex-1 pt-16 outline-none">
                 <motion.div

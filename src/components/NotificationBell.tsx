@@ -3,21 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import type { Route } from "../hooks/useHashRoute";
 import { useLanguage } from "../hooks/useLanguage";
 import { useNotifications, type NotificationItem } from "../hooks/useNotifications";
+import { relativeTime } from "../utils/format";
 
 interface NotificationBellProps {
   onNavigate: (route: Route) => void;
-}
-
-/** "just now", "two hours ago" — translated by the browser, no extra strings. */
-function relativeTime(iso: string, locale: string): string {
-  const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return "";
-  const minutes = Math.round((then - Date.now()) / 60000);
-  const format = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
-  if (Math.abs(minutes) < 60) return format.format(minutes, "minute");
-  const hours = Math.round(minutes / 60);
-  if (Math.abs(hours) < 24) return format.format(hours, "hour");
-  return format.format(Math.round(hours / 24), "day");
 }
 
 /**
