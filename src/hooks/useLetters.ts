@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import type { Language, Letter, LetterCategory, Localized } from "../types";
+import { photoExtension } from "../utils/image";
 import { useAuth } from "./useAuth";
 
 /**
@@ -9,6 +10,14 @@ import { useAuth } from "./useAuth";
  * on its own.
  */
 const POLL_MS = 60000;
+/**
+ * Letter photos use the same private bucket as the archive: members may read
+ * every photo, and each upload lands in its writer's own folder.
+ */
+const BUCKET = "memories";
+const SIGNED_URL_TTL = 60 * 60 * 2;
+/** Re-sign a photo well before its two-hour link lapses. */
+const SIGN_REFRESH_MS = 90 * 60 * 1000;
 
 export interface LetterDraft {
   title: string;
@@ -21,6 +30,8 @@ export interface LetterDraft {
    * stand in for every language, rather than inventing translations.
    */
   language: Language;
+  /** A photo chosen from the device, a drive or the camera, if any. */
+  photo: File | null;
 }
 
 interface LetterRow {
@@ -30,16 +41,20 @@ interface LetterRow {
   category: LetterCategory;
   letter_date: string;
   language: Language;
+  image_path: string | null;
   created_by: string | null;
 }
 
-const COLUMNS = "id, title, body, category, letter_date, language, created_by";
+const COLUMNS = "id, title, body, category, letter_date, language, image_path, created_by";
+
+/** Signed links, so polling cannot make the same photo download again. */
+type SignedCache = Map<string, { url: string; expires: number }>;
 
 function inEveryLanguage(text: string): Localized {
   return { en: text, id: text, ja: text };
 }
 
-function toLetter(row: LetterRow): Letter {
+function toLetter(row: LetterRow, image: string | null): Letter {
   return {
     id: row.id,
     title: inEveryLanguage(row.title),
@@ -48,7 +63,38 @@ function toLetter(row: LetterRow): Letter {
     date: row.letter_date,
     added: true,
     authorId: row.created_by,
+    image,
+    imagePath: row.image_path,
   };
+}
+
+/** Turns rows into letters, signing the private photo links. */
+async function withPhotos(
+  client: NonNullable<typeof supabase>,
+  rows: LetterRow[],
+  cache: SignedCache,
+): Promise<Letter[]> {
+  const paths = [
+    ...new Set(rows.map((row) => row.image_path).filter((path): path is string => Boolean(path))),
+  ];
+  const now = Date.now();
+  const stale = paths.filter((path) => {
+    const hit = cache.get(path);
+    return !hit || hit.expires <= now;
+  });
+
+  if (stale.length > 0) {
+    const { data } = await client.storage.from(BUCKET).createSignedUrls(stale, SIGNED_URL_TTL);
+    for (const item of data ?? []) {
+      if (item.path && item.signedUrl) {
+        cache.set(item.path, { url: item.signedUrl, expires: now + SIGN_REFRESH_MS });
+      }
+    }
+  }
+
+  return rows.map((row) =>
+    toLetter(row, row.image_path ? (cache.get(row.image_path)?.url ?? null) : null),
+  );
 }
 
 export interface LettersValue {
@@ -67,6 +113,7 @@ export function useLetters(): LettersValue {
   const [error, setError] = useState(false);
   /** Bumped by every local change and realtime event, so a slow read cannot undo one. */
   const changes = useRef(0);
+  const signed = useRef<SignedCache>(new Map());
 
   const load = useCallback(async (silent: boolean) => {
     const client = supabase;
@@ -97,7 +144,9 @@ export function useLetters(): LettersValue {
     }
 
     if (silent && changes.current !== before) return;
-    setAdded((data ?? []).map((row) => toLetter(row as LetterRow)));
+
+    const next = await withPhotos(client, (data ?? []) as LetterRow[], signed.current);
+    setAdded(next);
     if (!silent) setLoading(false);
   }, []);
 
@@ -126,7 +175,11 @@ export function useLetters(): LettersValue {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "letters" },
-        (payload) => keep(toLetter(payload.new as LetterRow)),
+        (payload) => {
+          void withPhotos(client, [payload.new as LetterRow], signed.current).then(([letter]) => {
+            if (letter) keep(letter);
+          });
+        },
       )
       .on(
         "postgres_changes",
@@ -153,11 +206,30 @@ export function useLetters(): LettersValue {
     };
   }, [userId, load]);
 
+  const uploadPhoto = useCallback(
+    async (file: File): Promise<string> => {
+      const client = supabase;
+      if (!client || !userId) throw new Error("not signed in");
+
+      const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${photoExtension(file)}`;
+      const path = `${userId}/letters/${name}`;
+      const { error: failure } = await client.storage.from(BUCKET).upload(path, file, {
+        cacheControl: "86400",
+        contentType: file.type || "image/jpeg",
+        upsert: false,
+      });
+      if (failure) throw failure;
+      return path;
+    },
+    [userId],
+  );
+
   const addLetter = useCallback(
     async (draft: LetterDraft) => {
       const client = supabase;
       if (!client || !userId) throw new Error("not signed in");
 
+      const path = draft.photo ? await uploadPhoto(draft.photo) : null;
       const { data, error: failure } = await client
         .from("letters")
         .insert({
@@ -166,14 +238,18 @@ export function useLetters(): LettersValue {
           category: draft.category,
           letter_date: draft.date,
           language: draft.language,
+          image_path: path,
           created_by: userId,
         })
         .select(COLUMNS)
         .single();
 
-      if (failure) throw failure;
+      if (failure) {
+        if (path) void client.storage.from(BUCKET).remove([path]);
+        throw failure;
+      }
 
-      const saved = toLetter(data as LetterRow);
+      const [saved] = await withPhotos(client, [data as LetterRow], signed.current);
       changes.current += 1;
       // The realtime echo of this insert is deduplicated by id.
       setAdded((current) =>
@@ -182,7 +258,7 @@ export function useLetters(): LettersValue {
           : [saved, ...current].sort((a, b) => b.date.localeCompare(a.date)),
       );
     },
-    [userId],
+    [userId, uploadPhoto],
   );
 
   const deleteLetter = useCallback(async (id: string) => {
@@ -193,7 +269,11 @@ export function useLetters(): LettersValue {
     if (failure) throw failure;
 
     changes.current += 1;
-    setAdded((current) => current.filter((item) => item.id !== id));
+    setAdded((current) => {
+      const removed = current.find((item) => item.id === id);
+      if (removed?.imagePath) void client.storage.from(BUCKET).remove([removed.imagePath]);
+      return current.filter((item) => item.id !== id);
+    });
   }, []);
 
   return { added, loading, error, refresh, addLetter, deleteLetter };

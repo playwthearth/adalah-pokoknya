@@ -150,6 +150,15 @@ export const id: Dict = {
     deleteError: "Surat itu gagal dihapus. Coba lagi.",
     loadError: "Sebagian surat gagal dimuat.",
     retry: "Coba lagi",
+    photoLabel: "Foto untuk surat ini",
+    choosePhoto: "Pilih foto",
+    changePhoto: "Ganti foto",
+    takePhoto: "Ambil foto",
+    removePhoto: "Hapus foto",
+    photoHint: "Dari perangkat ini, drive yang terpasang, atau kamera. Maksimal 10 MB.",
+    photoError: "Berkas itu bukan gambar, atau lebih dari 10 MB.",
+    preparingPhoto: "Menyiapkan foto…",
+    photoAlt: "Foto yang dilampirkan pada surat ini",
   },
 
   memories: {

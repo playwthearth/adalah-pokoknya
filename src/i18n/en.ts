@@ -152,6 +152,15 @@ export const en = {
     deleteError: "That letter could not be deleted. Try again.",
     loadError: "Some letters could not be loaded.",
     retry: "Try again",
+    photoLabel: "A photo for this letter",
+    choosePhoto: "Choose a photo",
+    changePhoto: "Change photo",
+    takePhoto: "Take a photo",
+    removePhoto: "Remove photo",
+    photoHint: "From this device, a mounted drive, or the camera. Up to 10 MB.",
+    photoError: "That file is not an image, or it is larger than 10 MB.",
+    preparingPhoto: "Preparing photo…",
+    photoAlt: "Photo attached to this letter",
   },
 
   memories: {

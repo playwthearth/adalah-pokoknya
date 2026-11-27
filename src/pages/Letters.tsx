@@ -203,6 +203,18 @@ export function Letters() {
               {active.title[language]}
             </h2>
 
+            {active.image && (
+              <figure className="polaroid mt-7 max-w-md">
+                <img
+                  src={active.image}
+                  alt={t.letters.photoAlt}
+                  loading="lazy"
+                  decoding="async"
+                  className="block max-h-[52vh] w-full object-cover"
+                />
+              </figure>
+            )}
+
             <span aria-hidden="true" className="mt-7 block h-px w-16 bg-gradient-to-r from-periwinkle to-transparent" />
 
             <div className="mt-6 space-y-4">

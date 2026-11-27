@@ -21,6 +21,10 @@ export interface Letter {
   added?: boolean;
   /** The member who wrote it, so only they can remove it again. */
   authorId?: string | null;
+  /** Displayable photo URL: a signed link for an upload. */
+  image?: string | null;
+  /** Storage path of the attached photo, kept so it can be removed too. */
+  imagePath?: string | null;
 }
 
 /** A moment either member added to the shared archive. */

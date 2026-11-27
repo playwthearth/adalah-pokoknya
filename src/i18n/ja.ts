@@ -149,6 +149,15 @@ export const ja: Dict = {
     deleteError: "手紙を削除できませんでした。もう一度お試しください。",
     loadError: "一部の手紙を読み込めませんでした。",
     retry: "もう一度",
+    photoLabel: "この手紙に添える写真",
+    choosePhoto: "写真を選ぶ",
+    changePhoto: "写真を変える",
+    takePhoto: "写真を撮る",
+    removePhoto: "写真を外す",
+    photoHint: "この端末、接続中のドライブ、またはカメラから。10MBまで。",
+    photoError: "画像ではないか、10MBを超えています。",
+    preparingPhoto: "写真を準備しています…",
+    photoAlt: "この手紙に添えられた写真",
   },
 
   memories: {

@@ -1,5 +1,5 @@
-import { Loader2, X } from "lucide-react";
-import { useEffect, useState, type FormEvent } from "react";
+import { Camera, Loader2, Upload, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import type { LetterDraft } from "../hooks/useLetters";
 import { useFocusTrap } from "../hooks/useFocusTrap";
@@ -7,6 +7,7 @@ import { useLanguage } from "../hooks/useLanguage";
 import { useSettings } from "../hooks/useSettings";
 import type { LetterCategory } from "../types";
 import { zonedDateKey } from "../utils/format";
+import { compressImage, MAX_IMAGE_BYTES } from "../utils/image";
 
 const MAX_BODY = 4000;
 const CATEGORIES: LetterCategory[] = [
@@ -23,6 +24,8 @@ const fieldClass =
 const actionClass =
   "inline-flex min-h-11 items-center justify-center gap-2 border px-4 text-[10px] uppercase tracking-[0.18em] transition-colors";
 
+const photoActionClass = `${actionClass} w-full border-line text-navy/75 hover:border-navy/40 hover:text-ink disabled:opacity-60 sm:w-auto`;
+
 interface LetterEditorProps {
   onClose: () => void;
   onSave: (draft: LetterDraft) => Promise<void>;
@@ -35,12 +38,27 @@ export function LetterEditor({ onClose, onSave }: LetterEditorProps) {
   const [category, setCategory] = useState<LetterCategory>("love");
   const [date, setDate] = useState(() => zonedDateKey(new Date(), settings.timezone));
   const [body, setBody] = useState("");
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [preparing, setPreparing] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** The device or drive picker. */
+  const fileInput = useRef<HTMLInputElement>(null);
+  /** The camera, where the browser supports it; elsewhere this is the same picker. */
+  const cameraInput = useRef<HTMLInputElement>(null);
 
   const sheetRef = useFocusTrap<HTMLDivElement>(true, () => {
     if (!busy) onClose();
   });
+
+  const preview = useMemo(() => (photo ? URL.createObjectURL(photo) : null), [photo]);
+
+  useEffect(() => {
+    if (!preview) return;
+    const url = preview;
+    return () => URL.revokeObjectURL(url);
+  }, [preview]);
 
   // The sheet covers the page, so the archive behind it must not scroll.
   useEffect(() => {
@@ -51,13 +69,28 @@ export function LetterEditor({ onClose, onSave }: LetterEditorProps) {
     };
   }, []);
 
+  const choosePhoto = async (file: File | null) => {
+    setPhotoError(null);
+    if (!file) return;
+    if (!file.type.startsWith("image/") || file.size > MAX_IMAGE_BYTES) {
+      setPhotoError(t.letters.photoError);
+      return;
+    }
+    setPreparing(true);
+    try {
+      setPhoto(await compressImage(file));
+    } finally {
+      setPreparing(false);
+    }
+  };
+
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (busy || !title.trim() || !body.trim() || !date) return;
+    if (busy || preparing || !title.trim() || !body.trim() || !date) return;
     setBusy(true);
     setError(null);
     try {
-      await onSave({ title, body, category, date, language });
+      await onSave({ title, body, category, date, language, photo });
       onClose();
     } catch (failure) {
       console.error("[letters] save failed", failure);
@@ -154,6 +187,91 @@ export function LetterEditor({ onClose, onSave }: LetterEditorProps) {
             </div>
 
             <div>
+              <span className="label block">{t.letters.photoLabel}</span>
+              <div className="mt-2 border border-line/80 bg-pale">
+                {preview ? (
+                  <img
+                    src={preview}
+                    alt=""
+                    decoding="async"
+                    className="mx-auto block max-h-[min(40vh,320px)] w-auto max-w-full"
+                  />
+                ) : (
+                  <div className="flex aspect-[4/3] items-center justify-center">
+                    <span className="label text-[9px]">{t.letters.choosePhoto}</span>
+                  </div>
+                )}
+              </div>
+
+              <input
+                ref={fileInput}
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={(event) => {
+                  void choosePhoto(event.target.files?.[0] ?? null);
+                  event.target.value = "";
+                }}
+              />
+              <input
+                ref={cameraInput}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="sr-only"
+                onChange={(event) => {
+                  void choosePhoto(event.target.files?.[0] ?? null);
+                  event.target.value = "";
+                }}
+              />
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInput.current?.click()}
+                  disabled={preparing}
+                  className={photoActionClass}
+                >
+                  <Upload size={13} strokeWidth={1.5} aria-hidden="true" />
+                  {preview ? t.letters.changePhoto : t.letters.choosePhoto}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => cameraInput.current?.click()}
+                  disabled={preparing}
+                  className={photoActionClass}
+                >
+                  <Camera size={13} strokeWidth={1.5} aria-hidden="true" />
+                  {t.letters.takePhoto}
+                </button>
+                {preview && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhoto(null);
+                      setPhotoError(null);
+                    }}
+                    disabled={preparing}
+                    className={`${photoActionClass} border-transparent text-muted-strong hover:text-ember`}
+                  >
+                    <X size={13} strokeWidth={1.5} aria-hidden="true" />
+                    {t.letters.removePhoto}
+                  </button>
+                )}
+              </div>
+
+              <p
+                aria-live="polite"
+                className={`label mt-2 text-[9px] normal-case tracking-[0.08em] ${
+                  photoError ? "text-ember" : ""
+                }`}
+              >
+                {photoError ??
+                  (preparing ? t.letters.preparingPhoto : t.letters.photoHint)}
+              </p>
+            </div>
+
+            <div>
               <label htmlFor="letter-body" className="label block">
                 {t.letters.bodyLabel}
               </label>
@@ -172,7 +290,7 @@ export function LetterEditor({ onClose, onSave }: LetterEditorProps) {
                 id="letter-body-hint"
                 className="label mt-2 text-[9px] normal-case tracking-[0.08em]"
               >
-                {t.letters.bodyHint} · {t.notes.remaining(MAX_BODY - body.length)}
+                {t.letters.bodyHint} · {t.letters.remaining(MAX_BODY - body.length)}
               </p>
             </div>
           </div>
@@ -187,13 +305,13 @@ export function LetterEditor({ onClose, onSave }: LetterEditorProps) {
         <footer className="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-line/70 bg-mist/95 px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:px-8 sm:py-6 sm:pb-8">
           <button
             type="submit"
-            disabled={busy || !title.trim() || !body.trim() || !date}
+            disabled={busy || preparing || !title.trim() || !body.trim() || !date}
             className={`${actionClass} flex-1 border-navy/70 font-mono text-navy hover:bg-navy hover:text-mist disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none`}
           >
-            {busy && (
+            {(busy || preparing) && (
               <Loader2 size={12} strokeWidth={1.5} className="animate-spin" aria-hidden="true" />
             )}
-            {busy ? t.letters.saving : t.letters.save}
+            {preparing ? t.letters.preparingPhoto : busy ? t.letters.saving : t.letters.save}
           </button>
           <button
             type="button"
