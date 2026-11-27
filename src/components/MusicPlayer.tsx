@@ -50,6 +50,7 @@ export function MusicPlayer() {
           index={currentIndex}
           active={isPlaying}
           title={current?.title}
+          cover={current?.cover}
           className="w-48 max-w-[260px] sm:w-60 md:w-full"
         />
       </div>

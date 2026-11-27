@@ -12,6 +12,12 @@ import type { Track } from "../types";
 /** Filenames carry spaces and Japanese characters; the browser needs them escaped. */
 const song = (file: string) => encodeURI(`/assets/music/${file}`);
 
+/**
+ * The cover art carried inside each song file, extracted into
+ * `public/assets/covers/`. A track without one shows an archive plate instead.
+ */
+const cover = (id: string) => `/assets/covers/${id}.jpg`;
+
 export const playlist: Track[] = [
   {
     id: "am-i-bothering-you",
@@ -19,6 +25,7 @@ export const playlist: Track[] = [
     artist: "Reality Club",
     src: song("Am I Bothering You - Reality Club.m4a"),
     duration: 225,
+    cover: cover("am-i-bothering-you"),
   },
   {
     id: "love-epiphany",
@@ -26,6 +33,7 @@ export const playlist: Track[] = [
     artist: "Reality Club",
     src: song("Love Epiphany - Reality Club.m4a"),
     duration: 339,
+    cover: cover("love-epiphany"),
   },
   {
     id: "anything-you-want",
@@ -33,6 +41,7 @@ export const playlist: Track[] = [
     artist: "Reality Club",
     src: song("Anything You Want - Reality Club.m4a"),
     duration: 236,
+    cover: cover("anything-you-want"),
   },
   {
     id: "bad",
@@ -40,6 +49,7 @@ export const playlist: Track[] = [
     artist: "wave to earth",
     src: song("bad - wave to earth.m4a"),
     duration: 263,
+    cover: cover("bad"),
   },
   {
     id: "love",
@@ -47,6 +57,7 @@ export const playlist: Track[] = [
     artist: "wave to earth",
     src: song("love. - wave to earth.m4a"),
     duration: 308,
+    cover: cover("love"),
   },
   {
     id: "crescendo",
@@ -54,6 +65,7 @@ export const playlist: Track[] = [
     artist: "NMIXX",
     src: song("Crescendo - NMIXX.m4a"),
     duration: 159,
+    cover: cover("crescendo"),
   },
   {
     id: "heavy-serenade",
@@ -61,6 +73,7 @@ export const playlist: Track[] = [
     artist: "NMIXX",
     src: song("Heavy Serenade - NMIXX.m4a"),
     duration: 180,
+    cover: cover("heavy-serenade"),
   },
   {
     id: "loud",
@@ -68,6 +81,7 @@ export const playlist: Track[] = [
     artist: "NMIXX",
     src: song("LOUD - NMIXX.m4a"),
     duration: 170,
+    cover: cover("loud"),
   },
   {
     id: "say-yes",
@@ -75,6 +89,7 @@ export const playlist: Track[] = [
     artist: "Loco, Punch",
     src: song("Say Yes - Loco, Punch.m4a"),
     duration: 219,
+    cover: cover("say-yes"),
   },
   {
     id: "suki-dakara",
@@ -82,5 +97,6 @@ export const playlist: Track[] = [
     artist: "『ユイカ』, れん",
     src: song("好きだから。 - 『ユイカ』, れん.m4a"),
     duration: 299,
+    cover: cover("suki-dakara"),
   },
 ];

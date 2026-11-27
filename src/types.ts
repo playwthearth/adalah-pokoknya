@@ -44,6 +44,8 @@ export interface Track {
   uploaded?: boolean;
   /** Storage object path, kept so a removed song can be deleted too. */
   storagePath?: string | null;
+  /** The song's own cover art, used for the album image when present. */
+  cover?: string | null;
 }
 
 export type NoteKind = "daily" | "love";

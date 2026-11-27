@@ -5,6 +5,8 @@ interface PlayerArtworkProps {
   index: number;
   active: boolean;
   title?: string;
+  /** The song's own cover art, when its file carries one. */
+  cover?: string | null;
   className?: string;
 }
 
@@ -23,18 +25,16 @@ const SLEEVES = [
   art.faces,
 ];
 
-export function PlayerArtwork({ index, active, title, className }: PlayerArtworkProps) {
+export function PlayerArtwork({ index, active, title, cover, className }: PlayerArtworkProps) {
   const reduceMotion = useReducedMotion();
-  const plate = SLEEVES[index % SLEEVES.length];
+  // A song with its own cover shows that; anything else falls back to a plate.
+  const plate = cover || SLEEVES[index % SLEEVES.length];
   const spinning = active && !reduceMotion;
 
   return (
-    <div
-      aria-hidden="true"
-      className={`relative aspect-square w-full ${className ?? ""}`}
-    >
+    <div aria-hidden="true" className={`relative w-full ${className ?? ""}`}>
       {/* The record, half out of the sleeve. */}
-      <div className="absolute inset-y-[7%] -right-[8%] aspect-square w-[90%]">
+      <div className="absolute right-0 top-1/2 aspect-square w-full -translate-y-1/2">
         <div
           className={`vinyl-disc h-full w-full rounded-full ${spinning ? "vinyl-spin" : ""}`}
         >
@@ -43,9 +43,9 @@ export function PlayerArtwork({ index, active, title, className }: PlayerArtwork
         </div>
       </div>
 
-      {/* The sleeve itself: a printed plate, a title, a side mark. */}
-      <figure className="polaroid relative flex h-full flex-col p-2.5">
-        <div className="relative h-[72%] overflow-hidden">
+      {/* The sleeve itself: the cover square, a title, a side mark. */}
+      <figure className="polaroid relative flex w-[90%] flex-col p-2.5">
+        <div className="relative aspect-square w-full overflow-hidden">
           <img
             src={plate}
             alt=""
@@ -53,7 +53,6 @@ export function PlayerArtwork({ index, active, title, className }: PlayerArtwork
             decoding="async"
             className="h-full w-full object-cover"
           />
-          <span className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white/70 to-transparent" />
           {active && (
             <span className="absolute right-2 top-2 flex h-4 items-end gap-[3px]">
               {[0, 1, 2, 3].map((bar) => (
@@ -68,7 +67,7 @@ export function PlayerArtwork({ index, active, title, className }: PlayerArtwork
         </div>
 
         {/* The printed band of the sleeve — nothing sits on top of the plate. */}
-        <div className="flex flex-1 flex-col justify-center px-1 pt-1.5">
+        <div className="flex flex-1 flex-col justify-center px-1 pt-2">
           <p className="line-clamp-2 font-display text-[15px] italic leading-tight text-[#343440]">
             {title ?? "—"}
           </p>
