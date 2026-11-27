@@ -1,4 +1,4 @@
-import { Camera, Loader2, Plus, Upload, X } from "lucide-react";
+import { Camera, Loader2, Plus, Search, Upload, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -13,6 +13,7 @@ import type { LetterDraft } from "../hooks/useLetters";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import { useLanguage } from "../hooks/useLanguage";
 import { useSettings } from "../hooks/useSettings";
+import { supabase } from "../lib/supabase";
 import type { Letter, LetterCategory, LetterDecor } from "../types";
 import { zonedDateKey } from "../utils/format";
 import { compressImage, MAX_IMAGE_BYTES } from "../utils/image";
@@ -34,6 +35,13 @@ const actionClass =
   "inline-flex min-h-11 items-center justify-center gap-2 border px-4 text-[10px] uppercase tracking-[0.18em] transition-colors";
 
 const photoActionClass = `${actionClass} w-full border-line text-navy/75 hover:border-navy/40 hover:text-ink disabled:opacity-60 sm:w-auto`;
+
+interface GifResult {
+  id: string;
+  title: string;
+  preview: string;
+  url: string;
+}
 
 interface LetterEditorProps {
   /** The letter being changed, or null for a new one. */
@@ -58,6 +66,10 @@ export function LetterEditor({ letter, onClose, onSave }: LetterEditorProps) {
   const [decor, setDecor] = useState<LetterDecor[]>(letter?.decor ?? []);
   const [gifUrl, setGifUrl] = useState("");
   const [gifError, setGifError] = useState<string | null>(null);
+  const [gifQuery, setGifQuery] = useState("");
+  const [gifResults, setGifResults] = useState<GifResult[]>([]);
+  const [gifSearching, setGifSearching] = useState(false);
+  const [gifNote, setGifNote] = useState<string | null>(null);
   const [preparing, setPreparing] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -125,21 +137,68 @@ export function LetterEditor({ letter, onClose, onSave }: LetterEditorProps) {
     });
   };
 
+  const addGifUrl = (url: string) => {
+    if (decor.length >= MAX_DECOR) {
+      setGifError(t.letters.decorFull);
+      return;
+    }
+    setDecor((current) =>
+      current.length >= MAX_DECOR || current.some((item) => item.value === url)
+        ? current
+        : [...current, { kind: "gif", value: url }],
+    );
+    setGifError(null);
+  };
+
   const addGif = () => {
     const url = gifUrl.trim();
     if (!isHttpsUrl(url)) {
       setGifError(t.letters.gifInvalid);
       return;
     }
-    if (decor.length >= MAX_DECOR) {
-      setGifError(t.letters.decorFull);
-      return;
-    }
-    setDecor((current) =>
-      current.length >= MAX_DECOR ? current : [...current, { kind: "gif", value: url }],
-    );
+    addGifUrl(url);
     setGifUrl("");
-    setGifError(null);
+  };
+
+  // Search is answered by /api/gif-search, which holds the Giphy key.
+  const searchGifs = async () => {
+    const query = gifQuery.trim();
+    if (!query || gifSearching) return;
+    setGifNote(null);
+    setGifSearching(true);
+    try {
+      if (!supabase) {
+        setGifNote(t.letters.gifSearchSignedOut);
+        return;
+      }
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) {
+        setGifNote(t.letters.gifSearchSignedOut);
+        return;
+      }
+
+      const response = await fetch(`/api/gif-search?q=${encodeURIComponent(query)}`, {
+        headers: { authorization: `Bearer ${token}` },
+      });
+      if (response.status === 503 || response.status === 404) {
+        setGifNote(t.letters.gifSearchUnavailable);
+        return;
+      }
+      if (!response.ok) {
+        setGifNote(t.letters.gifSearchError);
+        return;
+      }
+
+      const payload = (await response.json()) as { results?: GifResult[] };
+      const results = Array.isArray(payload.results) ? payload.results : [];
+      setGifResults(results);
+      if (results.length === 0) setGifNote(t.letters.gifSearchEmpty);
+    } catch {
+      setGifNote(t.letters.gifSearchError);
+    } finally {
+      setGifSearching(false);
+    }
   };
 
   const submit = async (event: FormEvent) => {
@@ -444,6 +503,89 @@ export function LetterEditor({ letter, onClose, onSave }: LetterEditorProps) {
                     </button>
                   );
                 })}
+              </div>
+
+              <div className="mt-4 border border-line/80 bg-pale/40 p-3">
+                <label htmlFor="letter-gif-query" className="label block text-[9px]">
+                  {t.letters.gifSearchLabel}
+                </label>
+                <div className="mt-2 flex gap-2">
+                  <input
+                    id="letter-gif-query"
+                    type="search"
+                    value={gifQuery}
+                    placeholder={t.letters.gifSearchPlaceholder}
+                    aria-describedby="letter-gif-search-note"
+                    onChange={(event) => {
+                      setGifQuery(event.target.value);
+                      setGifNote(null);
+                    }}
+                    onKeyDown={(event) => {
+                      // Enter searches, and never submits the whole letter.
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        void searchGifs();
+                      }
+                    }}
+                    className={`${fieldClass} min-w-0 flex-1`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void searchGifs()}
+                    disabled={gifSearching || !gifQuery.trim()}
+                    className={`${actionClass} shrink-0 border-line text-navy/75 hover:border-navy/40 hover:text-ink disabled:opacity-50`}
+                  >
+                    {gifSearching ? (
+                      <Loader2 size={12} strokeWidth={1.5} className="animate-spin" aria-hidden="true" />
+                    ) : (
+                      <Search size={12} strokeWidth={1.5} aria-hidden="true" />
+                    )}
+                    {gifSearching ? t.letters.gifSearching : t.letters.gifSearchAction}
+                  </button>
+                </div>
+
+                <p
+                  id="letter-gif-search-note"
+                  aria-live="polite"
+                  className="label mt-2 text-[9px] normal-case tracking-[0.08em]"
+                >
+                  {gifNote ?? t.letters.gifSearchHint}
+                </p>
+
+                {gifResults.length > 0 && (
+                  <ul className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    {gifResults.map((gif) => (
+                      <li key={gif.id}>
+                        <button
+                          type="button"
+                          onClick={() => addGifUrl(gif.url)}
+                          aria-label={gif.title || t.letters.gifAdd}
+                          className="block w-full overflow-hidden border border-line/70 bg-mist transition-colors hover:border-navy/40"
+                        >
+                          <img
+                            src={gif.preview}
+                            alt=""
+                            loading="lazy"
+                            decoding="async"
+                            referrerPolicy="no-referrer"
+                            className="h-16 w-full object-cover"
+                          />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <p className="mt-2 text-[9px] text-muted-strong">
+                  <a
+                    href="https://giphy.com"
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="underline decoration-line underline-offset-2 transition-colors hover:text-ink"
+                  >
+                    {t.letters.gifPoweredBy}
+                  </a>
+                </p>
               </div>
 
               <label htmlFor="letter-gif" className="label mt-4 block text-[9px]">
