@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -88,63 +89,139 @@ export function TracksProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // The library is read once per visit: a signed link is good for six hours,
-  // and swapping a link under a song that is playing would stop it.
-  const load = useCallback(async () => {
-    const client = supabase;
-    if (!client || !userId) {
-      setUploaded([]);
-      setLoading(false);
-      return;
-    }
+  /**
+   * Signed links are kept for the visit. A re-read must never hand the player
+   * a new link for a song it already holds: the changed `src` would restart
+   * it. Only paths that are new get signed.
+   */
+  const signed = useRef(new Map<string, string>());
+  /** One read at a time; a focus during a read is dropped, not queued. */
+  const reading = useRef(false);
 
-    setLoading(true);
-    const { data, error: failure } = await client
-      .from("tracks")
-      .select(COLUMNS)
-      .order("created_at", { ascending: true });
-
-    if (failure) {
-      console.error("[tracks] load failed", failure);
-      setError(true);
-      setLoading(false);
-      return;
-    }
-
-    const rows = (data ?? []) as TrackRow[];
-    const signed = new Map<string, string>();
-    if (rows.length > 0) {
-      const { data: links } = await client.storage
-        .from(BUCKET)
-        .createSignedUrls(
-          rows.map((row) => row.storage_path),
-          SIGNED_URL_TTL,
-        );
-      for (const item of links ?? []) {
-        if (item.path && item.signedUrl) signed.set(item.path, item.signedUrl);
+  const read = useCallback(
+    async (silent: boolean) => {
+      const client = supabase;
+      if (!client || !userId) {
+        if (!silent) {
+          setUploaded([]);
+          setLoading(false);
+        }
+        return;
       }
-    }
+      if (reading.current) return;
+      reading.current = true;
+      if (!silent) {
+        setLoading(true);
+        setError(false);
+      }
 
-    setUploaded(
-      rows
-        .map((row) => ({
-          id: row.id,
-          title: row.title?.trim() || row.storage_path.split("/").pop() || "Untitled",
-          artist: row.artist?.trim() || "",
-          src: signed.get(row.storage_path) ?? "",
-          duration: row.duration_seconds ?? undefined,
-          uploaded: true,
-          storagePath: row.storage_path,
-        }))
-        .filter((track) => track.src),
-    );
-    setError(false);
-    setLoading(false);
-  }, [userId]);
+      try {
+        const { data, error: failure } = await client
+          .from("tracks")
+          .select(COLUMNS)
+          .order("created_at", { ascending: true });
+
+        if (failure) {
+          console.error("[tracks] load failed", failure);
+          if (!silent) setError(true);
+          return;
+        }
+
+        const rows = (data ?? []) as TrackRow[];
+        const missing = [...new Set(rows.map((row) => row.storage_path))].filter(
+          (path) => !signed.current.has(path),
+        );
+
+        if (missing.length > 0) {
+          const { data: links } = await client.storage
+            .from(BUCKET)
+            .createSignedUrls(missing, SIGNED_URL_TTL);
+          for (const item of links ?? []) {
+            if (item.path && item.signedUrl) signed.current.set(item.path, item.signedUrl);
+          }
+        }
+
+        setUploaded((previous) => {
+          const known = new Map(previous.map((track) => [track.id, track]));
+          const next = rows
+            .map((row) => {
+              const src = signed.current.get(row.storage_path) ?? "";
+              const title =
+                row.title?.trim() || row.storage_path.split("/").pop() || "Untitled";
+              const artist = row.artist?.trim() || "";
+              const duration = row.duration_seconds ?? undefined;
+              const existing = known.get(row.id);
+              // Same song, same link, same words: keep the object the player
+              // already holds, so nothing reloads or re-renders for it.
+              if (
+                existing &&
+                existing.src === src &&
+                existing.title === title &&
+                existing.artist === artist &&
+                existing.duration === duration &&
+                existing.storagePath === row.storage_path
+              ) {
+                return existing;
+              }
+              return {
+                id: row.id,
+                title,
+                artist,
+                src,
+                duration,
+                uploaded: true,
+                storagePath: row.storage_path,
+              } satisfies Track;
+            })
+            .filter((track) => track.src);
+
+          // Nothing moved: hand back the same array and skip the render.
+          if (
+            next.length === previous.length &&
+            next.every((track, index) => track === previous[index])
+          ) {
+            return previous;
+          }
+          return next;
+        });
+
+        if (!silent) setError(false);
+      } finally {
+        reading.current = false;
+        if (!silent) setLoading(false);
+      }
+    },
+    [userId],
+  );
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    void read(false);
+  }, [read]);
+
+  // A song the other person adds is picked up when the tab comes back into
+  // view — no reload, and the song that is playing never stops.
+  useEffect(() => {
+    if (!userId) return;
+
+    let lastRead = 0;
+    const refresh = () => {
+      const now = Date.now();
+      // Focus and visibility both fire for one return: read once.
+      if (now - lastRead < 4000) return;
+      lastRead = now;
+      void read(true);
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [read, userId]);
 
   const addTrack = useCallback(
     async (draft: TrackDraft): Promise<Track> => {
@@ -188,6 +265,9 @@ export function TracksProvider({ children }: { children: ReactNode }) {
       const { data: link } = await client.storage
         .from(BUCKET)
         .createSignedUrl(path, SIGNED_URL_TTL);
+      // Cached, so the next focus re-read reuses this link instead of signing
+      // a new one and restarting the song that was just added.
+      if (link?.signedUrl) signed.current.set(path, link.signedUrl);
 
       const track: Track = {
         id: row.id,
@@ -213,7 +293,10 @@ export function TracksProvider({ children }: { children: ReactNode }) {
     if (failure) throw failure;
 
     setUploaded((current) => current.filter((item) => item.id !== track.id));
-    if (track.storagePath) void client.storage.from(BUCKET).remove([track.storagePath]);
+    if (track.storagePath) {
+      signed.current.delete(track.storagePath);
+      void client.storage.from(BUCKET).remove([track.storagePath]);
+    }
   }, []);
 
   const value = useMemo<TracksValue>(
