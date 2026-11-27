@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EmptyState } from "../components/EmptyState";
 import { LetterCard } from "../components/LetterCard";
@@ -12,7 +12,7 @@ import { letters as keptLetters } from "../data/letters";
 import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
 import { useLetters } from "../hooks/useLetters";
-import type { LetterCategory } from "../types";
+import type { Letter, LetterCategory } from "../types";
 import { formatDate } from "../utils/format";
 
 type Filter = "all" | LetterCategory;
@@ -20,10 +20,11 @@ type Filter = "all" | LetterCategory;
 export function Letters() {
   const { t, language, locale } = useLanguage();
   const { userId } = useAuth();
-  const { added, error, refresh, addLetter, deleteLetter } = useLetters();
+  const { added, error, refresh, addLetter, editLetter, deleteLetter } = useLetters();
   const [filter, setFilter] = useState<Filter>("all");
   const [openId, setOpenId] = useState<string | null>(null);
   const [writing, setWriting] = useState(false);
+  const [editing, setEditing] = useState<Letter | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
 
@@ -51,6 +52,13 @@ export function Letters() {
     setOpenId(null);
     setConfirmDelete(false);
     setDeleteError(false);
+  };
+
+  const startEditing = (letter: Letter) => {
+    setConfirmDelete(false);
+    setDeleteError(false);
+    setOpenId(null);
+    setEditing(letter);
   };
 
   const removeActive = async () => {
@@ -249,6 +257,14 @@ export function Letters() {
               <div className="mt-8 flex flex-wrap items-center justify-end gap-3 border-t border-line/70 pt-5">
                 <button
                   type="button"
+                  onClick={() => startEditing(active)}
+                  className="btn-quiet inline-flex min-h-11 items-center gap-2 px-3 text-[9px] uppercase tracking-[0.14em]"
+                >
+                  <Pencil size={11} strokeWidth={1.5} aria-hidden="true" />
+                  {t.letters.edit}
+                </button>
+                <button
+                  type="button"
                   onClick={() => void removeActive()}
                   className={`btn-quiet inline-flex min-h-11 items-center gap-2 px-3 text-[9px] uppercase tracking-[0.14em] ${
                     confirmDelete ? "text-ember" : ""
@@ -270,6 +286,14 @@ export function Letters() {
       </Modal>
 
       {writing && <LetterEditor onClose={() => setWriting(false)} onSave={addLetter} />}
+
+      {editing && (
+        <LetterEditor
+          letter={editing}
+          onClose={() => setEditing(null)}
+          onSave={(draft) => editLetter(editing.id, draft)}
+        />
+      )}
     </div>
   );
 }

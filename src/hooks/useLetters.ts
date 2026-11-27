@@ -32,6 +32,8 @@ export interface LetterDraft {
   language: Language;
   /** A photo chosen from the device, a drive or the camera, if any. */
   photo: File | null;
+  /** True when the letter already had a photo and it should be taken away. */
+  removePhoto: boolean;
 }
 
 interface LetterRow {
@@ -97,12 +99,20 @@ async function withPhotos(
   );
 }
 
+function newestFirst(current: Letter[], letter: Letter): Letter[] {
+  const next = current.some((item) => item.id === letter.id)
+    ? current.map((item) => (item.id === letter.id ? letter : item))
+    : [letter, ...current];
+  return next.sort((a, b) => b.date.localeCompare(a.date));
+}
+
 export interface LettersValue {
   added: Letter[];
   loading: boolean;
   error: boolean;
   refresh: () => Promise<void>;
   addLetter: (draft: LetterDraft) => Promise<void>;
+  editLetter: (id: string, draft: LetterDraft) => Promise<void>;
   deleteLetter: (id: string) => Promise<void>;
 }
 
@@ -156,30 +166,26 @@ export function useLetters(): LettersValue {
     void refresh();
   }, [refresh]);
 
-  // A letter the other person writes or removes should land without a reload.
+  // A letter the other person writes, changes or removes should land without a reload.
   useEffect(() => {
     const client = supabase;
     if (!client || !userId) return;
 
-    const keep = (letter: Letter) => {
-      changes.current += 1;
-      setAdded((current) =>
-        current.some((item) => item.id === letter.id)
-          ? current
-          : [letter, ...current].sort((a, b) => b.date.localeCompare(a.date)),
-      );
+    const applyRow = (row: LetterRow) => {
+      void withPhotos(client, [row], signed.current).then(([letter]) => {
+        if (!letter) return;
+        changes.current += 1;
+        setAdded((current) => newestFirst(current, letter));
+      });
     };
 
     const channel = client
       .channel(`letters-live-${Math.random().toString(36).slice(2, 10)}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "letters" },
-        (payload) => {
-          void withPhotos(client, [payload.new as LetterRow], signed.current).then(([letter]) => {
-            if (letter) keep(letter);
-          });
-        },
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "letters" }, (payload) =>
+        applyRow(payload.new as LetterRow),
+      )
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "letters" }, (payload) =>
+        applyRow(payload.new as LetterRow),
       )
       .on(
         "postgres_changes",
@@ -252,13 +258,52 @@ export function useLetters(): LettersValue {
       const [saved] = await withPhotos(client, [data as LetterRow], signed.current);
       changes.current += 1;
       // The realtime echo of this insert is deduplicated by id.
-      setAdded((current) =>
-        current.some((item) => item.id === saved.id)
-          ? current
-          : [saved, ...current].sort((a, b) => b.date.localeCompare(a.date)),
-      );
+      setAdded((current) => newestFirst(current, saved));
     },
     [userId, uploadPhoto],
+  );
+
+  const editLetter = useCallback(
+    async (id: string, draft: LetterDraft) => {
+      const client = supabase;
+      if (!client || !userId) throw new Error("not signed in");
+
+      const previous = added.find((letter) => letter.id === id);
+      const path = draft.photo ? await uploadPhoto(draft.photo) : null;
+
+      const patch: Record<string, unknown> = {
+        title: draft.title.trim(),
+        body: draft.body.trim(),
+        category: draft.category,
+        letter_date: draft.date,
+        language: draft.language,
+      };
+      // A new photo replaces the old one; removePhoto clears it outright.
+      if (path) patch.image_path = path;
+      else if (draft.removePhoto) patch.image_path = null;
+
+      const { data, error: failure } = await client
+        .from("letters")
+        .update(patch)
+        .eq("id", id)
+        .select(COLUMNS)
+        .single();
+
+      if (failure) {
+        if (path) void client.storage.from(BUCKET).remove([path]);
+        throw failure;
+      }
+
+      // The old object is only cleared once the row points somewhere else.
+      if ((path || draft.removePhoto) && previous?.imagePath) {
+        void client.storage.from(BUCKET).remove([previous.imagePath]);
+      }
+
+      const [saved] = await withPhotos(client, [data as LetterRow], signed.current);
+      changes.current += 1;
+      setAdded((current) => newestFirst(current, saved));
+    },
+    [added, userId, uploadPhoto],
   );
 
   const deleteLetter = useCallback(async (id: string) => {
@@ -276,5 +321,5 @@ export function useLetters(): LettersValue {
     });
   }, []);
 
-  return { added, loading, error, refresh, addLetter, deleteLetter };
+  return { added, loading, error, refresh, addLetter, editLetter, deleteLetter };
 }

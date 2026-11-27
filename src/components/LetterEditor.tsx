@@ -5,7 +5,7 @@ import type { LetterDraft } from "../hooks/useLetters";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import { useLanguage } from "../hooks/useLanguage";
 import { useSettings } from "../hooks/useSettings";
-import type { LetterCategory } from "../types";
+import type { Letter, LetterCategory } from "../types";
 import { zonedDateKey } from "../utils/format";
 import { compressImage, MAX_IMAGE_BYTES } from "../utils/image";
 
@@ -27,18 +27,25 @@ const actionClass =
 const photoActionClass = `${actionClass} w-full border-line text-navy/75 hover:border-navy/40 hover:text-ink disabled:opacity-60 sm:w-auto`;
 
 interface LetterEditorProps {
+  /** The letter being changed, or null for a new one. */
+  letter?: Letter | null;
   onClose: () => void;
   onSave: (draft: LetterDraft) => Promise<void>;
 }
 
-export function LetterEditor({ onClose, onSave }: LetterEditorProps) {
+export function LetterEditor({ letter, onClose, onSave }: LetterEditorProps) {
   const { t, language } = useLanguage();
   const { settings } = useSettings();
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState<LetterCategory>("love");
-  const [date, setDate] = useState(() => zonedDateKey(new Date(), settings.timezone));
-  const [body, setBody] = useState("");
+  const editing = Boolean(letter);
+  const [title, setTitle] = useState(letter?.title.en ?? "");
+  const [category, setCategory] = useState<LetterCategory>(letter?.category ?? "love");
+  const [date, setDate] = useState(
+    () => letter?.date ?? zonedDateKey(new Date(), settings.timezone),
+  );
+  const [body, setBody] = useState(letter?.content.en ?? "");
   const [photo, setPhoto] = useState<File | null>(null);
+  /** True when a photo the letter already had should be taken away. */
+  const [removeExisting, setRemoveExisting] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -52,13 +59,15 @@ export function LetterEditor({ onClose, onSave }: LetterEditorProps) {
     if (!busy) onClose();
   });
 
-  const preview = useMemo(() => (photo ? URL.createObjectURL(photo) : null), [photo]);
+  const pickedUrl = useMemo(() => (photo ? URL.createObjectURL(photo) : null), [photo]);
+  const existingUrl = removeExisting ? null : (letter?.image ?? null);
+  const preview = pickedUrl ?? existingUrl;
 
   useEffect(() => {
-    if (!preview) return;
-    const url = preview;
+    if (!pickedUrl) return;
+    const url = pickedUrl;
     return () => URL.revokeObjectURL(url);
-  }, [preview]);
+  }, [pickedUrl]);
 
   // The sheet covers the page, so the archive behind it must not scroll.
   useEffect(() => {
@@ -79,9 +88,16 @@ export function LetterEditor({ onClose, onSave }: LetterEditorProps) {
     setPreparing(true);
     try {
       setPhoto(await compressImage(file));
+      setRemoveExisting(false);
     } finally {
       setPreparing(false);
     }
+  };
+
+  const clearPhoto = () => {
+    setPhotoError(null);
+    if (photo) setPhoto(null);
+    else setRemoveExisting(true);
   };
 
   const submit = async (event: FormEvent) => {
@@ -90,7 +106,15 @@ export function LetterEditor({ onClose, onSave }: LetterEditorProps) {
     setBusy(true);
     setError(null);
     try {
-      await onSave({ title, body, category, date, language, photo });
+      await onSave({
+        title,
+        body,
+        category,
+        date,
+        language,
+        photo,
+        removePhoto: removeExisting && !photo,
+      });
       onClose();
     } catch (failure) {
       console.error("[letters] save failed", failure);
@@ -108,7 +132,7 @@ export function LetterEditor({ onClose, onSave }: LetterEditorProps) {
       tabIndex={-1}
       role="dialog"
       aria-modal="true"
-      aria-label={t.letters.addTitle}
+      aria-label={editing ? t.letters.editTitle : t.letters.addTitle}
       className="fixed inset-0 z-[88] overflow-y-auto overscroll-contain bg-scrim/60 outline-none sm:flex sm:items-start sm:justify-center sm:p-8 sm:backdrop-blur-sm"
     >
       <form
@@ -116,7 +140,7 @@ export function LetterEditor({ onClose, onSave }: LetterEditorProps) {
         className="flex min-h-[100dvh] w-full flex-col bg-mist sm:min-h-0 sm:max-w-xl sm:border sm:border-line sm:shadow-[0_30px_80px_-40px_rgba(34,58,79,0.5)]"
       >
         <header className="flex items-start justify-between gap-4 border-b border-line/70 px-5 py-4 sm:border-0 sm:p-8 sm:pb-0">
-          <p className="label pt-2">{t.letters.addTitle}</p>
+          <p className="label pt-2">{editing ? t.letters.editTitle : t.letters.addTitle}</p>
           <button
             type="button"
             onClick={onClose}
@@ -128,7 +152,9 @@ export function LetterEditor({ onClose, onSave }: LetterEditorProps) {
         </header>
 
         <div className="flex-1 px-5 py-5 sm:px-8 sm:py-6">
-          <p className="label text-[9px] normal-case tracking-[0.08em]">{t.letters.addHint}</p>
+          <p className="label text-[9px] normal-case tracking-[0.08em]">
+            {editing ? t.letters.editHint : t.letters.addHint}
+          </p>
 
           <div className="mt-6 space-y-5">
             <div>
@@ -247,10 +273,7 @@ export function LetterEditor({ onClose, onSave }: LetterEditorProps) {
                 {preview && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setPhoto(null);
-                      setPhotoError(null);
-                    }}
+                    onClick={clearPhoto}
                     disabled={preparing}
                     className={`${photoActionClass} border-transparent text-muted-strong hover:text-ember`}
                   >
@@ -311,7 +334,15 @@ export function LetterEditor({ onClose, onSave }: LetterEditorProps) {
             {(busy || preparing) && (
               <Loader2 size={12} strokeWidth={1.5} className="animate-spin" aria-hidden="true" />
             )}
-            {preparing ? t.letters.preparingPhoto : busy ? t.letters.saving : t.letters.save}
+            {preparing
+              ? t.letters.preparingPhoto
+              : busy
+                ? editing
+                  ? t.letters.savingChanges
+                  : t.letters.saving
+                : editing
+                  ? t.letters.saveChanges
+                  : t.letters.save}
           </button>
           <button
             type="button"

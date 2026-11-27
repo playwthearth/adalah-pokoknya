@@ -450,7 +450,7 @@ alter table public.letters add column if not exists image_path text;
 
 alter table public.letters enable row level security;
 
-grant select, insert, delete on public.letters to authenticated;
+grant select, insert, update, delete on public.letters to authenticated;
 
 drop policy if exists letters_read on public.letters;
 create policy letters_read on public.letters
@@ -462,7 +462,13 @@ create policy letters_insert on public.letters
   for insert to authenticated
   with check (public.is_member() and created_by = auth.uid());
 
--- A letter belongs to whoever wrote it, so only they can take it back.
+-- A letter belongs to whoever wrote it, so only they can change or take it back.
+drop policy if exists letters_update on public.letters;
+create policy letters_update on public.letters
+  for update to authenticated
+  using (public.is_member() and created_by = auth.uid())
+  with check (public.is_member() and created_by = auth.uid());
+
 drop policy if exists letters_delete on public.letters;
 create policy letters_delete on public.letters
   for delete to authenticated
