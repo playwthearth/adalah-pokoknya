@@ -10,6 +10,15 @@ export type LetterCategory =
   | "thoughts"
   | "special";
 
+export type DecorKind = "stamp" | "sticker" | "gif";
+
+/** A stamp, a sticker, or an image/GIF linked from the internet. */
+export interface LetterDecor {
+  kind: DecorKind;
+  /** Stamp or sticker id, or the https address of a GIF or picture. */
+  value: string;
+}
+
 export interface Letter {
   id: string;
   title: Localized;
@@ -25,6 +34,8 @@ export interface Letter {
   image?: string | null;
   /** Storage path of the attached photo, kept so it can be removed too. */
   imagePath?: string | null;
+  /** Stamps, stickers and internet pieces pinned to the letter. */
+  decor?: LetterDecor[];
 }
 
 /** A moment either member added to the shared archive. */

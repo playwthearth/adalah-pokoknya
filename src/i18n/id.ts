@@ -164,6 +164,17 @@ export const id: Dict = {
     photoError: "Berkas itu bukan gambar, atau lebih dari 10 MB.",
     preparingPhoto: "Menyiapkan foto…",
     photoAlt: "Foto yang dilampirkan pada surat ini",
+    decorTitle: "Perangko & stiker",
+    decorHint: "Potongan kecil yang disematkan pada surat. Paling banyak enam.",
+    stampsLabel: "Perangko",
+    stickersLabel: "Stiker",
+    gifLabel: "GIF atau gambar dari internet",
+    gifPlaceholder: "https://media.giphy.com/media/…",
+    gifAdd: "Tambah",
+    gifHint: "Tempel tautan https ke GIF atau gambar. Gambar dimuat langsung dari situsnya.",
+    gifInvalid: "Itu bukan tautan https.",
+    decorFull: "Batasnya enam potongan. Hapus satu dulu.",
+    removeDecor: "Hapus",
   },
 
   memories: {

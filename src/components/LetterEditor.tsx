@@ -1,13 +1,22 @@
-import { Camera, Loader2, Upload, X } from "lucide-react";
+import { Camera, Loader2, Plus, Upload, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
+import {
+  decorGlyph,
+  decorName,
+  isHttpsUrl,
+  MAX_DECOR,
+  STAMPS,
+  STICKERS,
+} from "../data/letterDecor";
 import type { LetterDraft } from "../hooks/useLetters";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import { useLanguage } from "../hooks/useLanguage";
 import { useSettings } from "../hooks/useSettings";
-import type { Letter, LetterCategory } from "../types";
+import type { Letter, LetterCategory, LetterDecor } from "../types";
 import { zonedDateKey } from "../utils/format";
 import { compressImage, MAX_IMAGE_BYTES } from "../utils/image";
+import { DecorCollage, StampMark } from "./LetterDecor";
 
 const MAX_BODY = 4000;
 const CATEGORIES: LetterCategory[] = [
@@ -46,6 +55,9 @@ export function LetterEditor({ letter, onClose, onSave }: LetterEditorProps) {
   const [photo, setPhoto] = useState<File | null>(null);
   /** True when a photo the letter already had should be taken away. */
   const [removeExisting, setRemoveExisting] = useState(false);
+  const [decor, setDecor] = useState<LetterDecor[]>(letter?.decor ?? []);
+  const [gifUrl, setGifUrl] = useState("");
+  const [gifError, setGifError] = useState<string | null>(null);
   const [preparing, setPreparing] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -100,6 +112,36 @@ export function LetterEditor({ letter, onClose, onSave }: LetterEditorProps) {
     else setRemoveExisting(true);
   };
 
+  // Stamps and stickers toggle; a second tap takes the piece off again.
+  const toggleDecor = (item: LetterDecor) => {
+    setGifError(null);
+    setDecor((current) => {
+      const existing = current.findIndex(
+        (entry) => entry.kind === item.kind && entry.value === item.value,
+      );
+      if (existing >= 0) return current.filter((_, index) => index !== existing);
+      if (current.length >= MAX_DECOR) return current;
+      return [...current, item];
+    });
+  };
+
+  const addGif = () => {
+    const url = gifUrl.trim();
+    if (!isHttpsUrl(url)) {
+      setGifError(t.letters.gifInvalid);
+      return;
+    }
+    if (decor.length >= MAX_DECOR) {
+      setGifError(t.letters.decorFull);
+      return;
+    }
+    setDecor((current) =>
+      current.length >= MAX_DECOR ? current : [...current, { kind: "gif", value: url }],
+    );
+    setGifUrl("");
+    setGifError(null);
+  };
+
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (busy || preparing || !title.trim() || !body.trim() || !date) return;
@@ -114,6 +156,7 @@ export function LetterEditor({ letter, onClose, onSave }: LetterEditorProps) {
         language,
         photo,
         removePhoto: removeExisting && !photo,
+        decor,
       });
       onClose();
     } catch (failure) {
@@ -314,6 +357,136 @@ export function LetterEditor({ letter, onClose, onSave }: LetterEditorProps) {
                 className="label mt-2 text-[9px] normal-case tracking-[0.08em]"
               >
                 {t.letters.bodyHint} · {t.letters.remaining(MAX_BODY - body.length)}
+              </p>
+            </div>
+
+            <div className="border-t border-line/70 pt-5">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="label">{t.letters.decorTitle}</span>
+                <span className="font-mono text-[9px] tabular-nums tracking-[0.14em] text-muted-strong">
+                  {decor.length}/{MAX_DECOR}
+                </span>
+              </div>
+              <p className="mt-1 text-[10px] leading-relaxed text-muted-strong">
+                {t.letters.decorHint}
+              </p>
+
+              {decor.length > 0 && (
+                <>
+                  <div className="mt-3 flex items-center gap-3 border border-dashed border-line/80 bg-pale/60 px-3 py-3">
+                    <DecorCollage items={decor} compact />
+                  </div>
+                  <ul className="mt-2 flex flex-wrap gap-2">
+                    {decor.map((item, index) => (
+                      <li key={`${item.kind}-${item.value}-${index}`}>
+                        <button
+                          type="button"
+                          onClick={() => setDecor((current) => current.filter((_, i) => i !== index))}
+                          aria-label={`${t.letters.removeDecor}: ${decorName(item)}`}
+                          className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line/80 px-2.5 text-[9px] uppercase tracking-[0.12em] text-navy/70 transition-colors hover:border-ember/50 hover:text-ember"
+                        >
+                          <span aria-hidden="true">{decorGlyph(item)}</span>
+                          <span className="max-w-[110px] truncate normal-case tracking-[0.04em]">
+                            {decorName(item)}
+                          </span>
+                          <X size={10} strokeWidth={1.5} aria-hidden="true" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+
+              <p className="label mt-4 block text-[9px]">{t.letters.stampsLabel}</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {STAMPS.map((stamp) => {
+                  const active = decor.some(
+                    (item) => item.kind === "stamp" && item.value === stamp.id,
+                  );
+                  return (
+                    <button
+                      key={stamp.id}
+                      type="button"
+                      onClick={() => toggleDecor({ kind: "stamp", value: stamp.id })}
+                      aria-pressed={active}
+                      className={`rounded-[2px] border p-0.5 transition-colors ${
+                        active
+                          ? "border-navy/60 bg-lavender/50"
+                          : "border-transparent hover:border-line"
+                      }`}
+                    >
+                      <StampMark id={stamp.id} compact />
+                    </button>
+                  );
+                })}
+              </div>
+
+              <p className="label mt-4 block text-[9px]">{t.letters.stickersLabel}</p>
+              <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label={t.letters.stickersLabel}>
+                {STICKERS.map((sticker) => {
+                  const active = decor.some(
+                    (item) => item.kind === "sticker" && item.value === sticker.id,
+                  );
+                  return (
+                    <button
+                      key={sticker.id}
+                      type="button"
+                      onClick={() => toggleDecor({ kind: "sticker", value: sticker.id })}
+                      aria-pressed={active}
+                      aria-label={sticker.name}
+                      className={`inline-flex h-11 w-11 items-center justify-center rounded-full border text-xl transition-colors ${
+                        active
+                          ? "border-navy/60 bg-lavender/50"
+                          : "border-line/80 hover:border-plum/40"
+                      }`}
+                    >
+                      <span aria-hidden="true">{sticker.glyph}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <label htmlFor="letter-gif" className="label mt-4 block text-[9px]">
+                {t.letters.gifLabel}
+              </label>
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                <input
+                  id="letter-gif"
+                  type="url"
+                  value={gifUrl}
+                  placeholder={t.letters.gifPlaceholder}
+                  aria-describedby="letter-gif-hint"
+                  onChange={(event) => {
+                    setGifUrl(event.target.value);
+                    setGifError(null);
+                  }}
+                  onKeyDown={(event) => {
+                    // Enter belongs to the piece, not to the whole letter.
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      addGif();
+                    }
+                  }}
+                  className={`${fieldClass} min-w-0 flex-1`}
+                />
+                <button
+                  type="button"
+                  onClick={addGif}
+                  disabled={!gifUrl.trim()}
+                  className={`${actionClass} shrink-0 border-line text-navy/75 hover:border-navy/40 hover:text-ink disabled:opacity-50`}
+                >
+                  <Plus size={12} strokeWidth={1.5} aria-hidden="true" />
+                  {t.letters.gifAdd}
+                </button>
+              </div>
+              <p
+                id="letter-gif-hint"
+                aria-live="polite"
+                className={`label mt-2 text-[9px] normal-case tracking-[0.08em] ${
+                  gifError ? "text-ember" : ""
+                }`}
+              >
+                {gifError ?? t.letters.gifHint}
               </p>
             </div>
           </div>

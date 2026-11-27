@@ -163,6 +163,17 @@ export const ja: Dict = {
     photoError: "画像ではないか、10MBを超えています。",
     preparingPhoto: "写真を準備しています…",
     photoAlt: "この手紙に添えられた写真",
+    decorTitle: "切手とシール",
+    decorHint: "手紙に留める小さなかけら。六つまで。",
+    stampsLabel: "切手",
+    stickersLabel: "シール",
+    gifLabel: "インターネットのGIF・画像",
+    gifPlaceholder: "https://media.giphy.com/media/…",
+    gifAdd: "追加",
+    gifHint: "GIFや画像のhttpsリンクを貼ってください。そのサイトから直接読み込まれます。",
+    gifInvalid: "httpsのリンクではありません。",
+    decorFull: "六つまでです。先に一つ外してください。",
+    removeDecor: "外す",
   },
 
   memories: {

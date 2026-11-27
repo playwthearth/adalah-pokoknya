@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { readDecor } from "../data/letterDecor";
 import { supabase } from "../lib/supabase";
-import type { Language, Letter, LetterCategory, Localized } from "../types";
+import type { Language, Letter, LetterCategory, LetterDecor, Localized } from "../types";
 import { photoExtension } from "../utils/image";
 import { useAuth } from "./useAuth";
 
@@ -34,6 +35,8 @@ export interface LetterDraft {
   photo: File | null;
   /** True when the letter already had a photo and it should be taken away. */
   removePhoto: boolean;
+  /** Stamps, stickers and internet pieces pinned to the letter. */
+  decor: LetterDecor[];
 }
 
 interface LetterRow {
@@ -44,10 +47,12 @@ interface LetterRow {
   letter_date: string;
   language: Language;
   image_path: string | null;
+  decor: unknown;
   created_by: string | null;
 }
 
-const COLUMNS = "id, title, body, category, letter_date, language, image_path, created_by";
+const COLUMNS =
+  "id, title, body, category, letter_date, language, image_path, decor, created_by";
 
 /** Signed links, so polling cannot make the same photo download again. */
 type SignedCache = Map<string, { url: string; expires: number }>;
@@ -67,6 +72,7 @@ function toLetter(row: LetterRow, image: string | null): Letter {
     authorId: row.created_by,
     image,
     imagePath: row.image_path,
+    decor: readDecor(row.decor),
   };
 }
 
@@ -245,6 +251,7 @@ export function useLetters(): LettersValue {
           letter_date: draft.date,
           language: draft.language,
           image_path: path,
+          decor: draft.decor,
           created_by: userId,
         })
         .select(COLUMNS)
@@ -277,6 +284,7 @@ export function useLetters(): LettersValue {
         category: draft.category,
         letter_date: draft.date,
         language: draft.language,
+        decor: draft.decor,
       };
       // A new photo replaces the old one; removePhoto clears it outright.
       if (path) patch.image_path = path;

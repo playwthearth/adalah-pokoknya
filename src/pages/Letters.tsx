@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EmptyState } from "../components/EmptyState";
+import { DecorCollage, StampMark } from "../components/LetterDecor";
 import { LetterCard } from "../components/LetterCard";
 import { LetterEditor } from "../components/LetterEditor";
 import { Modal } from "../components/Modal";
@@ -41,6 +42,9 @@ export function Letters() {
   );
 
   const active = sorted.find((letter) => letter.id === openId) ?? null;
+  const activeDecor = active?.decor ?? [];
+  const activeStamps = activeDecor.filter((item) => item.kind === "stamp");
+  const activeCollage = activeDecor.filter((item) => item.kind !== "stamp");
 
   const openLetter = (id: string) => {
     setConfirmDelete(false);
@@ -94,7 +98,7 @@ export function Letters() {
     <button
       type="button"
       onClick={() => setWriting(true)}
-      className="press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-plum/50 px-5 font-mono text-[10px] uppercase tracking-[0.18em] text-navy transition-colors hover:bg-navy hover:text-mist sm:w-auto"
+      className="press inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-plum/50 px-5 font-mono text-[10px] uppercase tracking-[0.18em] text-navy transition-colors hover:bg-navy hover:text-mist"
     >
       <Plus size={12} strokeWidth={1.5} aria-hidden="true" />
       {t.letters.add}
@@ -111,8 +115,9 @@ export function Letters() {
         aside={<span className="label">{t.letters.count(sorted.length)}</span>}
       />
 
-      <div className="mt-7 flex flex-wrap items-start justify-between gap-x-8 gap-y-5">
-        <div className="flex flex-wrap gap-2">
+      {/* The tray: collections read as index tabs, the write button sits at the end. */}
+      <div className="mt-8 flex flex-wrap items-end justify-between gap-x-8 gap-y-5 border-b border-line/80 pb-4">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2" role="group" aria-label={t.letters.all}>
           {filters.map((item) => {
             const isActive = filter === item.key;
             return (
@@ -121,32 +126,34 @@ export function Letters() {
                 type="button"
                 onClick={() => setFilter(item.key)}
                 aria-pressed={isActive}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-[10px] uppercase tracking-[0.16em] transition-colors ${
-                  isActive
-                    ? "border-navy bg-navy text-mist"
-                    : "border-line/80 bg-transparent text-navy/70 hover:border-plum/40 hover:text-ink"
+                className={`group relative inline-flex min-h-9 items-baseline gap-1.5 pb-1 font-mono text-[10px] uppercase tracking-[0.18em] transition-colors ${
+                  isActive ? "text-ink" : "text-navy/55 hover:text-navy"
                 }`}
               >
                 {item.label}
                 <span
-                  className={`font-mono text-[9px] ${
-                    isActive ? "text-mist/70" : "text-muted-strong"
-                  }`}
+                  className={`text-[8px] ${isActive ? "text-plum" : "text-muted-strong"}`}
                 >
                   {String(item.count).padStart(2, "0")}
                 </span>
+                <span
+                  aria-hidden="true"
+                  className={`absolute inset-x-0 -bottom-[5px] h-px origin-left bg-navy transition-transform duration-300 ${
+                    isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                  }`}
+                />
               </button>
             );
           })}
         </div>
 
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <Plate
             src={art.scarf}
             caption="you, looking away."
             tilt="2deg"
             tape
-            className="hidden w-28 shrink-0 sm:block sm:w-36"
+            className="hidden w-24 lg:block"
           />
           {addButton}
         </div>
@@ -170,21 +177,18 @@ export function Letters() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="mt-10"
+        className="mt-8"
       >
         {visible.length === 0 ? (
           <EmptyState title={t.letters.empty} hint={t.letters.emptyHint} />
         ) : (
-          <div className="space-y-4">
+          <ol className="space-y-3">
             {visible.map((letter, index) => (
-              <LetterCard
-                key={letter.id}
-                letter={letter}
-                index={index}
-                onOpen={() => openLetter(letter.id)}
-              />
+              <li key={letter.id}>
+                <LetterCard letter={letter} index={index} onOpen={() => openLetter(letter.id)} />
+              </li>
             ))}
-          </div>
+          </ol>
         )}
       </motion.div>
 
@@ -195,54 +199,77 @@ export function Letters() {
         closeLabel={t.common.close}
       >
         {active && (
-          <article className="px-6 pb-10 pt-14 sm:px-12 sm:pb-14 sm:pt-16">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <span className="label flex items-center gap-2">
-                <span aria-hidden="true" className="h-1 w-1 rounded-full bg-ember/80" />
-                {t.letters.categories[active.category]}
-              </span>
-              <span aria-hidden="true" className="h-px w-5 bg-line" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-strong">
-                {formatDate(active.date, locale)}
-              </span>
+          <article className="relative px-6 pb-12 pt-14 sm:px-12 sm:pb-16 sm:pt-16">
+            <span
+              aria-hidden="true"
+              className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-periwinkle/50 via-line to-transparent"
+            />
+
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <span className="label flex items-center gap-2">
+                  <span aria-hidden="true" className="h-1 w-1 rounded-full bg-ember/80" />
+                  {t.letters.categories[active.category]}
+                </span>
+                <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-strong">
+                  {formatDate(active.date, locale)}
+                </p>
+              </div>
+
+              {activeStamps.length > 0 && (
+                <div aria-hidden="true" className="flex items-start">
+                  {activeStamps.slice(0, 2).map((stamp, index) => (
+                    <StampMark
+                      key={`${stamp.value}-${index}`}
+                      id={stamp.value}
+                      className={index === 0 ? "-rotate-3" : "-ml-4 rotate-3"}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
 
-            <h2 className="mt-4 font-display text-3xl leading-tight text-ink sm:text-[2.4rem]">
+            <h2 className="mt-6 font-display text-[clamp(1.9rem,4.4vw,2.6rem)] leading-[1.1] text-ink">
               {active.title[language]}
             </h2>
 
+            {activeCollage.length > 0 && <DecorCollage items={activeCollage} className="mt-6" />}
+
             {active.image && (
-              <figure className="polaroid mt-7 max-w-md">
-                <img
-                  src={active.image}
-                  alt={t.letters.photoAlt}
-                  loading="lazy"
-                  decoding="async"
-                  className="block max-h-[52vh] w-full object-cover"
-                />
+              <figure className="mt-7 max-w-md">
+                <span className="polaroid block">
+                  <img
+                    src={active.image}
+                    alt={t.letters.photoAlt}
+                    loading="lazy"
+                    decoding="async"
+                    className="block max-h-[52vh] w-full object-cover"
+                  />
+                </span>
               </figure>
             )}
 
-            <span aria-hidden="true" className="mt-7 block h-px w-16 bg-gradient-to-r from-periwinkle to-transparent" />
-
-            <div className="mt-6 space-y-4">
+            <div className="mt-7 space-y-4">
               {active.content[language]
                 .split(/\n{2,}/)
                 .map((paragraph, index) => (
                   <p
                     key={index}
-                    className="letter-body text-[1.1rem] leading-[1.95] text-navy/90 [text-wrap:pretty]"
+                    className={`letter-body text-[1.1rem] leading-[1.95] text-navy/90 [text-wrap:pretty] ${
+                      index === 0
+                        ? "first-letter:float-left first-letter:mr-2 first-letter:font-display first-letter:text-[3.1rem] first-letter:leading-[0.82] first-letter:text-plum"
+                        : ""
+                    }`}
                   >
                     {paragraph}
                   </p>
                 ))}
             </div>
 
-            <div aria-hidden="true" className="mt-9 flex items-center gap-3 text-periwinkle">
-              <span className="h-px flex-1 bg-gradient-to-r from-transparent to-periwinkle/70" />
-              <span className="h-1.5 w-1.5 rotate-45 bg-periwinkle/80" />
-              <span className="h-px flex-1 bg-gradient-to-l from-transparent to-periwinkle/70" />
-            </div>
+            <span
+              aria-hidden="true"
+              className="mt-9 block h-px w-16 bg-gradient-to-r from-periwinkle to-transparent"
+            />
 
             <div className="mt-6 flex items-center justify-end gap-3">
               <p className="label">{t.letters.from}</p>

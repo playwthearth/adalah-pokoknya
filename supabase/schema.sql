@@ -434,6 +434,8 @@ create table if not exists public.letters (
   title text not null check (char_length(btrim(title)) between 1 and 120),
   body text not null check (char_length(btrim(body)) between 1 and 4000),
   image_path text,
+  -- Stamps, stickers and internet pieces: [{ kind, value }, …]
+  decor jsonb not null default '[]'::jsonb,
   category text not null default 'love'
     check (category in ('love', 'birthday', 'encouragement', 'thoughts', 'special')),
   letter_date date not null default current_date,
@@ -447,6 +449,16 @@ create index if not exists letters_date_idx on public.letters (letter_date);
 -- A photo attached to a letter lives in the private `memories` bucket, under
 -- the writer's own folder, so the existing member-only photo rules apply.
 alter table public.letters add column if not exists image_path text;
+alter table public.letters add column if not exists decor jsonb not null default '[]'::jsonb;
+
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'letters_decor_array') then
+    alter table public.letters
+      add constraint letters_decor_array check (jsonb_typeof(decor) = 'array');
+  end if;
+end
+$$;
 
 alter table public.letters enable row level security;
 

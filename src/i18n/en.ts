@@ -166,6 +166,17 @@ export const en = {
     photoError: "That file is not an image, or it is larger than 10 MB.",
     preparingPhoto: "Preparing photo…",
     photoAlt: "Photo attached to this letter",
+    decorTitle: "Stamps & stickers",
+    decorHint: "Loose pieces pinned to the letter. Six at most.",
+    stampsLabel: "Stamps",
+    stickersLabel: "Stickers",
+    gifLabel: "GIF or picture from the internet",
+    gifPlaceholder: "https://media.giphy.com/media/…",
+    gifAdd: "Add",
+    gifHint: "Paste an https link to a GIF or image. It loads straight from that site.",
+    gifInvalid: "That is not an https link.",
+    decorFull: "Six pieces is the limit. Remove one first.",
+    removeDecor: "Remove",
   },
 
   memories: {
