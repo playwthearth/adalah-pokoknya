@@ -76,7 +76,7 @@ function shuffledPick(tracks: Track[], exclude: number): string | null {
 
 export function MusicPlayerProvider({ children }: { children: ReactNode }) {
   const { settings, update } = useSettings();
-  const { uploaded } = useTracks();
+  const { uploaded, loading: tracksLoading } = useTracks();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const wantsPlayRef = useRef(false);
   // Read once, at mount: the saved track and the second it stopped on.
@@ -133,12 +133,13 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // A stored song that is not in the library yet (or any more) starts at the
-  // first track once the shared library has loaded.
+  // first track once the shared library has loaded — not before, or a resumed
+  // upload would be replaced by the first of the bundled songs.
   useEffect(() => {
-    if (tracks.length === 0) return;
+    if (tracksLoading || tracks.length === 0) return;
     if (currentId && tracks.some((track) => track.id === currentId)) return;
     setCurrentId(tracks[0].id);
-  }, [tracks, currentId]);
+  }, [tracks, currentId, tracksLoading]);
 
   // Attach audio element listeners once.
   useEffect(() => {
