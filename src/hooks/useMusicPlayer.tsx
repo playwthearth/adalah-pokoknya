@@ -12,6 +12,7 @@ import { playlist } from "../data/playlist";
 import { storageKeys } from "../data/site";
 import type { Track } from "../types";
 import { useSettings } from "./useSettings";
+import { useTracks } from "./useTracks";
 
 interface MusicPlayerContextValue {
   tracks: Track[];
@@ -25,6 +26,7 @@ interface MusicPlayerContextValue {
   volume: number;
   muted: boolean;
   hasError: boolean;
+  shuffle: boolean;
   playTrack: (id: string) => void;
   toggle: () => void;
   next: () => void;
@@ -32,6 +34,7 @@ interface MusicPlayerContextValue {
   seek: (seconds: number) => void;
   setVolume: (volume: number) => void;
   toggleMute: () => void;
+  toggleShuffle: () => void;
 }
 
 const MusicPlayerContext = createContext<MusicPlayerContextValue | null>(null);
@@ -40,55 +43,102 @@ const MusicPlayerContext = createContext<MusicPlayerContextValue | null>(null);
 const SAVE_EVERY_MS = 4000;
 
 /** A reload resumes the same track at roughly the same place. */
-function readStoredPosition(): { index: number; time: number } {
+function readStoredPosition(): { id: string | null; time: number } {
   try {
     const id = window.localStorage.getItem(storageKeys.playerTrack);
     const rawTime = window.localStorage.getItem(storageKeys.playerTime);
     const time = rawTime === null ? 0 : Number(rawTime);
-    const index = playlist.findIndex((track) => track.id === id);
-    // A song that is no longer listed starts from the beginning, not from the
-    // second an older playlist stopped on.
-    if (index === -1) return { index: 0, time: 0 };
-    return { index, time: Number.isFinite(time) && time > 0 ? time : 0 };
+    return {
+      id: id || null,
+      time: Number.isFinite(time) && time > 0 ? time : 0,
+    };
   } catch {
-    return { index: 0, time: 0 };
+    return { id: null, time: 0 };
   }
+}
+
+function readStoredShuffle(): boolean {
+  try {
+    return window.localStorage.getItem(storageKeys.playerShuffle) === "1";
+  } catch {
+    return false;
+  }
+}
+
+/** A random track that is not the one already playing. */
+function shuffledPick(tracks: Track[], exclude: number): string | null {
+  if (tracks.length === 0) return null;
+  if (tracks.length === 1) return tracks[0].id;
+  let index = exclude;
+  while (index === exclude) index = Math.floor(Math.random() * tracks.length);
+  return tracks[index].id;
 }
 
 export function MusicPlayerProvider({ children }: { children: ReactNode }) {
   const { settings, update } = useSettings();
+  const { uploaded } = useTracks();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const wantsPlayRef = useRef(false);
   // Read once, at mount: the saved track and the second it stopped on.
   const [boot] = useState(readStoredPosition);
   const pendingRestore = useRef(boot.time);
 
-  const [currentIndex, setCurrentIndex] = useState(boot.index);
+  const tracks = useMemo<Track[]>(() => [...playlist, ...uploaded], [uploaded]);
+
+  const [currentId, setCurrentId] = useState<string | null>(boot.id);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(boot.time);
-  const [duration, setDuration] = useState(
-    () => playlist[boot.index]?.duration ?? playlist[0]?.duration ?? 0,
-  );
+  const [shuffle, setShuffle] = useState(readStoredShuffle);
   const [muted, setMuted] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [duration, setDuration] = useState(0);
 
-  const current = playlist[currentIndex] ?? null;
+  // Any track that no longer exists — or that has not loaded yet — falls back
+  // to the first one, so the player is never pointed at nothing.
+  const foundIndex = tracks.findIndex((track) => track.id === currentId);
+  const currentIndex = foundIndex === -1 ? 0 : foundIndex;
+  const current = tracks[currentIndex] ?? null;
+
   const volume = settings.volume;
 
-  // The listeners are attached once, so they read the index through a ref.
+  // The listeners are attached once, so they read the moving parts through refs.
   const indexRef = useRef(currentIndex);
   useEffect(() => {
     indexRef.current = currentIndex;
   }, [currentIndex]);
+  const tracksRef = useRef(tracks);
+  useEffect(() => {
+    tracksRef.current = tracks;
+  }, [tracks]);
+  const shuffleRef = useRef(shuffle);
+  useEffect(() => {
+    shuffleRef.current = shuffle;
+  }, [shuffle]);
 
-  const persist = useCallback((index: number, time: number) => {
+  /** The id that follows `from` in the current order. */
+  const nextIdFrom = useCallback((from: number): string | null => {
+    const list = tracksRef.current;
+    if (list.length === 0) return null;
+    if (shuffleRef.current) return shuffledPick(list, from);
+    return list[(from + 1) % list.length].id;
+  }, []);
+
+  const persist = useCallback((id: string | null, time: number) => {
     try {
-      window.localStorage.setItem(storageKeys.playerTrack, playlist[index]?.id ?? "");
+      window.localStorage.setItem(storageKeys.playerTrack, id ?? "");
       window.localStorage.setItem(storageKeys.playerTime, String(Math.floor(time)));
     } catch {
       // Storage may be blocked; playback is unaffected.
     }
   }, []);
+
+  // A stored song that is not in the library yet (or any more) starts at the
+  // first track once the shared library has loaded.
+  useEffect(() => {
+    if (tracks.length === 0) return;
+    if (currentId && tracks.some((track) => track.id === currentId)) return;
+    setCurrentId(tracks[0].id);
+  }, [tracks, currentId]);
 
   // Attach audio element listeners once.
   useEffect(() => {
@@ -101,7 +151,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
       setProgress(audio.currentTime);
       if (Date.now() - lastSaved > SAVE_EVERY_MS) {
         lastSaved = Date.now();
-        persist(indexRef.current, audio.currentTime);
+        persist(indexRef.current >= 0 ? (tracksRef.current[indexRef.current]?.id ?? null) : null, audio.currentTime);
       }
     };
     const onMeta = () => {
@@ -119,16 +169,17 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     const onPlay = () => setIsPlaying(true);
     const onPause = () => {
       setIsPlaying(false);
-      persist(indexRef.current, audio.currentTime);
+      persist(tracksRef.current[indexRef.current]?.id ?? null, audio.currentTime);
     };
     const onError = () => {
       setHasError(true);
       setIsPlaying(false);
     };
     const onEnded = () => {
-      if (playlist.length === 0) return;
+      const id = nextIdFrom(indexRef.current);
+      if (!id) return;
       wantsPlayRef.current = true;
-      setCurrentIndex((index) => (index + 1) % playlist.length);
+      setCurrentId(id);
     };
 
     audio.addEventListener("timeupdate", onTime);
@@ -148,7 +199,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
       audio.removeEventListener("error", onError);
       audio.removeEventListener("ended", onEnded);
     };
-  }, [persist]);
+  }, [persist, nextIdFrom]);
 
   // Keep the element volume in sync with settings.
   useEffect(() => {
@@ -161,8 +212,8 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     if (audio) audio.muted = muted;
   }, [muted]);
 
-
-  // Reset transport state when the track changes.
+  // Reset transport state when the track changes — not when a signed link is
+  // refreshed under the same song.
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -174,21 +225,21 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
       wantsPlayRef.current = false;
       void audio.play().catch(() => setHasError(true));
     }
-  }, [current]);
+  }, [current?.id, current?.duration]);
 
   const playTrack = useCallback(
     (id: string) => {
-      const index = playlist.findIndex((track) => track.id === id);
+      const index = tracks.findIndex((track) => track.id === id);
       if (index === -1) return;
       const audio = audioRef.current;
       wantsPlayRef.current = true;
-      if (index === currentIndex) {
+      if (id === current?.id) {
         void audio?.play().catch(() => setHasError(true));
         return;
       }
-      setCurrentIndex(index);
+      setCurrentId(id);
     },
-    [currentIndex],
+    [tracks, current?.id],
   );
 
   const toggle = useCallback(() => {
@@ -206,14 +257,15 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
   }, [current, hasError]);
 
   const next = useCallback(() => {
-    if (playlist.length === 0) return;
+    const id = nextIdFrom(currentIndex);
+    if (!id) return;
     const audio = audioRef.current;
     wantsPlayRef.current = audio ? !audio.paused : false;
-    setCurrentIndex((index) => (index + 1) % playlist.length);
-  }, []);
+    setCurrentId(id);
+  }, [currentIndex, nextIdFrom]);
 
   const previous = useCallback(() => {
-    if (playlist.length === 0) return;
+    if (tracks.length === 0) return;
     const audio = audioRef.current;
     if (audio && audio.currentTime > 3) {
       audio.currentTime = 0;
@@ -221,8 +273,8 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
       return;
     }
     wantsPlayRef.current = audio ? !audio.paused : false;
-    setCurrentIndex((index) => (index - 1 + playlist.length) % playlist.length);
-  }, []);
+    setCurrentId(tracks[(currentIndex - 1 + tracks.length) % tracks.length].id);
+  }, [currentIndex, tracks]);
 
   const seek = useCallback((seconds: number) => {
     const audio = audioRef.current;
@@ -235,9 +287,21 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
 
   const toggleMute = useCallback(() => setMuted((current) => !current), []);
 
+  const toggleShuffle = useCallback(() => {
+    setShuffle((current) => {
+      const nextValue = !current;
+      try {
+        window.localStorage.setItem(storageKeys.playerShuffle, nextValue ? "1" : "0");
+      } catch {
+        // Device-only preference; playback does not depend on it.
+      }
+      return nextValue;
+    });
+  }, []);
+
   const value = useMemo<MusicPlayerContextValue>(
     () => ({
-      tracks: playlist,
+      tracks,
       current,
       currentIndex,
       isPlaying,
@@ -246,6 +310,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
       volume,
       muted,
       hasError,
+      shuffle,
       playTrack,
       toggle,
       next,
@@ -253,8 +318,10 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
       seek,
       setVolume,
       toggleMute,
+      toggleShuffle,
     }),
     [
+      tracks,
       current,
       currentIndex,
       isPlaying,
@@ -263,6 +330,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
       volume,
       muted,
       hasError,
+      shuffle,
       playTrack,
       toggle,
       next,
@@ -270,6 +338,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
       seek,
       setVolume,
       toggleMute,
+      toggleShuffle,
     ],
   );
 

@@ -25,6 +25,8 @@ export const storageKeys = {
   /** Where the player stopped, so a reload resumes without autoplaying. */
   playerTrack: "abt.player.track",
   playerTime: "abt.player.time",
+  /** Shuffle stays on across visits, device by device. */
+  playerShuffle: "abt.player.shuffle",
   /** Newest note this device has seen, so the bell knows what is new. */
   seenNotes: "abt.seen.notes",
   /** Newest memory this device has seen. */

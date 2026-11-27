@@ -36,10 +36,14 @@ export interface Track {
   id: string;
   title: string;
   artist: string;
-  /** Path under /public, e.g. "/assets/music/song.mp3" */
+  /** Playable URL: a public file, or a signed link for an upload. */
   src: string;
   /** Optional duration in seconds, used until metadata loads. */
   duration?: number;
+  /** True when the song was uploaded to the shared library. */
+  uploaded?: boolean;
+  /** Storage object path, kept so a removed song can be deleted too. */
+  storagePath?: string | null;
 }
 
 export type NoteKind = "daily" | "love";

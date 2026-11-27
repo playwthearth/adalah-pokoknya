@@ -14,6 +14,7 @@ import { AuthProvider } from "./hooks/useAuth";
 import { useHashRoute } from "./hooks/useHashRoute";
 import { LanguageProvider, useLanguage } from "./hooks/useLanguage";
 import { MusicPlayerProvider } from "./hooks/useMusicPlayer";
+import { TracksProvider } from "./hooks/useTracks";
 import { NotesProvider } from "./hooks/useNotes";
 import { NotificationsProvider } from "./hooks/useNotifications";
 import { SettingsProvider } from "./hooks/useSettings";
@@ -173,11 +174,13 @@ export default function App() {
       <LanguageProvider>
         <AuthProvider>
           <SettingsProvider>
-            <MusicPlayerProvider>
-              <ErrorBoundary>
-                <Experience />
-              </ErrorBoundary>
-            </MusicPlayerProvider>
+            <TracksProvider>
+              <MusicPlayerProvider>
+                <ErrorBoundary>
+                  <Experience />
+                </ErrorBoundary>
+              </MusicPlayerProvider>
+            </TracksProvider>
           </SettingsProvider>
         </AuthProvider>
       </LanguageProvider>

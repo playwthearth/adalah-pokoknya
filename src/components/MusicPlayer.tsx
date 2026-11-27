@@ -4,6 +4,7 @@ import {
   Pause,
   Play,
   SkipBack,
+  Shuffle,
   SkipForward,
   Volume1,
   VolumeX,
@@ -31,6 +32,8 @@ export function MusicPlayer() {
     seek,
     setVolume,
     toggleMute,
+    shuffle,
+    toggleShuffle,
   } = useMusicPlayer();
 
   const percent = duration > 0 ? Math.min(100, (progress / duration) * 100) : 0;
@@ -133,6 +136,20 @@ export function MusicPlayer() {
               className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line text-navy transition-colors hover:border-plum/50 hover:bg-lavender/40"
             >
               <SkipForward size={15} strokeWidth={1.5} />
+            </button>
+            <button
+              type="button"
+              onClick={toggleShuffle}
+              aria-label={t.playlist.shuffle}
+              aria-pressed={shuffle}
+              title={shuffle ? t.playlist.shuffleOn : t.playlist.shuffleOff}
+              className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition-colors ${
+                shuffle
+                  ? "border-plum bg-lavender/60 text-ink"
+                  : "border-line text-navy hover:border-plum/50 hover:bg-lavender/40"
+              }`}
+            >
+              <Shuffle size={15} strokeWidth={1.5} />
             </button>
           </div>
 

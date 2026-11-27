@@ -370,3 +370,59 @@ drop policy if exists memories_photo_delete on storage.objects;
 create policy memories_photo_delete on storage.objects
   for delete to authenticated
   using (bucket_id = 'memories' and public.is_member());
+
+-- Songs either person uploads. The row names the object in the private `music`
+-- bucket, and playback goes through a short-lived signed link.
+create table if not exists public.tracks (
+  id uuid primary key default gen_random_uuid(),
+  title text not null default '' check (char_length(title) <= 160),
+  artist text not null default '' check (char_length(artist) <= 160),
+  storage_path text not null,
+  duration_seconds integer check (duration_seconds is null or duration_seconds >= 0),
+  created_by uuid references auth.users (id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists tracks_created_at_idx on public.tracks (created_at);
+
+alter table public.tracks enable row level security;
+
+grant select, insert, delete on public.tracks to authenticated;
+
+drop policy if exists tracks_read on public.tracks;
+create policy tracks_read on public.tracks
+  for select to authenticated
+  using (public.is_member());
+
+drop policy if exists tracks_insert on public.tracks;
+create policy tracks_insert on public.tracks
+  for insert to authenticated
+  with check (public.is_member() and created_by = auth.uid());
+
+drop policy if exists tracks_delete on public.tracks;
+create policy tracks_delete on public.tracks
+  for delete to authenticated
+  using (public.is_member());
+
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('music', 'music', false, 52428800)
+on conflict (id) do update set public = false, file_size_limit = 52428800;
+
+drop policy if exists tracks_audio_read on storage.objects;
+create policy tracks_audio_read on storage.objects
+  for select to authenticated
+  using (bucket_id = 'music' and public.is_member());
+
+drop policy if exists tracks_audio_insert on storage.objects;
+create policy tracks_audio_insert on storage.objects
+  for insert to authenticated
+  with check (
+    bucket_id = 'music'
+    and public.is_member()
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists tracks_audio_delete on storage.objects;
+create policy tracks_audio_delete on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'music' and public.is_member());
