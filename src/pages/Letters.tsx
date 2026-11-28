@@ -25,7 +25,8 @@ const SEARCH_DELAY_MS = 200;
 export function Letters() {
   const { t } = useLanguage();
   const { userId } = useAuth();
-  const { added, loading, error, refresh, addLetter, editLetter, deleteLetter } = useLetters();
+  const { added, hidden, loading, error, refresh, addLetter, editLetter, deleteLetter } =
+    useLetters();
   const favorites = useFavorites();
 
   const [filter, setFilter] = useState<Filter>("all");
@@ -46,8 +47,11 @@ export function Letters() {
   // The letters kept in the repository come first; anything written in the app
   // is added to the same shelf, newest first.
   const sorted = useMemo(
-    () => [...keptLetters, ...added].sort((a, b) => b.date.localeCompare(a.date)),
-    [added],
+    () =>
+      [...keptLetters, ...added]
+        .filter((letter) => !hidden.has(letter.id))
+        .sort((a, b) => b.date.localeCompare(a.date)),
+    [added, hidden],
   );
 
   const searching = needle.length > 0;
@@ -381,9 +385,10 @@ export function Letters() {
           onNext={readingIndex >= 0 && readingIndex < reading.length - 1 ? () => step(1) : undefined}
           isFavorite={favorites.isFavorite(active.id)}
           onToggleFavorite={() => void favorites.toggle(active.id)}
-          canManage={Boolean(active.added && active.authorId === userId)}
+          canEdit={Boolean(active.added && active.authorId === userId)}
+          canDelete={!active.added || active.authorId === userId}
           onEdit={() => startEditing(active)}
-          onDelete={() => deleteLetter(active.id)}
+          onDelete={() => deleteLetter(active)}
         />
       )}
 

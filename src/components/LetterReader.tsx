@@ -18,9 +18,11 @@ interface LetterReaderProps {
   onNext?: () => void;
   isFavorite: boolean;
   onToggleFavorite: () => void;
-  /** True when the reader wrote this letter, so they may change or remove it. */
-  canManage: boolean;
-  onEdit: () => void;
+  /** True when the reader wrote this letter, so they may change its words. */
+  canEdit: boolean;
+  /** True when this letter may be taken out of the archive. */
+  canDelete: boolean;
+  onEdit?: () => void;
   onDelete: () => Promise<void>;
 }
 
@@ -40,7 +42,8 @@ export function LetterReader({
   onNext,
   isFavorite,
   onToggleFavorite,
-  canManage,
+  canEdit,
+  canDelete,
   onEdit,
   onDelete,
 }: LetterReaderProps) {
@@ -249,16 +252,18 @@ export function LetterReader({
               {t.letters.position(position.index, position.total)}
             </p>
 
-            {canManage && (
+            {(canEdit || canDelete) && (
               <div className="mt-8 flex flex-wrap items-center justify-end gap-3 border-t border-line/70 pt-5">
-                <button
-                  type="button"
-                  onClick={onEdit}
-                  className="btn-quiet inline-flex min-h-11 items-center gap-2 px-3 text-[9px] uppercase tracking-[0.14em]"
-                >
-                  <Pencil size={11} strokeWidth={1.5} aria-hidden="true" />
-                  {t.letters.edit}
-                </button>
+                {canEdit && onEdit && (
+                  <button
+                    type="button"
+                    onClick={onEdit}
+                    className="btn-quiet inline-flex min-h-11 items-center gap-2 px-3 text-[9px] uppercase tracking-[0.14em]"
+                  >
+                    <Pencil size={11} strokeWidth={1.5} aria-hidden="true" />
+                    {t.letters.edit}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => void remove()}

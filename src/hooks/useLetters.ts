@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { readDecor } from "../data/letterDecor";
 import { supabase } from "../lib/supabase";
 import type { Language, Letter, LetterCategory, LetterDecor, Localized } from "../types";
@@ -115,17 +115,21 @@ function newestFirst(current: Letter[], letter: Letter): Letter[] {
 
 export interface LettersValue {
   added: Letter[];
+  /** Ids of built-in letters taken out of the archive, for both people. */
+  hidden: Set<string>;
   loading: boolean;
   error: boolean;
   refresh: () => Promise<void>;
   addLetter: (draft: LetterDraft) => Promise<void>;
   editLetter: (id: string, draft: LetterDraft) => Promise<void>;
-  deleteLetter: (id: string) => Promise<void>;
+  deleteLetter: (letter: Letter) => Promise<void>;
 }
 
 export function useLetters(): LettersValue {
   const { userId } = useAuth();
   const [added, setAdded] = useState<Letter[]>([]);
+  const [removed, setRemoved] = useState<string[]>([]);
+  const hidden = useMemo(() => new Set(removed), [removed]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   /** Bumped by every local change and realtime event, so a slow read cannot undo one. */
@@ -145,14 +149,18 @@ export function useLetters(): LettersValue {
     }
 
     const before = changes.current;
-    const { data, error: failure } = await client
-      .from("letters")
-      .select(COLUMNS)
-      .order("letter_date", { ascending: false })
-      .limit(200);
+    const [lettersResult, hiddenResult] = await Promise.all([
+      client
+        .from("letters")
+        .select(COLUMNS)
+        .order("letter_date", { ascending: false })
+        .limit(200),
+      // Built-in letters have no row of their own; this lists the ones removed.
+      client.from("letter_hidden").select("letter_id"),
+    ]);
 
-    if (failure) {
-      console.error("[letters] load failed", failure);
+    if (lettersResult.error) {
+      console.error("[letters] load failed", lettersResult.error);
       if (!silent) {
         setError(true);
         setLoading(false);
@@ -162,7 +170,17 @@ export function useLetters(): LettersValue {
 
     if (silent && changes.current !== before) return;
 
-    const next = await withPhotos(client, (data ?? []) as LetterRow[], signed.current);
+    // A letter added or removed while this read was running stands.
+    if (hiddenResult.error) console.error("[letters] hidden load failed", hiddenResult.error);
+    if (!hiddenResult.error) {
+      setRemoved(
+        (hiddenResult.data ?? [])
+          .map((row) => (row as { letter_id: string }).letter_id)
+          .filter(Boolean),
+      );
+    }
+
+    const next = await withPhotos(client, (lettersResult.data ?? []) as LetterRow[], signed.current);
     setAdded(next);
     if (!silent) setLoading(false);
   }, []);
@@ -198,10 +216,20 @@ export function useLetters(): LettersValue {
         "postgres_changes",
         { event: "DELETE", schema: "public", table: "letters" },
         (payload) => {
-          const removed = (payload.old as { id?: string }).id;
-          if (!removed) return;
+          const gone = (payload.old as { id?: string }).id;
+          if (!gone) return;
           changes.current += 1;
-          setAdded((current) => current.filter((item) => item.id !== removed));
+          setAdded((current) => current.filter((item) => item.id !== gone));
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "letter_hidden" },
+        (payload) => {
+          const gone = (payload.new as { letter_id?: string }).letter_id;
+          if (!gone) return;
+          changes.current += 1;
+          setRemoved((current) => (current.includes(gone) ? current : [...current, gone]));
         },
       )
       .subscribe();
@@ -315,20 +343,42 @@ export function useLetters(): LettersValue {
     [added, userId, uploadPhoto],
   );
 
-  const deleteLetter = useCallback(async (id: string) => {
-    const client = supabase;
-    if (!client) throw new Error("not configured");
+  const deleteLetter = useCallback(
+    async (letter: Letter) => {
+      const client = supabase;
+      if (!client || !userId) throw new Error("not signed in");
 
-    const { error: failure } = await client.from("letters").delete().eq("id", id);
-    if (failure) throw failure;
+      // A letter written in the app is a row, and only its writer may remove it.
+      if (letter.added) {
+        // Asking for the id back makes a refused delete visible: without it
+        // PostgREST reports success while removing nothing.
+        const { data, error: failure } = await client
+          .from("letters")
+          .delete()
+          .eq("id", letter.id)
+          .select("id");
+        if (failure) throw failure;
+        if (!data || data.length === 0) throw new Error("not allowed");
 
-    changes.current += 1;
-    setAdded((current) => {
-      const removed = current.find((item) => item.id === id);
-      if (removed?.imagePath) void client.storage.from(BUCKET).remove([removed.imagePath]);
-      return current.filter((item) => item.id !== id);
-    });
-  }, []);
+        changes.current += 1;
+        setAdded((current) => current.filter((item) => item.id !== letter.id));
+        if (letter.imagePath) void client.storage.from(BUCKET).remove([letter.imagePath]);
+        return;
+      }
 
-  return { added, loading, error, refresh, addLetter, editLetter, deleteLetter };
+      // A kept letter lives in the code, so removing it is recorded instead:
+      // one row that hides it from the archive for both people, for good.
+      const { error: failure } = await client
+        .from("letter_hidden")
+        .insert({ letter_id: letter.id });
+      // Already removed on another device: the outcome is the same.
+      if (failure && failure.code !== "23505") throw failure;
+
+      changes.current += 1;
+      setRemoved((current) => (current.includes(letter.id) ? current : [...current, letter.id]));
+    },
+    [userId],
+  );
+
+  return { added, hidden, loading, error, refresh, addLetter, editLetter, deleteLetter };
 }

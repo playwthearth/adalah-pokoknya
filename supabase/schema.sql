@@ -486,6 +486,43 @@ create policy letters_delete on public.letters
   for delete to authenticated
   using (public.is_member() and created_by = auth.uid());
 
+-- The letters kept in src/data/letters.ts live in the code, so they cannot be
+-- deleted row by row. Taking one out of the archive records it here instead:
+-- one row, and the archive leaves that letter out for both people everywhere.
+create table if not exists public.letter_hidden (
+  letter_id text primary key check (char_length(letter_id) between 1 and 64),
+  hidden_by uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  hidden_at timestamptz not null default now()
+);
+
+alter table public.letter_hidden enable row level security;
+
+grant select, insert on public.letter_hidden to authenticated;
+
+drop policy if exists letter_hidden_read on public.letter_hidden;
+create policy letter_hidden_read on public.letter_hidden
+  for select to authenticated
+  using (public.is_member());
+
+drop policy if exists letter_hidden_insert on public.letter_hidden;
+create policy letter_hidden_insert on public.letter_hidden
+  for insert to authenticated
+  with check (public.is_member() and hidden_by = auth.uid());
+
+-- A removed kept letter goes quietly for the other person too.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'letter_hidden'
+  ) then
+    alter publication supabase_realtime add table public.letter_hidden;
+  end if;
+end
+$$;
+
 -- Which letters each person has marked as a favorite. This is a bookmark on
 -- the reader's own shelf, not a change to the letter itself: the row holds no
 -- copy of the letter's words, and the writer never sees or controls it.
