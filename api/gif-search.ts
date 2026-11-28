@@ -112,8 +112,14 @@ async function respond(
       // The status is kept in the log and the reply so a refused key can be
       // told apart from a network fault; neither carries the key itself.
       const detail = (await found.text().catch(() => "")).slice(0, 200);
+      // 401 and 403 are how Giphy answers a key it will not accept; anything
+      // else is Giphy itself having trouble.
+      const refusedKey = found.status === 401 || found.status === 403;
       console.error("[gif-search] giphy refused", found.status, detail);
-      return answer({ error: "upstream", upstream: found.status }, 502);
+      return answer(
+        { error: refusedKey ? "key_refused" : "upstream", upstream: found.status },
+        502,
+      );
     }
     payload = (await found.json()) as { data?: GiphyGif[] };
   } catch (failure) {

@@ -179,6 +179,8 @@ export const ja: Dict = {
     gifSearchError: "GIF検索が応答しません。リンクを貼ってください。",
     gifSearchUnavailable: "GIF検索はまだ設定されていません。リンクを貼ってください。",
     gifSearchSignedOut: "GIFを検索するには再ログインしてください。",
+    gifSearchKeyRefused:
+      "GiphyがこのサイトのAPIキーを拒否しました。プロジェクト設定のGIPHY_API_KEYを確認し、再デプロイしてください。",
     gifPoweredBy: "Powered by GIPHY",
     gifHint: "GIFや画像のhttpsリンクを貼ってください。そのサイトから直接読み込まれます。",
     gifInvalid: "httpsのリンクではありません。",

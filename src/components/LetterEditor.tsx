@@ -295,7 +295,16 @@ export function LetterEditor({ letter, onClose, onSave }: LetterEditorProps) {
         return;
       }
       if (!response.ok) {
-        setGifNote(t.letters.gifSearchError);
+        // A key Giphy will not accept is a setup problem, not a quiet network;
+        // say so instead of blaming the connection.
+        const problem = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        setGifNote(
+          problem?.error === "key_refused"
+            ? t.letters.gifSearchKeyRefused
+            : t.letters.gifSearchError,
+        );
         return;
       }
 

@@ -182,6 +182,8 @@ export const en = {
     gifSearchError: "GIF search did not answer. Paste a link instead.",
     gifSearchUnavailable: "GIF search is not set up yet — paste a link instead.",
     gifSearchSignedOut: "Sign in again to search GIFs.",
+    gifSearchKeyRefused:
+      "Giphy refused this site's API key. Check GIPHY_API_KEY in the project settings, then deploy again.",
     gifPoweredBy: "Powered by GIPHY",
     gifHint: "Paste an https link to a GIF or image. It loads straight from that site.",
     gifInvalid: "That is not an https link.",

@@ -180,6 +180,8 @@ export const id: Dict = {
     gifSearchError: "Pencarian GIF tidak menjawab. Tempel tautan saja.",
     gifSearchUnavailable: "Pencarian GIF belum disiapkan — tempel tautan saja.",
     gifSearchSignedOut: "Masuk lagi untuk mencari GIF.",
+    gifSearchKeyRefused:
+      "Giphy menolak kunci API situs ini. Periksa GIPHY_API_KEY di pengaturan proyek, lalu deploy ulang.",
     gifPoweredBy: "Didukung GIPHY",
     gifHint: "Tempel tautan https ke GIF atau gambar. Gambar dimuat langsung dari situsnya.",
     gifInvalid: "Itu bukan tautan https.",
