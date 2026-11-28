@@ -108,10 +108,17 @@ async function respond(
   let payload: { data?: GiphyGif[] };
   try {
     const found = await fetch(upstream, { headers: { accept: "application/json" } });
-    if (!found.ok) return answer({ error: "upstream" }, 502);
+    if (!found.ok) {
+      // The status is kept in the log and the reply so a refused key can be
+      // told apart from a network fault; neither carries the key itself.
+      const detail = (await found.text().catch(() => "")).slice(0, 200);
+      console.error("[gif-search] giphy refused", found.status, detail);
+      return answer({ error: "upstream", upstream: found.status }, 502);
+    }
     payload = (await found.json()) as { data?: GiphyGif[] };
-  } catch {
-    return answer({ error: "upstream" }, 502);
+  } catch (failure) {
+    console.error("[gif-search] giphy unreachable", failure);
+    return answer({ error: "unreachable" }, 502);
   }
 
   const results: GifResult[] = [];
