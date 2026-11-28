@@ -12,7 +12,22 @@ export function useMediaQuery(query: string): boolean {
     (onChange: () => void) => {
       const list = window.matchMedia(query);
       list.addEventListener("change", onChange);
-      return () => list.removeEventListener("change", onChange);
+
+      // A changed viewport does not always announce itself — a browser window
+      // that is resized programmatically, or zoomed, can cross the breakpoint
+      // with no media event — so the page's own width is watched as well.
+      let width = window.innerWidth;
+      const observer = new ResizeObserver(() => {
+        if (window.innerWidth === width) return;
+        width = window.innerWidth;
+        onChange();
+      });
+      observer.observe(document.documentElement);
+
+      return () => {
+        list.removeEventListener("change", onChange);
+        observer.disconnect();
+      };
     },
     [query],
   );
