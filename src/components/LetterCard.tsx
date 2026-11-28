@@ -1,5 +1,6 @@
 import { ArrowUpRight, Bookmark } from "lucide-react";
 import { useLanguage } from "../hooks/useLanguage";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import type { Letter } from "../types";
 import { formatDate } from "../utils/format";
 import { DecorCollage } from "./LetterDecor";
@@ -33,6 +34,9 @@ export function LetterCard({
   const excerpt = preview.length > 170 ? `${preview.slice(0, 170)}…` : preview;
   const decor = letter.decor ?? [];
   const title = letter.title[language];
+  // The decoration sits in the margin rail on a wide card and in the reading
+  // row on a narrow one; one picture, moved, rather than two drawn and hidden.
+  const wide = useMediaQuery("(min-width: 640px)");
 
   return (
     <article className="hover-lift group relative overflow-hidden border border-line/70 bg-surface transition-colors duration-500 hover:border-navy/25 hover:bg-mist focus-within:border-navy/30">
@@ -83,14 +87,14 @@ export function LetterCard({
               />
             </span>
 
-            {decor.length > 0 && (
-              <DecorCollage items={decor.slice(0, 3)} compact className="justify-end sm:hidden" />
+            {decor.length > 0 && !wide && (
+              <DecorCollage items={decor.slice(0, 3)} compact className="justify-end" />
             )}
           </div>
         </div>
 
-        {(letter.image || decor.length > 0) && (
-          <div className="hidden w-28 shrink-0 flex-col items-end gap-3 sm:flex">
+        {wide && (letter.image || decor.length > 0) && (
+          <div className="flex w-28 shrink-0 flex-col items-end gap-3">
             {letter.image && (
               <img
                 src={letter.image}
