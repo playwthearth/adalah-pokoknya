@@ -486,6 +486,40 @@ create policy letters_delete on public.letters
   for delete to authenticated
   using (public.is_member() and created_by = auth.uid());
 
+-- Which letters each person has marked as a favorite. This is a bookmark on
+-- the reader's own shelf, not a change to the letter itself: the row holds no
+-- copy of the letter's words, and the writer never sees or controls it.
+create table if not exists public.letter_favorites (
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  -- A built-in letter's id ("letter-001") or a row id from public.letters.
+  letter_id text not null check (char_length(letter_id) between 1 and 64),
+  created_at timestamptz not null default now(),
+  primary key (user_id, letter_id)
+);
+
+create index if not exists letter_favorites_user_idx on public.letter_favorites (user_id);
+
+alter table public.letter_favorites enable row level security;
+
+grant select, insert, delete on public.letter_favorites to authenticated;
+
+-- Each person reads only their own bookmarks.
+drop policy if exists letter_favorites_read on public.letter_favorites;
+create policy letter_favorites_read on public.letter_favorites
+  for select to authenticated
+  using (user_id = auth.uid());
+
+drop policy if exists letter_favorites_insert on public.letter_favorites;
+create policy letter_favorites_insert on public.letter_favorites
+  for insert to authenticated
+  with check (user_id = auth.uid() and public.is_member());
+
+-- Removing a bookmark only ever touches the reader's own row.
+drop policy if exists letter_favorites_delete on public.letter_favorites;
+create policy letter_favorites_delete on public.letter_favorites
+  for delete to authenticated
+  using (user_id = auth.uid());
+
 -- Live archive: a letter the other person writes appears without a reload.
 do $$
 begin

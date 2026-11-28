@@ -73,6 +73,7 @@ function toLetter(row: LetterRow, image: string | null): Letter {
     image,
     imagePath: row.image_path,
     decor: readDecor(row.decor),
+    language: row.language ?? "en",
   };
 }
 

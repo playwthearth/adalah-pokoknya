@@ -37,4 +37,8 @@ export const storageKeys = {
   legacySettings: "abt.settings.v1",
   /** Last moment the reader did anything, so an idle visit can sign itself out. */
   lastActive: "abt.auth.lastActive",
+  /** An unfinished letter, kept on this device until it is saved or discarded. */
+  letterDraft: "abt.letters.draft",
+  /** The envelope has opened once this visit, so it does not open again. */
+  letterEnvelope: "abt.letters.envelope",
 } as const;

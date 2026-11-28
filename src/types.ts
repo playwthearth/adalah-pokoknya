@@ -36,6 +36,11 @@ export interface Letter {
   imagePath?: string | null;
   /** Stamps, stickers and internet pieces pinned to the letter. */
   decor?: LetterDecor[];
+  /**
+   * The language it was written in, for letters written in the app. The words
+   * stay exactly as typed, so this is shown as a label rather than translated.
+   */
+  language?: Language;
 }
 
 /** A moment either member added to the shared archive. */
